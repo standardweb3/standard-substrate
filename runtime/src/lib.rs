@@ -9,12 +9,12 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use sp_std::prelude::*;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::{
-	ApplyExtrinsicResult, ModuleId, generic, create_runtime_str, impl_opaque_keys, MultiSignature,
+	ApplyExtrinsicResult, generic, create_runtime_str, impl_opaque_keys, MultiSignature,
 	transaction_validity::{TransactionValidity, TransactionSource},
 };
-use sp_runtime::traits::{
+use sp_runtime::{ModuleId, traits::{
 	BlakeTwo256, Block as BlockT, IdentityLookup, Verify, IdentifyAccount, NumberFor, Saturating,
-};
+}};
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use pallet_grandpa::{AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList};
@@ -25,7 +25,7 @@ use sp_version::NativeVersion;
 
 // A few exports that help ease life for downstream crates.
 #[cfg(any(feature = "std", test))]
-pub use sp_runtime::{BuildStorage};
+pub use sp_runtime::BuildStorage;
 pub use pallet_timestamp::Call as TimestampCall;
 pub use pallet_balances::Call as BalancesCall;
 pub use sp_runtime::{Permill, Perbill};
@@ -38,8 +38,8 @@ pub use frame_support::{
 	},
 };
 
-/// Import the template pallet.
 pub use pallet_standard_token;
+pub use pallet_standard_oracle::Call as OracleCall;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -66,9 +66,6 @@ pub type Hash = sp_core::H256;
 
 /// Digest item type.
 pub type DigestItem = generic::DigestItem<Hash>;
-
-/// Index of a digital asset on the chain.
-pub type AssetId = u32;
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
@@ -249,6 +246,7 @@ impl pallet_balances::Trait for Runtime {
 
 parameter_types! {
 	pub const TransactionByteFee: Balance = 1;
+	pub const AssetModuleId: ModuleId = ModuleId(*b"stnd/ast");
 }
 
 impl pallet_transaction_payment::Trait for Runtime {
@@ -264,19 +262,30 @@ impl pallet_sudo::Trait for Runtime {
 	type Call = Call;
 }
 
-parameter_types! {
-	pub const AssetModuleId: ModuleId = ModuleId(*b"stnd/ast");
-}
-
 /// Configure the template pallet in pallets/template.
 impl pallet_standard_token::Trait for Runtime {
-	type Currency = Balances;
-	type WeightInfo = pallet_standard_token::weights::SubstrateWeight<Runtime>;
 	type ModuleId = AssetModuleId;
 	type Event = Event;
 	type AssetId = u32;
+	type WeightInfo = pallet_standard_token::weights::SubstrateWeight<Runtime>;	
 }
 
+impl pallet_standard_market::Trait for Runtime {
+	type Event = Event;
+}
+
+impl pallet_standard_oracle::Trait for Runtime {
+	type Event = Event;
+}
+
+parameter_types! {
+	pub const VaultModuleId: ModuleId = ModuleId(*b"stnd/vlt");
+}
+
+impl pallet_standard_vault::Trait for Runtime {
+	type Event = Event;
+	type VaultModuleId = VaultModuleId;
+}
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
@@ -295,6 +304,9 @@ construct_runtime!(
 		Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
 		// Include the custom logic from the template pallet in the runtime.
 		Token: pallet_standard_token::{Module, Call, Storage, Event<T>, Config<T>},
+		Market: pallet_standard_market::{Module, Call, Storage, Event<T>},
+		Oracle: pallet_standard_oracle::{Module, Call, Storage, Event<T>, Config<T>},
+		Vault: pallet_standard_vault::{Module, Call, Storage, Event<T>},
 	}
 );
 

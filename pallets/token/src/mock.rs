@@ -8,7 +8,6 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup}, testing::Header, Perbill,
 };
 use frame_system as system;
-use pallet_balances as balances;
 
 impl_outer_origin! {
 	pub enum Origin for Test {}
@@ -67,19 +66,17 @@ impl pallet_balances::Trait for Test {
     type ExistentialDeposit = ExistentialDeposit;
     type AccountStore = System;
     type WeightInfo = ();
-    type MaxLocks = ();
+	type MaxLocks = ();
 }
 
 impl Trait for Test {
 	type ModuleId = AssetModuleId;
-	type Currency = Balances;
 	type Event = ();
 	type AssetId = u64;
 	type WeightInfo = ();
 }
 
 pub type System  = system::Module<Test>;
-pub type Balances = balances::Module<Test>;
 pub type Token = Module<Test>;
 
 // Build genesis storage according to the mock runtime.

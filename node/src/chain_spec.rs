@@ -1,7 +1,7 @@
 use sp_core::{Pair, Public, sr25519};
-use standard_runtime::{
-	AccountId, AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig,
-	SudoConfig, SystemConfig, WASM_BINARY, Signature, TokenConfig
+use node_template_runtime::{
+	AccountId, AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig, TokenConfig, OracleConfig,
+	SudoConfig, SystemConfig, WASM_BINARY, Signature
 };
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_finality_grandpa::AuthorityId as GrandpaId;
@@ -15,16 +15,16 @@ use serde_json;
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig>;
 
-const SUBSWAP_PROPERTIES: &str = r#"
+const PROPERTIES: &str = r#"
 {
 	"ss58format": 7,
 	"tokenDecimals": 15,
-	"tokenSymbol": "SUNI"
+	"tokenSymbol": "STND"
 }	
 "#;
 
 
-const SUBSWAP_PROTOCOL_ID: &str = "suni";
+const PROTOCOL_ID: &str = "stnd";
 
 /// Generate a crypto pair from seed.
 pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
@@ -53,10 +53,10 @@ pub fn authority_keys_from_seed(s: &str) -> (AuraId, GrandpaId) {
 pub fn development_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let prop_map: serde_json::map::Map<std::string::String, serde_json::value::Value> =
-	serde_json::from_str(SUBSWAP_PROPERTIES).map_err(|err|format!("json err:{}",err))?;
+	serde_json::from_str(PROPERTIES).map_err(|err|format!("json err:{}",err))?;
 	Ok(ChainSpec::from_genesis(
 		// Name
-		"Subswap Development",
+		"Standard Development",
 		// ID
 		"dev",
 		ChainType::Development,
@@ -82,7 +82,7 @@ pub fn development_config() -> Result<ChainSpec, String> {
 		// Telemetry
 		None,
 		// Protocol ID
-		Some(SUBSWAP_PROTOCOL_ID),
+		Some(PROTOCOL_ID),
 		// Properties
 		Some(prop_map),
 		// Extensions
@@ -93,12 +93,12 @@ pub fn development_config() -> Result<ChainSpec, String> {
 pub fn local_testnet_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let prop_map: serde_json::map::Map<std::string::String, serde_json::value::Value> =
-	serde_json::from_str(SUBSWAP_PROPERTIES).map_err(|err|format!("json err:{}",err))?;
+	serde_json::from_str(PROPERTIES).map_err(|err|format!("json err:{}",err))?;
 	Ok(ChainSpec::from_genesis(
 		// Name
-		"Subswap Testnet",
+		"Standard Testnet",
 		// ID
-		"subswap_testnet",
+		"standard_testnet",
 		ChainType::Local,
 		move || testnet_genesis(
 			wasm_binary,
@@ -131,7 +131,7 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 		// Telemetry
 		None,
 		// Protocol ID
-		Some(SUBSWAP_PROTOCOL_ID),
+		Some(PROTOCOL_ID),
 		// Properties
 		Some(prop_map),
 		// Extensions
@@ -168,7 +168,10 @@ fn testnet_genesis(
 			key: root_key,
 		}),
 		pallet_standard_token: Some(TokenConfig{
-			preregistered: [1, 1_000_000_000_000_000_000_000_000].to_vec()  // [(asset id 0 with native token that ignores balance), (asset id 1 with MTR total supply)]
+			preregistered: [1u128, 1_000_000_000_000_000_000_000_000u128].to_vec()  // [(asset id 0 with native token that ignores balance), (asset id 1 with MTR total supply)]
+		}),
+		pallet_standard_oracle: Some(OracleConfig{
+			oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec()
 		})
 	}
 }

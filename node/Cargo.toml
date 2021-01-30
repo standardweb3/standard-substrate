@@ -1,10 +1,10 @@
 [package]
-authors = ['Hyungsuk Kang <hskang9@gmail.com>']
+authors = ['Substrate DevHub <https://github.com/substrate-developer-hub>']
 build = 'build.rs'
-description = 'Standard protocol client node'
+description = 'A fresh FRAME-based Substrate node, ready for hacking.'
 edition = '2018'
-homepage = 'https://standardprotocol.org'
-license = 'Apache-2.0'
+homepage = 'https://substrate.dev'
+license = 'Unlicense'
 name = 'standard-node'
 repository = 'https://github.com/substrate-developer-hub/substrate-node-template/'
 version = '2.0.0'
@@ -25,7 +25,7 @@ structopt = '0.3.8'
 serde_json = { version = "1.0.57"}
 
 # local dependencies
-standard-runtime = { path = '../runtime', version = '2.0.0' }
+node-template-runtime = { path = '../runtime', version = '2.0.0' }
 
 # Substrate dependencies
 frame-benchmarking = '2.0.0'
@@ -56,4 +56,4 @@ substrate-frame-rpc-system = '2.0.0'
 
 [features]
 default = []
-runtime-benchmarks = ['standard-runtime/runtime-benchmarks']
+runtime-benchmarks = ['node-template-runtime/runtime-benchmarks']

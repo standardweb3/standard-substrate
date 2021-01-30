@@ -15,13 +15,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! # Subswap Module
+//! # Standard Market Module
 //!
 //! An automated market maker module extended from the [asset](../asset/Module.html) module.
 //!
 //! ## Overview
 //!
-//! The Subswap module provides functionality for management and exchange of fungible asset classes
+//! The Standard Market module provides functionality for management and exchange of fungible asset classes
 //! with a fixed supply, including:
 //!
 //! * Liquidity provider token issuance
@@ -42,7 +42,7 @@
 //!
 //! ### Goals
 //!
-//! The Subswap system in Substrate is designed to make the following possible:
+//! The Standard system in Substrate is designed to make the following possible:
 //!
 //! * Reward liquidity providers with tokens to receive exchanges fees which is proportional to their contribution.
 //! * Swap assets with automated market price equation(e.g. X*Y=K or curve function from Kyber, dodoex, etc).
@@ -52,12 +52,6 @@
 //!
 //! ### Dispatchable Functions
 //!
-//! * `issue` - Issues the total supply of a new fungible asset to the account of the caller of the function.
-//! * `mint` - Mints the asset to the account in the argument with the requested amount from the caller. Caller must be the creator of the asset.
-//! * `burn` - Burns the asset from the caller by the amount in the argument 
-//! * `transfer` - Transfers an `amount` of units of fungible asset `id` from the balance of
-//! the function caller's account (`origin`) to a `target` account.
-//! * `destroy` - Destroys the entire holding of a fungible asset `id` associated with the account
 //! that called the function.
 //! * `mint_liquidity` - Mints liquidity token by adding deposits to a certain pair for exchange. The assets must have different identifier.
 //! * `burn_liquidity` - Burns liquidity token for a pair and receives each asset in the pair.  
@@ -67,25 +61,12 @@
 //!
 //! ### Public Functions
 //!
-//! * `balance` - Get the balance of the account with the asset id
-//! * `total_supply` - Get the total supply of an asset.
-//! * `mint_from_system` - Mint asset from the system to an account, increasing total supply.
-//! * `burn_from_system` - Burn asset from the system to an account, decreasing total supply.
-//! * `transfer_from_system - Transfer asset from an account to the system with no change in total supply.
-//! * `transfer_to_system - Transfer asset from system to the user with no chang in total supply.
-//! * `issue_from_system` - Issue asset from system 
-//! * `swap` - Swap one asset to another asset
 //! 
 //! Please refer to the [`Module`](./struct.Module.html) struct for details on publicly available functions.
 //!
 //! ## Usage
 //!
 //! The following example shows how to use the Subswap module in your runtime by exposing public functions to:
-//!
-//! * Issue and manage a new fungible asset.
-//! * Query the fungible asset holding balance of an account.
-//! * Query the total supply of a fungible asset that has been issued.
-//! * Manage existing asset for other business logic
 //!
 //! ### Prerequisites
 //!
@@ -94,41 +75,15 @@
 //! ### Simple Code Snippet
 //!
 //! ```rust,ignore
-//! use subswap;
-//! use pallet_balances as balances;
-//! use frame_support::{decl_module, dispatch, ensure};
-//! use frame_system::ensure_signed;
-//!
-//! pub trait Trait: subswap::Trait + balances::Trait {
-//! 
-//!  }
-//!
-//! decl_module! {
-//! 	pub struct Module<T: Trait> for enum Call where origin: T::Origin {
-//! 		pub fn trade(origin, token0: <T as Trait>::AssetId, amount0: <T as balances::Trait>::Balance, token1: <T as Trait>::AssetId) -> dispatch::DispatchResult {
-//! 			let sender = ensure_signed(origin).map_err(|e| e.as_str())?;
-//!
-//!             let amount_out = subswap::Module<T>::swap(&token0, &amount0, &token1); 
-//! 			
-//! 			Self::deposit_event(RawEvent::Trade(token0, amount0, token1, amount_out));
-//! 			Ok(())
-//! 		}
-//! 	}
-//! }
 //! ```
 //!
 //! ## Assumptions
 //!
-//! Below are assumptions that must be held when using this module.  If any of
-//! them are violated, the behavior of this module is undefined.
-//!
-//! * The total count of assets should be less than
-//!   `Trait::AssetId::max_value()`.
 //!
 //! ## Related Modules
 //!
 //! * [`System`](../frame_system/index.html)
-//! * [`Support`](../frame_support/index.html)
+//! * [`StandardToken`](../token/index.html)
 
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -137,24 +92,19 @@ use frame_support::{Parameter, decl_module, decl_event, decl_storage, decl_error
 use sp_runtime::traits::{AtLeast32Bit, Zero, StaticLookup};
 use frame_system::ensure_signed;
 use sp_runtime::traits::One;
-use pallet_balancess;
+use pallet_balances as balances;
+use pallet_standard_token as token;
 use sp_core::U256;
-use pallet_timestamp as timestamp;
 use sp_runtime::{FixedU128, FixedPointNumber, SaturatedConversion, traits::{UniqueSaturatedInto, UniqueSaturatedFrom}};
 use sp_runtime::traits::{CheckedMul, CheckedAdd, CheckedDiv, CheckedSub};
 use crate::sp_api_hidden_includes_decl_storage::hidden_include::traits::Get;
 mod math;
 
+
 /// The module configuration trait.
-pub trait Trait: frame_system::Trait + pallet_balancess::Trait + timestamp::Trait {
+pub trait Trait: frame_system::Trait + token::Trait {
 	/// The overarching event type.
 	type Event: From<Event<Self>> + Into<<Self as frame_system::Trait>::Event>;
-
-	/// The units in which we record pallet_balancess.
-///	type Balance: Member + Parameter + AtLeast32BitUnsigned + Default + Copy;
-
-	/// The arithmetic type of asset identifier.
-	type AssetId: Parameter + AtLeast32Bit + Default + Copy;
 }
 
 decl_module! {
@@ -162,154 +112,24 @@ decl_module! {
 		type Error = Error<T>;
 
 		fn deposit_event() = default;
-		/// Issue a new class of fungible assets. There are, and will only ever be, `total`
-		/// such assets and they'll all belong to the `origin` initially. It will have an
-		/// identifier `AssetId` instance: this will be specified in the `Issued` event.
-		///
-		/// # <weight>
-		/// - `O(1)`
-		/// - 1 storage mutation (codec `O(1)`).
-		/// - 2 storage writes (condec `O(1)`).
-		/// - 1 event.
-		/// # </weight>
-		#[weight = 0]
-		fn issue(origin, #[compact] total: T::Balance) {
-			let origin = ensure_signed(origin)?;
-			// save 0 for native currency
-			let mut id = Self::next_asset_id();
-			if id == Zero::zero() {
-				id += One::one();
-			}
-			<NextAssetId<T>>::mutate(|id| {
-                if *id == Zero::zero() {
-                    *id += One::one();
-                }
-                *id += One::one();
-            });
-
-			<pallet_balancess<T>>::insert((id, &origin), total);
-			<TotalSupply<T>>::insert(id, total);
-			<Creator<T>>::insert(id, &origin);
-
-			Self::deposit_event(RawEvent::Issued(id, origin, total));
-		}
-
-		/// Mint any assets of `id` owned by `origin`.
-        ///
-        /// # <weight>
-        /// - `O(1)`
-        /// - 1 storage mutation (codec `O(1)`).
-        /// - 1 storage deletion (codec `O(1)`).
-        /// - 1 event.
-        /// # </weight>
-        #[weight = 0]
-        fn mint(origin,
-             #[compact] id: <T as Trait>::AssetId,
-            target: <T::Lookup as StaticLookup>::Source,
-            #[compact] amount: <T as pallet_balancess::Trait>::Balance
-        ){
-            let origin = ensure_signed(origin)?;
-            let target = T::Lookup::lookup(target)?;
-            let creator = <Creator<T>>::get(id);
-            ensure!(origin == creator, Error::<T>::NotTheCreator);
-            ensure!(!amount.is_zero(), Error::<T>::AmountZero);
-
-            Self::deposit_event(RawEvent::Minted(id, target.clone(), amount));
-            <pallet_balancess<T>>::mutate((id, target), |balance| *balance += amount);
-        }
-
-
-        /// Burn any assets of `id` owned by `origin`.
-        ///
-        /// # <weight>
-        /// - `O(1)`
-        /// - 1 storage mutation (codec `O(1)`).
-        /// - 1 storage deletion (codec `O(1)`).
-        /// - 1 event.
-        /// # </weight>
-        #[weight = 0]
-        fn burn(origin,
-            #[compact] id: <T as Trait>::AssetId,
-           target: <T::Lookup as StaticLookup>::Source,
-           #[compact] amount: <T as balances::Trait>::Balance
-       ){
-           let origin = ensure_signed(origin)?;
-           let origin_account = (id, origin.clone());
-           let origin_balance = <Balances<T>>::get(&origin_account);
-           ensure!(!amount.is_zero(), Error::<T>::AmountZero);
-           ensure!(origin_balance >= amount, Error::<T>::BalanceLow);
-
-           Self::deposit_event(RawEvent::Burned(id, origin, amount));
-           <Balances<T>>::insert(origin_account, origin_balance - amount);
-       }
-
-		/// Move some assets from one holder to another.
-		///
-		/// # <weight>
-		/// - `O(1)`
-		/// - 1 static lookup
-		/// - 2 storage mutations (codec `O(1)`).
-		/// - 1 event.
-		/// # </weight>
-		#[weight = 0]
-		fn transfer(origin,
-			#[compact] id: <T as Trait>::AssetId,
-			target: <T::Lookup as StaticLookup>::Source,
-			#[compact] amount: T::Balance
-		) {
-			let origin = ensure_signed(origin)?;
-			let origin_account = (id, origin.clone());
-			let origin_balance = <Balances<T>>::get(&origin_account);
-			let target = T::Lookup::lookup(target)?;
-			ensure!(!amount.is_zero(), Error::<T>::AmountZero);
-			ensure!(origin_balance >= amount, Error::<T>::BalanceLow);
-
-			Self::deposit_event(RawEvent::Transferred(id, origin, target.clone(), amount));
-			<Balances<T>>::insert(origin_account, origin_balance - amount);
-			<Balances<T>>::mutate((id, target), |balance| *balance += amount);
-		}
-
-		/// Destroy any assets of `id` owned by `origin`.
-		///
-		/// # <weight>
-		/// - `O(1)`
-		/// - 1 storage mutation (codec `O(1)`).
-		/// - 1 storage deletion (codec `O(1)`).
-		/// - 1 event.
-		/// # </weight>
-		#[weight = 0]
-		fn destroy(origin, #[compact] id: <T as Trait>::AssetId) {
-			let origin = ensure_signed(origin)?;
-			let balance = <Balances<T>>::take((id, &origin));
-			ensure!(!balance.is_zero(), Error::<T>::BalanceZero);
-
-			<TotalSupply<T>>::mutate(id, |total_supply| *total_supply -= balance);
-			Self::deposit_event(RawEvent::Destroyed(id, origin, balance));
-		}
-
-
-
-		// Market Module functions
-		// TODO: Separate this functions as separate module and share same primitives
-		
 		
 		// Mint liquidity by adding a liquidity in a pair
         #[weight = 10_000 + T::DbWeight::get().reads_writes(1,1)]
-        pub fn mint_liquidity(origin, token0: <T as Trait>::AssetId, amount0: <T as pallet_balances::Trait>::Balance, token1: <T as Trait>::AssetId, amount1: <T as pallet_balances::Trait>::Balance) -> dispatch::DispatchResult {
-            let minimum_liquidity = <T as pallet_balances::Trait>::Balance::from(1);
+        pub fn mint_liquidity(origin, token0: T::AssetId, amount0: <T as balances::Trait>::Balance, token1: T::AssetId, amount1: <T as balances::Trait>::Balance) -> dispatch::DispatchResult {
+            let minimum_liquidity = <T as balances::Trait>::Balance::from(1);
             let sender = ensure_signed(origin)?;
             ensure!(token0 != token1, Error::<T>::IdenticalIdentifier);
             // Burn assets from user to deposit to reserves
-            Module::<T>::transfer_to_system(&token0, &sender, &amount0)?;
-            Module::<T>::transfer_to_system(&token1, &sender, &amount1)?;
+            token::Module::<T>::transfer_to_system(&token0, &sender, &amount0)?;
+            token::Module::<T>::transfer_to_system(&token1, &sender, &amount1)?;
             match Pairs::<T>::get((token0.clone(), token1.clone())) {
                 // create pair if lpt does not exist
                 None => {
-                    let mut lptoken_amount: <T as pallet_balances::Trait>::Balance = math::sqrt::<T>(amount0 * amount1);
+                    let mut lptoken_amount: <T as balances::Trait>::Balance = math::sqrt::<T>(amount0 * amount1);
                     lptoken_amount = lptoken_amount.checked_sub(&minimum_liquidity).expect("Integer overflow");
                     // Issue LPtoken
-                    Module::<T>::issue_from_system(Zero::zero())?;
-                    let mut lptoken_id: <T as Trait>::AssetId = NextAssetId::<T>::get();
+                    token::Module::<T>::issue_from_system(Zero::zero())?;
+                    let mut lptoken_id: T::AssetId = token::NextAssetId::<T>::get();
                     lptoken_id -= One::one();
                     // Deposit assets to the reserve
                     Self::_set_reserves(&token0, &token1, &amount0, &amount1, &lptoken_id);
@@ -317,14 +137,19 @@ decl_module! {
                     Self::_set_pair(&token0, &token1, &lptoken_id);
                     Self::_set_rewards(&token0, &token1, &lptoken_id);
                     // Mint LPtoken to the sender
-                    Module::<T>::mint_from_system(&lptoken_id, &sender, &lptoken_amount)?;
+                    token::Module::<T>::mint_from_system(&lptoken_id, &sender, &lptoken_amount)?;
                     Self::deposit_event(RawEvent::CreatePair(token0, token1, lptoken_id));
                     Ok(())
                 },
-                // when lpt exists and total supply is superset of 0
-                Some(lpt) if Module::<T>::total_supply(lpt) > Zero::zero() => {
-                    let total_supply = Module::<T>::total_supply(lpt);
+                // when lpt exists and total supply is bigger than 0
+                Some(lpt) if token::Module::<T>::total_supply(lpt) > Zero::zero() => {
+                    let total_supply = token::Module::<T>::total_supply(lpt);
                     let mut reserves = Self::reserves(lpt);
+                    if token0 > token1 {
+                        ensure!(math::absdiff::<T>(reserves.0/reserves.1 * amount0, amount1) < amount0.checked_div(&<T as balances::Trait>::Balance::from(1000)).expect("Divide by zero error"), Error::<T>::K);
+                    } else {
+                        ensure!(math::absdiff::<T>(reserves.0/reserves.1 * amount1, amount0) < amount0.checked_div(&<T as balances::Trait>::Balance::from(1000)).expect("Divide by zero error"), Error::<T>::K);
+                    }
                     let left = amount0.checked_mul(&total_supply).expect("Multiplicaiton overflow").checked_div(&reserves.0).expect("Divide by zero error");
                     let right = amount1.checked_mul(&total_supply).expect("Multiplicaiton overflow").checked_div(&reserves.1).expect("Divide by zero error");
                     let lptoken_amount = math::min::<T>(left, right);
@@ -333,12 +158,12 @@ decl_module! {
                     reserves.1 += amount1;
                     Self::_set_reserves(&token0, &token1, &reserves.0, &reserves.1, &lpt);
                     // Mint LPtoken to the sender
-                    Module::<T>::mint_from_system(&lpt, &sender, &lptoken_amount)?;
+                    token::Module::<T>::mint_from_system(&lpt, &sender, &lptoken_amount)?;
                     Self::deposit_event(RawEvent::MintedLiquidity(token0, token1, lpt));
                     //Self::_update(&lpt)?;
                     Ok(())
                 },
-                Some(lpt) if Module::<T>::total_supply(lpt) < <T as pallet_balances::Trait>::Balance::from(0) => {
+                Some(lpt) if token::Module::<T>::total_supply(lpt) < <T as balances::Trait>::Balance::from(0) => {
                     Err(Error::<T>::InsufficientLiquidityMinted)?
                 },
                 Some(_) => Err(Error::<T>::NoneValue)?,
@@ -346,11 +171,11 @@ decl_module! {
 		}
 		
 		#[weight = 10_000 + T::DbWeight::get().reads_writes(1,1)]
-        pub fn burn_liquidity(origin, lpt: <T as Trait>::AssetId, amount: <T as pallet_balances::Trait>::Balance) -> dispatch::DispatchResult{
+        pub fn burn_liquidity(origin, lpt: T::AssetId, amount: <T as balances::Trait>::Balance) -> dispatch::DispatchResult{
             let sender = ensure_signed(origin)?;
             let mut reserves = Self::reserves(lpt);
             let tokens = Self::reward(lpt);
-            let total_supply = Module::<T>::total_supply(lpt);
+            let total_supply = token::Module::<T>::total_supply(lpt);
 
             // Calculate rewards for providing liquidity with pro-rata distribution
             let reward0 = amount.checked_mul(&reserves.0).expect("Multiplicaiton overflow").checked_div(&total_supply).expect("Divide by zero error");
@@ -360,9 +185,9 @@ decl_module! {
             ensure!(reward0 > Zero::zero() && reward1 > Zero::zero(), Error::<T>::InsufficientLiquidityBurned);
 
             // Distribute reward to the sender
-            Module::<T>::burn_from_system(&lpt, &sender, &amount)?;
-            Module::<T>::transfer_from_system(&tokens.0, &sender, &reward0)?;
-            Module::<T>::transfer_from_system(&tokens.1, &sender, &reward1)?;
+            token::Module::<T>::burn_from_system(&lpt, &sender, &amount)?;
+            token::Module::<T>::transfer_from_system(&tokens.0, &sender, &reward0)?;
+            token::Module::<T>::transfer_from_system(&tokens.1, &sender, &reward1)?;
 
             // Update reserve when the balance is set
             reserves.0 -= reward0;
@@ -376,7 +201,7 @@ decl_module! {
 		}
 		
 		#[weight = 10_000 + T::DbWeight::get().reads_writes(1,1)]
-        pub fn swap(origin, from: <T as Trait>::AssetId, amount_in: <T as pallet_balances::Trait>::Balance, to: <T as Trait>::AssetId) -> dispatch::DispatchResult {
+        pub fn swap(origin, from: T::AssetId, amount_in: <T as balances::Trait>::Balance, to: T::AssetId) -> dispatch::DispatchResult {
             let sender = ensure_signed(origin)?;
             ensure!(amount_in > Zero::zero(), Error::<T>::InsufficientAmount);
             // Find pair
@@ -391,9 +216,9 @@ decl_module! {
             // get amount out
             let amount_out = Self::_get_amount_out(&amount_in, &reserve_in, &reserve_out);
             // transfer amount in to system
-            Module::<T>::transfer_to_system(&from, &sender, &amount_in)?;
+            token::Module::<T>::transfer_to_system(&from, &sender, &amount_in)?;
             // transfer swapped amount
-            Module::<T>::transfer_from_system(&to, &sender, &amount_out)?;
+            token::Module::<T>::transfer_from_system(&to, &sender, &amount_out)?;
             // update reserves
             reserve_in += amount_in;
             reserve_out -= amount_out;
@@ -410,25 +235,10 @@ decl_module! {
 
 decl_event! {
 	pub enum Event<T> where
-		<T as frame_system::Trait>::AccountId,
-		<T as pallet_balances::Trait>::Balance,
-		<T as Trait>::AssetId,
+		<T as balances::Trait>::Balance,
+		<T as pallet_standard_token::Trait>::AssetId,
 	{
-        /// Some assets were issued. \[asset_id, owner, total_supply\]
-        Issued(AssetId, AccountId, Balance),
-        /// Some assets were issued by the system(e.g. lpt, pool tokens) \[asset_id, total_supply]
-        IssuedBySystem(AssetId, Balance),
-        /// Some assets were transferred. \[asset_id, from, to, amount\]
-        Transferred(AssetId, AccountId, AccountId, Balance),
-        TransferredFromSystem(AssetId, AccountId, Balance),
-        TransferredToSystem(AssetId, AccountId, Balance),
-        /// Some assets were minted. \[asset_id, owner, balance]
-        Minted(AssetId, AccountId, Balance),
-        /// Some assets were burned. \[asset_id, owner, balance]
-        Burned(AssetId, AccountId, Balance),
-        /// Some assets were destroyed. \[asset_id, owner, balance\]
-		Destroyed(AssetId, AccountId, Balance),
-		/// Pair between two assets is created. \[token0, token1, lptoken]
+        /// Pair between two assets is created. \[token0, token1, lptoken]
 		CreatePair(AssetId, AssetId, AssetId),
 		/// An asset is swapped to another asset. \[token0, amount_in, token1, amount_out]
 		Swap(AssetId, Balance, AssetId, Balance),
@@ -477,6 +287,7 @@ decl_error! {
 		InsufficientAmount,
 		/// Insufficiient liquidity for swap
         InsufficientLiquidity,
+        /// The ratio does not match from previous K
         K,
 
 	}
@@ -484,153 +295,26 @@ decl_error! {
 
 decl_storage! {
 	trait Store for Module<T: Trait> as Assets {
-		/// The number of units of assets held by any given account.
-		Balances: map hasher(blake2_128_concat) (<T as Trait>::AssetId, T::AccountId) => T::Balance;
-		/// The next asset identifier up for grabs.
-		pub NextAssetId get(fn next_asset_id): <T as Trait>::AssetId;
-		/// The total unit supply of an asset.
-		///
-		/// TWOX-NOTE: `AssetId` is trusted, so this is safe.
-		TotalSupply: map hasher(twox_64_concat) <T as Trait>::AssetId => T::Balance;
-		Creator: map hasher(blake2_128_concat) <T as Trait>::AssetId => T::AccountId;
-
 		/// Market storage
-		/// TODO: decouple this with separate module with defi primitive
-		pub LastBlockTimestamp get(fn last_block_timestamp): T::Moment;
+		//pub LastBlockTimestamp get(fn last_block_timestamp): T::Moment;
         // Accumulated price data for each pair. key is lptoken identifier
-        pub LastAccumulativePrice get(fn last_cumulative_price): map hasher(blake2_128_concat) <T as Trait>::AssetId => (FixedU128, FixedU128);
-        pub Rewards get(fn reward): map hasher(blake2_128_concat) <T as Trait>::AssetId => (<T as Trait>::AssetId, <T as Trait>::AssetId);
-        pub Reserves get(fn reserves): map hasher(blake2_128_concat) <T as Trait>::AssetId => (<T as pallet_balances::Trait>::Balance, <T as pallet_balances::Trait>::Balance);
-        pub Pairs get(fn pair): map hasher(blake2_128_concat) (<T as Trait>::AssetId, <T as Trait>::AssetId) => Option<<T as Trait>::AssetId>;
+        pub LastAccumulativePrice get(fn last_cumulative_price): map hasher(blake2_128_concat) T::AssetId => (FixedU128, FixedU128);
+        pub Rewards get(fn reward): map hasher(blake2_128_concat) T::AssetId => (T::AssetId, T::AssetId);
+        pub Reserves get(fn reserves): map hasher(blake2_128_concat) T::AssetId => (<T as balances::Trait>::Balance, <T as balances::Trait>::Balance);
+        pub Pairs get(fn pair): map hasher(blake2_128_concat) (T::AssetId, T::AssetId) => Option<T::AssetId>;
 	}
 }
 
 // The main implementation block for the module.
 impl<T: Trait> Module<T> {
-	// Module account id
-	pub fn account_id() -> <T as frame_system::Trait>::AccountId {
-		T::ModuleId::get().into_account()
-	}
-	// Public immutables
-
-	/// Get the asset `id` balance of `who`.
-	pub fn balance(id: <T as Trait>::AssetId, who: <T as frame_system::Trait>::AccountId) -> <T as pallet_balances::Trait>::Balance {
-		<Balances<T>>::get((id, who))
-    }
-    
- 
-
-	/// Get the total supply of an asset `id`.
-	pub fn total_supply(id: <T as Trait>::AssetId) -> T::Balance {
-		<TotalSupply<T>>::get(id)
-	}
-
-	pub fn mint_from_system(
-        id: &<T as Trait>::AssetId,
-        target: &<T as frame_system::Trait>::AccountId,
-        amount: &<T as pallet_balances::Trait>::Balance,
-    ) -> dispatch::DispatchResult {
-        ensure!(!amount.is_zero(), Error::<T>::AmountZero);
-        Self::deposit_event(RawEvent::Minted(*id, target.clone(), *amount));
-        if *id == Zero::zero() {
-            let new_free = pallet_balances::Module::<T>::free_balance(target) + *amount;
-            pallet_balances::Module::<T>::mutate_account(target, |account| {
-                account.free = new_free;
-
-                account.free
-            });
-        } else {
-            <Balances<T>>::mutate((*id, target.clone()), |balance| *balance += *amount);
-            <TotalSupply<T>>::mutate(*id, |supply| *supply += *amount);
-        }
-        Ok(())
-    }
-
-    pub fn burn_from_system(
-        id: &<T as Trait>::AssetId,
-        target: &T::AccountId,
-        amount: &T::Balance,
-    ) -> dispatch::DispatchResult {
-        ensure!(!amount.is_zero(), Error::<T>::AmountZero);
-        Self::deposit_event(RawEvent::Burned(*id, target.clone(), *amount));
-        if *id == Zero::zero() {
-            let new_free = pallet_balances::Module::<T>::free_balance(target) - *amount;
-            let _free = pallet_balances::Module::<T>::mutate_account(target, |account| {
-                account.free = new_free;
-
-                account.free
-            });
-        } else {
-            <Balances<T>>::mutate((*id, target.clone()), |balance| *balance -= *amount);
-            <TotalSupply<T>>::mutate(*id, |supply| *supply -= *amount);
-        }
-        Ok(())
-    }
-
-    pub fn transfer_from_system(
-        id: &<T as Trait>::AssetId,
-        target: &T::AccountId,
-        amount: &T::Balance,
-    ) -> dispatch::DispatchResult {
-        ensure!(!amount.is_zero(), Error::<T>::AmountZero);
-        Self::deposit_event(RawEvent::TransferredFromSystem(*id, target.clone(), *amount));
-        if *id == Zero::zero() {
-            let new_free = pallet_balances::Module::<T>::free_balance(target) + *amount;
-            let _free = pallet_balances::Module::<T>::mutate_account(target, |account| {
-                account.free = new_free;
-
-                account.free
-            });
-        } else {
-            <Balances<T>>::mutate((*id, target.clone()), |balance| *balance += *amount);
-        }
-        Ok(())
-    }
-
-    pub fn transfer_to_system(
-        id: &<T as Trait>::AssetId,
-        target: &T::AccountId,
-        amount: &T::Balance,
-    ) -> dispatch::DispatchResult {
-        ensure!(!amount.is_zero(), Error::<T>::AmountZero);
-        Self::deposit_event(RawEvent::TransferredToSystem(*id, target.clone(), *amount));
-        if *id == Zero::zero() {
-            let new_free = pallet_balances::Module::<T>::free_balance(target) - *amount;
-            let _free = pallet_balances::Module::<T>::mutate_account(target, |account| {
-                account.free = new_free;
-
-                account.free
-            });
-        } else {
-            <Balances<T>>::mutate((*id, target.clone()), |balance| *balance -= *amount);
-        }
-        Ok(())
-    }
-
-    pub fn issue_from_system(total: T::Balance) -> dispatch::DispatchResult {
-        let id = Self::next_asset_id();
-        <NextAssetId<T>>::mutate(|id| {
-            if *id == Zero::zero() {
-                *id += One::one();
-            }
-            *id += One::one();
-        });
-        <TotalSupply<T>>::insert(id, total);
-
-        Self::deposit_event(RawEvent::IssuedBySystem(id, total));
-        Ok(())
-	}
 	
-
-
 	// Market methods
-	// TODO: separate these functions into a new module and share primitives with this
-	fn _set_reserves(
-        token0: &<T as Trait>::AssetId,
-        token1: &<T as Trait>::AssetId,
-        amount0: &<T as pallet_balances::Trait>::Balance,
-        amount1: &<T as pallet_balances::Trait>::Balance,
-        lptoken: &<T as Trait>::AssetId,
+	pub fn _set_reserves(
+        token0: &T::AssetId,
+        token1: &T::AssetId,
+        amount0: &<T as balances::Trait>::Balance,
+        amount1: &<T as balances::Trait>::Balance,
+        lptoken: &T::AssetId,
     ) {
         match *token0 > *token1 {
             true => {
@@ -642,13 +326,13 @@ impl<T: Trait> Module<T> {
         }
     }
 
-    fn _set_pair(token0: &<T as Trait>::AssetId, token1: &<T as Trait>::AssetId, lptoken: &<T as Trait>::AssetId) {
+    fn _set_pair(token0: &T::AssetId, token1: &T::AssetId, lptoken: &T::AssetId) {
         <Pairs<T>>::insert((*token0, *token1), *lptoken);
         <Pairs<T>>::insert((*token1, *token0), *lptoken);
     }
     
 	fn _set_rewards(
-        token0: &<T as Trait>::AssetId, token1: &<T as Trait>::AssetId, lptoken: &<T as Trait>::AssetId
+        token0: &T::AssetId, token1: &T::AssetId, lptoken: &T::AssetId
     ) {
         match *token0 > *token1 {
             true => {
@@ -660,15 +344,15 @@ impl<T: Trait> Module<T> {
         }
     }
 
-    pub fn to_u256(value: &<T as pallet_balances::Trait>::Balance) -> U256 {
+    pub fn to_u256(value: &<T as balances::Trait>::Balance) -> U256 {
         U256::from(UniqueSaturatedInto::<u128>::unique_saturated_into(*value))
     }
 
 	pub fn _get_amount_out(
-        amount_in: &<T as pallet_balances::Trait>::Balance,
-        reserve_in: &<T as pallet_balances::Trait>::Balance,
-        reserve_out: &<T as pallet_balances::Trait>::Balance,
-    ) -> <T as pallet_balances::Trait>::Balance {
+        amount_in: &<T as balances::Trait>::Balance,
+        reserve_in: &<T as balances::Trait>::Balance,
+        reserve_out: &<T as balances::Trait>::Balance,
+    ) -> <T as balances::Trait>::Balance {
         let amount_in_256 = Self::to_u256(amount_in);
         let reserve_in_256 = Self::to_u256(reserve_in);
         let reserve_out_256 = Self::to_u256(reserve_out);
@@ -683,12 +367,12 @@ impl<T: Trait> Module<T> {
             .expect("Multiplication overflow")
             .checked_add(amount_in_with_fee)
             .expect("Overflow");
-        <T as pallet_balances::Trait>::Balance::unique_saturated_from(numerator.checked_div(denominator).expect("divided by zero").as_u128())
+        <T as balances::Trait>::Balance::unique_saturated_from(numerator.checked_div(denominator).expect("divided by zero").as_u128())
     }
-	
+	/* 
 
 	// TODO: Reimplement TWAP so that checked calculation does not lose values
-	fn _update(pair: &<T as Trait>::AssetId) -> dispatch::DispatchResult {
+	fn _update(pair: &T::AssetId) -> dispatch::DispatchResult {
         let block_timestamp = <timestamp::Module<T>>::get() % T::Moment::from(2u32.pow(32));
         let time_elapsed = block_timestamp - Self::last_block_timestamp();
         let reserves = Self::reserves(pair);
@@ -711,7 +395,7 @@ impl<T: Trait> Module<T> {
         }
         Ok(())
     }
+    */
 }
-
 
 

@@ -1,0 +1,10 @@
+/home/hskang9/standard-substrate/target/release/deps/jsonrpc_client_transports-083ed29b3910bf3f.rmeta: /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/jsonrpc-client-transports-15.1.0/src/lib.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/jsonrpc-client-transports-15.1.0/src/transports/mod.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/jsonrpc-client-transports-15.1.0/src/transports/duplex.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/jsonrpc-client-transports-15.1.0/src/transports/local.rs
+
+/home/hskang9/standard-substrate/target/release/deps/libjsonrpc_client_transports-083ed29b3910bf3f.rlib: /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/jsonrpc-client-transports-15.1.0/src/lib.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/jsonrpc-client-transports-15.1.0/src/transports/mod.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/jsonrpc-client-transports-15.1.0/src/transports/duplex.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/jsonrpc-client-transports-15.1.0/src/transports/local.rs
+
+/home/hskang9/standard-substrate/target/release/deps/jsonrpc_client_transports-083ed29b3910bf3f.d: /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/jsonrpc-client-transports-15.1.0/src/lib.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/jsonrpc-client-transports-15.1.0/src/transports/mod.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/jsonrpc-client-transports-15.1.0/src/transports/duplex.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/jsonrpc-client-transports-15.1.0/src/transports/local.rs
+
+/home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/jsonrpc-client-transports-15.1.0/src/lib.rs:
+/home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/jsonrpc-client-transports-15.1.0/src/transports/mod.rs:
+/home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/jsonrpc-client-transports-15.1.0/src/transports/duplex.rs:
+/home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/jsonrpc-client-transports-15.1.0/src/transports/local.rs:

@@ -1,0 +1,12 @@
+/home/hskang9/standard-substrate/target/release/deps/sp_trie-1f609c21a79f6492.rmeta: /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/lib.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/error.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/node_header.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/node_codec.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/storage_proof.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/trie_stream.rs
+
+/home/hskang9/standard-substrate/target/release/deps/libsp_trie-1f609c21a79f6492.rlib: /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/lib.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/error.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/node_header.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/node_codec.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/storage_proof.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/trie_stream.rs
+
+/home/hskang9/standard-substrate/target/release/deps/sp_trie-1f609c21a79f6492.d: /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/lib.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/error.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/node_header.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/node_codec.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/storage_proof.rs /home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/trie_stream.rs
+
+/home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/lib.rs:
+/home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/error.rs:
+/home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/node_header.rs:
+/home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/node_codec.rs:
+/home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/storage_proof.rs:
+/home/hskang9/.cargo/registry/src/github.com-1ecc6299db9ec823/sp-trie-2.0.1/src/trie_stream.rs:

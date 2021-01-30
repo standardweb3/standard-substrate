@@ -1,0 +1,1 @@
+{"rustc":14055002433093599048,"features":"[\"kv_unstable\", \"std\", \"value-bag\"]","target":10088282520713642473,"profile":10803726696109476711,"path":16935639378240991069,"deps":[],"local":[{"CheckDepInfo":{"dep_info":"release/.fingerprint/log-f4f9719e2140b155/dep-build-script-build-script-build"}}],"rustflags":[],"metadata":179143468214550567,"config":0}

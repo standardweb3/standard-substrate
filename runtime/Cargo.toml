@@ -3,7 +3,7 @@ authors = ['Substrate DevHub <https://github.com/substrate-developer-hub>']
 edition = '2018'
 homepage = 'https://substrate.dev'
 license = 'Unlicense'
-name = 'standard-runtime'
+name = 'node-template-runtime'
 repository = 'https://github.com/substrate-developer-hub/substrate-node-template/'
 version = '2.0.0'
 
@@ -26,6 +26,10 @@ serde = { features = ['derive'], optional = true, version = '1.0.101' }
 
 # local dependencies
 pallet-standard-token = { path = '../pallets/token', default-features = false, version = '2.0.0' }
+pallet-standard-market = { path = '../pallets/market', default_features = false, version = '2.0.0' }
+pallet-standard-oracle = { path = '../pallets/oracle', default_features = false, version = '2.0.0' }
+pallet-standard-vault = { path = '../pallets/vault', default_features = false, version = '2.0.0' }
+
 # Substrate dependencies
 frame-benchmarking = { default-features = false, optional = true, version = '2.0.0' }
 frame-executive = { default-features = false, version = '2.0.0' }

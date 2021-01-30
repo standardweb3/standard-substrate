@@ -1,0 +1,27 @@
+cargo:rerun-if-changed=src/helpers.c
+TARGET = Some("x86_64-unknown-linux-gnu")
+OPT_LEVEL = Some("3")
+HOST = Some("x86_64-unknown-linux-gnu")
+CC_x86_64-unknown-linux-gnu = None
+CC_x86_64_unknown_linux_gnu = None
+HOST_CC = None
+CC = None
+CFLAGS_x86_64-unknown-linux-gnu = None
+CFLAGS_x86_64_unknown_linux_gnu = None
+HOST_CFLAGS = None
+CFLAGS = None
+CRATE_CC_NO_DEFAULTS = None
+DEBUG = Some("false")
+CARGO_CFG_TARGET_FEATURE = Some("fxsr,sse,sse2")
+running: "cc" "-O3" "-ffunction-sections" "-fdata-sections" "-fPIC" "-m64" "-Wall" "-Wextra" "-o" "/home/hskang9/standard-substrate/target/release/build/wasmtime-runtime-162b2ba7c85145a9/out/src/helpers.o" "-c" "src/helpers.c"
+exit code: 0
+AR_x86_64-unknown-linux-gnu = None
+AR_x86_64_unknown_linux_gnu = None
+HOST_AR = None
+AR = None
+running: "ar" "cq" "/home/hskang9/standard-substrate/target/release/build/wasmtime-runtime-162b2ba7c85145a9/out/libhelpers.a" "/home/hskang9/standard-substrate/target/release/build/wasmtime-runtime-162b2ba7c85145a9/out/src/helpers.o"
+exit code: 0
+running: "ar" "s" "/home/hskang9/standard-substrate/target/release/build/wasmtime-runtime-162b2ba7c85145a9/out/libhelpers.a"
+exit code: 0
+cargo:rustc-link-lib=static=helpers
+cargo:rustc-link-search=native=/home/hskang9/standard-substrate/target/release/build/wasmtime-runtime-162b2ba7c85145a9/out

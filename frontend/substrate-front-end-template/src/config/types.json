@@ -1,0 +1,6 @@
+{
+  "Address": "AccountId",
+  "LookupSource": "AccountId",
+  "AssetIdOf": "u128",
+  "AssetId": "u128"
+}

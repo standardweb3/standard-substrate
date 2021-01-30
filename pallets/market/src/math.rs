@@ -29,6 +29,18 @@ pub fn min<T: Trait>(
     z
 }
 
+pub fn absdiff<T: Trait>(
+    x: <T as balances::Trait>::Balance,
+    y: <T as balances::Trait>::Balance,
+) -> <T as balances::Trait>::Balance {
+    let z = match x < y {
+        true => y-x,
+        _ => x-y,
+    };
+    z
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
