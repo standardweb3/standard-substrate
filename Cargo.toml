@@ -10,5 +10,3 @@ members = [
     'pallets/vault',
     'runtime',
 ]
-
-

@@ -1,1 +1,0 @@
-/home/hskang9/standard-substrate/target/release/wbuild-runner/node-template-runtime13754988134360163582/target/x86_64-unknown-linux-gnu/release/wasm-build-runner-impl: /home/hskang9/standard-substrate/target/release/wbuild-runner/node-template-runtime13754988134360163582/src/main.rs

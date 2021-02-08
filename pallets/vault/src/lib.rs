@@ -133,16 +133,15 @@
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{Parameter, decl_module, decl_event, decl_storage, decl_error, ensure, dispatch};
-use sp_runtime::traits::{AtLeast32Bit, Zero, StaticLookup};
-use sp_std::{fmt::Debug, prelude::*};
+use frame_support::{decl_module, decl_event, decl_storage, decl_error, ensure, dispatch};
+use frame_system::ensure_root;
+use sp_std::{prelude::*, fmt::Debug};
 use frame_system::ensure_signed;
-use sp_runtime::traits::One;
 use pallet_balances as balances;
 use sp_core::U256;
-use codec::{Encode, Decode, HasCompact};
-use sp_runtime::{FixedU128, FixedPointNumber, SaturatedConversion, RuntimeDebug, traits::{UniqueSaturatedInto, UniqueSaturatedFrom}, ModuleId};
-use sp_runtime::traits::{CheckedMul, CheckedAdd, CheckedDiv, CheckedSub};
+use codec::{Encode, Decode};
+use sp_runtime::{RuntimeDebug, traits::{UniqueSaturatedInto, AccountIdConversion}, ModuleId};
+use sp_runtime::traits::{CheckedMul,CheckedDiv};
 use crate::sp_api_hidden_includes_decl_storage::hidden_include::traits::Get;
 use pallet_standard_market as market;
 use pallet_standard_oracle as oracle;
@@ -150,7 +149,7 @@ use pallet_standard_token as token;
 
 
 #[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug)]
-pub struct CDP<Balance> {
+pub struct CDP<Balance: Encode + Decode + Clone + Debug + Eq + PartialEq> {
     /// Percentage of liquidator who liquidate the cdp \[numerator, denominator]
 	liquidation_fee: (Balance, Balance),
 	/// Maximum collaterization rate \[numerator, denominator]
@@ -224,8 +223,12 @@ decl_module! {
             Self::deposit_event(RawEvent::UpdateVault(origin, collateral_id, total_collateral, request_amount))
         }
 
+
         #[weight=0]
-        fn liquidate(origin, #[compact] account: T::AccountId, #[compact] collateral_id: T::AssetId) {
+        fn liquidate_vault(
+            origin,
+            account: T::AccountId,
+            #[compact] collateral_id: T::AssetId) {
             let origin = ensure_signed(origin)?;
             let vault = <Vault<T>>::get((account.clone(), collateral_id));
             ensure!(vault.is_some(), Error::<T>::VaultDoesNotExist);
@@ -235,36 +238,39 @@ decl_module! {
             // Get price from oracles
             let collateral_price = oracle::Module::<T>::price(collateral_id)?;
             let mtr_price = oracle::Module::<T>::price(T::AssetId::from(1))?;
-            let (collateral_amount, request_amount) = position.unwrap();
-            let result = Self::is_cdp_valid(&position.unwrap(), &collateral_price, &collateral_amount, &mtr_price, &request_amount);
+            let (collateral_amount, request_amount) = vault.unwrap();
+            let result = Self::is_cdp_valid(&position.clone().unwrap(), &collateral_price, &collateral_amount, &mtr_price, &request_amount);
             // Check whether cdp is invalid
             ensure!(!result, Error::<T>::Unavailable);
             // liquidate the vault
             // Pay liquidation fee to the liquidator
-            let liquidation_rate = position.liquidation_fee;
-            let fee = collateral_amount/liquidation_rate.1*position.liquidation_fee.0;
-            token::Module::<T>::transfer_from_system(collateral_id.clone(), origin.clone(), fee)?;
+            let liquidation_rate = position.unwrap().liquidation_fee;
+            let fee = collateral_amount/liquidation_rate.1*liquidation_rate.0;
+            token::Module::<T>::transfer_from_system(&collateral_id, &origin, &fee)?;
 
             let rest = collateral_amount - fee;
             // Check pairs in the market
-            let lpt = market::Pairs::<T>::get(T::AssetId::from(1), collateral_id.clone());
+            let lpt = market::Pairs::<T>::get((T::AssetId::from(1), collateral_id.clone()));
             ensure!(lpt.is_some(), Error::<T>::MarketDoesNotExist);
 
             // Send collateral to the market
-            let reserves = market::Reserves::<T>::get(lpt.clone());
-            market::Module::<T>::_set_reserves(T::AssetId::from(1), collateral_id.clone(), reserves.0, reserves.1+rest, lpt);
+            let reserves = market::Reserves::<T>::get(lpt.unwrap());
+            let liquidated = rest+reserves.1;
+            market::Module::<T>::_set_reserves(&T::AssetId::from(1), &collateral_id, &reserves.0, &liquidated, &lpt.unwrap());
             
             // destroy the vault
-            <Vault<T>>::delete((account.clone(), collateral_id.clone()));
+            <Vault<T>>::take((account.clone(), collateral_id.clone()));
 
             // deposit event
             Self::deposit_event(RawEvent::Liquidate(collateral_id, collateral_amount));
         }
 
         #[weight=0]
-        fn close(origin, #[compact] collateral_id: T::AssetId) {
+        fn close(
+            origin, 
+            #[compact] collateral_id: T::AssetId) {
             let origin = ensure_signed(origin)?;
-            let vault = <Vault<T>>::get((origin.clone(), collateral_id));
+            let vault = Vault::<T>::get((origin.clone(), collateral_id));
             ensure!(vault.is_some(), Error::<T>::VaultDoesNotExist);
             // check if the vault is still valid
             let position = Self::position(collateral_id);
@@ -272,27 +278,46 @@ decl_module! {
             // Get price from oracles
             let collateral_price = oracle::Module::<T>::price(collateral_id)?;
             let mtr_price = oracle::Module::<T>::price(T::AssetId::from(1))?;
-            let (collateral_amount, request_amount) = position.unwrap();
-            let result = Self::is_cdp_valid(&position.unwrap(), &collateral_price, &collateral_amount, &mtr_price, &request_amount);
+            let (collateral_amount, request_amount) = vault.unwrap();
+            let result = Self::is_cdp_valid(&position.clone().unwrap(), &collateral_price, &collateral_amount, &mtr_price, &request_amount);
             // Check whether cdp is valid and safe from liquidation.
             ensure!(result, Error::<T>::AddMoreCollateral);
             // close the vault
             
             // Pay stability fee with collateral to the Standard treasury
-            let stability_rate = position.stability_fee;
-            let fee = collateral_amount/stability_rate.1*position.stability_fee.0;
-            token::Module::<T>::transfer_within(collateral_id.clone(), Self::account_id(), fee)?;
+            let stability_rate = position.unwrap().stability_fee;
+            let fee = collateral_amount/stability_rate.1*stability_rate.0;
+            token::Module::<T>::transfer_to_system(&collateral_id, &Self::account_id(), &fee)?;
 
             let rest = collateral_amount - fee;
              
             // Give back the collateral
-            token::Module::<T>::transfer_from_system(collateral_id, origin, rest);
+            token::Module::<T>::transfer_from_system(&collateral_id, &origin, &rest);
 
             // deposit event
             Self::deposit_event(RawEvent::CloseVault(collateral_id, collateral_amount, request_amount));
             
         }
 
+        #[weight=0]
+        fn set_position(
+            origin,
+            collateral_id: T::AssetId,
+            liqudation_rate: (T::Balance, T::Balance),
+            max_collateraization_rate: (U256, U256),
+            stability_fee: (T::Balance, T::Balance)
+        ) {
+            ensure_root(origin)?;
+
+            <Positions<T>>::insert(collateral_id, CDP{
+                liquidation_fee: liqudation_rate,
+                max_collateraization_rate,
+                stability_fee
+            });
+
+            // deposit event
+            Self::deposit_event(RawEvent::SetPosition(collateral_id, liqudation_rate.0, liqudation_rate.1, max_collateraization_rate.0, max_collateraization_rate.1, stability_fee.0, stability_fee.1));
+        }
 	}
 }
 
@@ -307,7 +332,9 @@ decl_event! {
 		/// A vault is liquidated \[collateral, collateral_amount]
 		Liquidate(AssetId, Balance),
 		/// Close vault by paying back meter. \[collateral, collateral_amount, paid_meter_amount]
-		CloseVault(AssetId, Balance, Balance),
+        CloseVault(AssetId, Balance, Balance),
+        /// Set position for collateral. \[collateral, liquidation_fee[numerator/denominator], max_collateraization_rate[numerator/denominator], stability_fee[numerator/denominator]]
+        SetPosition(AssetId, Balance, Balance, U256, U256, Balance, Balance),
 	}
 }
 

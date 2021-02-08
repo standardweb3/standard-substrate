@@ -57,6 +57,23 @@ sp-std = { default-features = false, version = '2.0.0' }
 sp-transaction-pool = { default-features = false, version = '2.0.0' }
 sp-version = { default-features = false, version = '2.0.0' }
 
+# Staking dependencies
+pallet-authority-discovery = {default-features = false, version = '2.0.0'}
+pallet-authorship = {default-features = false, version = '2.0.0'}
+pallet-babe = {default-features = false, version = '2.0.0'}
+pallet-collective = {default-features = false, version = '2.0.0'}
+pallet-elections-phragmen = {default-features = false, version = '2.0.0'}
+pallet-im-online = {default-features = false, version = '2.0.0'}
+pallet-offences = {default-features = false, version = '2.0.0'}
+pallet-session = {default-features = false, version = '2.0.0'}
+pallet-staking = {default-features = false, version = '2.0.0'}
+pallet-staking-reward-curve = {default-features = false, version = '2.0.0'}
+pallet-treasury = {default-features = false, version = '2.0.0'}
+sp-authority-discovery = {default-features = false, version = '2.0.0'}
+sp-consensus-babe = {default-features = false, version = '0.8.0'}
+sp-staking = { default-features = false, version = '2.0.0' }
+
+
 [features]
 default = ['std']
 runtime-benchmarks = [
@@ -96,4 +113,16 @@ std = [
     'sp-std/std',
     'sp-transaction-pool/std',
     'sp-version/std',
+    'pallet-staking/std',
+    'sp-staking/std',
+    'pallet-treasury/std',
+    'pallet-offences/std',
+    'sp-authority-discovery/std',
+    'pallet-authority-discovery/std',
+    'pallet-elections-phragmen/std',
+    'pallet-collective/std',
+    'pallet-session/std',
+    'pallet-babe/std',
+    'sp-consensus-babe/std',
+    'pallet-im-online/std'
 ]

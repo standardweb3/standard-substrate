@@ -1,4 +1,0 @@
-cargo:rustc-env=SUBSTRATE_CLI_IMPL_VERSION=2.0.0-7e35054-x86_64-linux-gnu
-cargo:rerun-if-changed=/home/hskang9/standard-substrate/.git/HEAD
-cargo:rerun-if-changed=/home/hskang9/standard-substrate/.git/refs/heads/master
-
