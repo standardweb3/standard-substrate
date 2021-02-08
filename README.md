@@ -1,6 +1,6 @@
 # Standard Substrate
 
-![banner](media/standard_substrate.png)
+![banner](./media/standard_substrate.png)
 This repo has the implementation for standard protocol in Parity Substrate.
 
 Standard protocol is the omni-stablecoin protocol secured with stability mechanisms and collaterized by digital assets across blockchains.
