@@ -133,20 +133,18 @@
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{decl_module, decl_event, decl_storage, decl_error, ensure, dispatch};
+use frame_support::{decl_module, decl_event, decl_storage, decl_error, ensure};
 use frame_system::ensure_root;
 use sp_std::{prelude::*, fmt::Debug};
 use frame_system::ensure_signed;
-use pallet_balances as balances;
 use sp_core::U256;
 use codec::{Encode, Decode};
 use sp_runtime::{RuntimeDebug, traits::{UniqueSaturatedInto, AccountIdConversion}, ModuleId};
-use sp_runtime::traits::{CheckedMul,CheckedDiv};
 use crate::sp_api_hidden_includes_decl_storage::hidden_include::traits::Get;
 use pallet_standard_market as market;
 use pallet_standard_oracle as oracle;
-use pallet_standard_token as token;
-
+use primitives::{AssetId, Balance, Amount};
+use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
 
 #[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug)]
 pub struct CDP<Balance: Encode + Decode + Clone + Debug + Eq + PartialEq> {
@@ -157,20 +155,26 @@ pub struct CDP<Balance: Encode + Decode + Clone + Debug + Eq + PartialEq> {
 	/// Fee paid for stability \[numerator, denominator]
     stability_fee: (Balance, Balance)
 }
-  
+pub const MTR: AssetId = 1_u32;
+
 
 /// The module configuration trait.
-pub trait Trait: frame_system::Trait + market::Trait + token::Trait + oracle::Trait {
+pub trait Config: frame_system::Config + market::Config + oracle::Config {
 	/// The overarching event type.
-    type Event: From<Event<Self>> + Into<<Self as frame_system::Trait>::Event>;
+    type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
     
     /// The Module account for burning assets
+    type SystemModuleId: Get<ModuleId>;
+
     type VaultModuleId: Get<ModuleId>;
+
+    type Currency: MultiCurrencyExtended<Self::AccountId, CurrencyId = AssetId, Balance = Balance, Amount = Amount>
+			+ MultiReservableCurrency<Self::AccountId>;
+
 }
 
 decl_module! {
-	pub struct Module<T: Trait> for enum Call where origin: T::Origin {
-        const ModuleId: ModuleId = T::VaultModuleId::get();
+	pub struct Module<T: Config> for enum Call where origin: T::Origin {
 
 		type Error = Error<T>;
 
@@ -179,16 +183,16 @@ decl_module! {
         #[weight= 0]
         fn generate(
             origin,
-            #[compact] request_amount: <T as pallet_balances::Trait>::Balance,
-            #[compact] collateral_id: T::AssetId, 
-            #[compact] collateral_amount: <T as pallet_balances::Trait>::Balance) {
+            #[compact] request_amount: Balance,
+            #[compact] collateral_id: AssetId, 
+            #[compact] collateral_amount: Balance) {
             let origin = ensure_signed(origin)?;
             // Get position for the collateral
             let position = Self::position(collateral_id);
             ensure!(position.is_some(), Error::<T>::CollateralNotSupported);
             // Get price from oracles
             let collateral_price = oracle::Module::<T>::price(collateral_id)?;
-            let mtr_price = oracle::Module::<T>::price(T::AssetId::from(1))?;
+            let mtr_price = oracle::Module::<T>::price(MTR)?;
             // Get vault from sender and divide cases
             let (total_collateral, total_request) = match Self::vault((origin.clone(), collateral_id)) {
                 // vault exists for the sender
@@ -204,12 +208,12 @@ decl_module! {
                 }
             };
 
-            let result = Self::is_cdp_valid(&position.unwrap(), &collateral_price, &total_collateral, &mtr_price, &total_request);
+            let result = Self::is_cdp_valid(&position.unwrap(), collateral_price, total_collateral, mtr_price, total_request);
             // Check whether CDP is valid
             ensure!(result, Error::<T>::InvalidCDP);
             
             // Send collateral to Standard Protocol
-            token::Module::<T>::transfer_to_system(&collateral_id, &origin, &collateral_amount)?;
+            <T as Config>::Currency::transfer(collateral_id, &origin, &Self::sys_account_id(), collateral_amount)?;
 
             // Update CDP
             <Vault<T>>::mutate((origin.clone(), collateral_id), |vlt|{
@@ -217,7 +221,7 @@ decl_module! {
             });
 
             // Send mtr to sender
-            token::Module::<T>::transfer_to_system(&T::AssetId::from(1), &origin, &request_amount)?;
+            <T as Config>::Currency::transfer(MTR, &origin, &Self::sys_account_id(), request_amount)?;
 
             // deposit event
             Self::deposit_event(RawEvent::UpdateVault(origin, collateral_id, total_collateral, request_amount))
@@ -228,7 +232,7 @@ decl_module! {
         fn liquidate_vault(
             origin,
             account: T::AccountId,
-            #[compact] collateral_id: T::AssetId) {
+            #[compact] collateral_id: AssetId) {
             let origin = ensure_signed(origin)?;
             let vault = <Vault<T>>::get((account.clone(), collateral_id));
             ensure!(vault.is_some(), Error::<T>::VaultDoesNotExist);
@@ -237,26 +241,26 @@ decl_module! {
             ensure!(position.is_some(), Error::<T>::CollateralNotSupported);
             // Get price from oracles
             let collateral_price = oracle::Module::<T>::price(collateral_id)?;
-            let mtr_price = oracle::Module::<T>::price(T::AssetId::from(1))?;
+            let mtr_price = oracle::Module::<T>::price(MTR)?;
             let (collateral_amount, request_amount) = vault.unwrap();
-            let result = Self::is_cdp_valid(&position.clone().unwrap(), &collateral_price, &collateral_amount, &mtr_price, &request_amount);
+            let result = Self::is_cdp_valid(&position.clone().unwrap(), collateral_price, collateral_amount, mtr_price, request_amount);
             // Check whether cdp is invalid
             ensure!(!result, Error::<T>::Unavailable);
             // liquidate the vault
             // Pay liquidation fee to the liquidator
             let liquidation_rate = position.unwrap().liquidation_fee;
             let fee = collateral_amount/liquidation_rate.1*liquidation_rate.0;
-            token::Module::<T>::transfer_from_system(&collateral_id, &origin, &fee)?;
+            <T as Config>::Currency::transfer(collateral_id, &origin, &Self::account_id(), fee)?;
 
             let rest = collateral_amount - fee;
             // Check pairs in the market
-            let lpt = market::Pairs::<T>::get((T::AssetId::from(1), collateral_id.clone()));
+            let lpt = market::Pairs::get((MTR, collateral_id.clone()));
             ensure!(lpt.is_some(), Error::<T>::MarketDoesNotExist);
 
             // Send collateral to the market
-            let reserves = market::Reserves::<T>::get(lpt.unwrap());
+            let reserves = market::Reserves::get(lpt.unwrap());
             let liquidated = rest+reserves.1;
-            market::Module::<T>::_set_reserves(&T::AssetId::from(1), &collateral_id, &reserves.0, &liquidated, &lpt.unwrap());
+            market::Module::<T>::_set_reserves(MTR, collateral_id, reserves.0, liquidated, lpt.unwrap());
             
             // destroy the vault
             <Vault<T>>::take((account.clone(), collateral_id.clone()));
@@ -268,7 +272,7 @@ decl_module! {
         #[weight=0]
         fn close(
             origin, 
-            #[compact] collateral_id: T::AssetId) {
+            #[compact] collateral_id: AssetId) {
             let origin = ensure_signed(origin)?;
             let vault = Vault::<T>::get((origin.clone(), collateral_id));
             ensure!(vault.is_some(), Error::<T>::VaultDoesNotExist);
@@ -277,9 +281,9 @@ decl_module! {
             ensure!(position.is_some(), Error::<T>::CollateralNotSupported);
             // Get price from oracles
             let collateral_price = oracle::Module::<T>::price(collateral_id)?;
-            let mtr_price = oracle::Module::<T>::price(T::AssetId::from(1))?;
+            let mtr_price = oracle::Module::<T>::price(MTR)?;
             let (collateral_amount, request_amount) = vault.unwrap();
-            let result = Self::is_cdp_valid(&position.clone().unwrap(), &collateral_price, &collateral_amount, &mtr_price, &request_amount);
+            let result = Self::is_cdp_valid(&position.clone().unwrap(), collateral_price, collateral_amount, mtr_price, request_amount);
             // Check whether cdp is valid and safe from liquidation.
             ensure!(result, Error::<T>::AddMoreCollateral);
             // close the vault
@@ -287,12 +291,12 @@ decl_module! {
             // Pay stability fee with collateral to the Standard treasury
             let stability_rate = position.unwrap().stability_fee;
             let fee = collateral_amount/stability_rate.1*stability_rate.0;
-            token::Module::<T>::transfer_to_system(&collateral_id, &Self::account_id(), &fee)?;
+            <T as Config>::Currency::transfer(collateral_id, &Self::account_id(), &Self::sys_account_id(), fee)?;
 
             let rest = collateral_amount - fee;
              
             // Give back the collateral
-            token::Module::<T>::transfer_from_system(&collateral_id, &origin, &rest);
+            let _ = <T as Config>::Currency::transfer(collateral_id, &Self::sys_account_id(), &origin, rest);
 
             // deposit event
             Self::deposit_event(RawEvent::CloseVault(collateral_id, collateral_amount, request_amount));
@@ -302,14 +306,14 @@ decl_module! {
         #[weight=0]
         fn set_position(
             origin,
-            collateral_id: T::AssetId,
-            liqudation_rate: (T::Balance, T::Balance),
+            collateral_id: AssetId,
+            liqudation_rate: (Balance, Balance),
             max_collateraization_rate: (U256, U256),
-            stability_fee: (T::Balance, T::Balance)
+            stability_fee: (Balance, Balance)
         ) {
             ensure_root(origin)?;
 
-            <Positions<T>>::insert(collateral_id, CDP{
+            Positions::insert(collateral_id, CDP{
                 liquidation_fee: liqudation_rate,
                 max_collateraization_rate,
                 stability_fee
@@ -323,9 +327,9 @@ decl_module! {
 
 decl_event! {
     pub enum Event<T> where
-        <T as frame_system::Trait>::AccountId,
-		<T as balances::Trait>::Balance,
-		<T as pallet_standard_token::Trait>::AssetId,
+        <T as frame_system::Config>::AccountId,
+		Balance = Balance,
+		AssetId = AssetId,
 	{
         /// A vault is created with the collateral. \[who, collateral, collateral_amount, meter_amount]
 		UpdateVault(AccountId, AssetId, Balance, Balance), 
@@ -339,7 +343,7 @@ decl_event! {
 }
 
 decl_error! {
-	pub enum Error for Module<T: Trait> {
+	pub enum Error for Module<T: Config> {
         /// Transfer amount should be non-zero
         AmountZero,
         /// Account balance must be greater than or equal to the transfer amount
@@ -362,34 +366,40 @@ decl_error! {
 }
 
 decl_storage! {
-	trait Store for Module<T: Trait> as Vault {
+	trait Store for Module<T: Config> as Vault {
         // Vault to keep the number of collatral amount and meter amount. \[collateral_amount, meter_amount]
-        pub Vault get(fn vault): map hasher(blake2_128_concat) (T::AccountId, T::AssetId) => Option<(T::Balance, T::Balance)>;
-        pub Positions get(fn position): map hasher(blake2_128_concat) T::AssetId => Option<CDP<T::Balance>>;
-        pub CirculatingSupply get(fn circulating_supply): T::Balance;
+        pub Vault get(fn vault): map hasher(blake2_128_concat) (T::AccountId, AssetId) => Option<(Balance, Balance)>;
+        pub Positions get(fn position): map hasher(blake2_128_concat) AssetId => Option<CDP<Balance>>;
+        pub CirculatingSupply get(fn circulating_supply): Balance;
 	}
 }
 
-impl<T: Trait> Module<T> {
+impl<T: Config> Module<T> {
 
     // Module account id
-	pub fn account_id() -> T::AccountId {
-		T::VaultModuleId::get().into_account()
-	}
+    pub fn account_id() -> T::AccountId  {
+		<T as Config>::VaultModuleId::get().into_account()
+    }
+    
+    // System account id
+    pub fn sys_account_id() -> T::AccountId  {
+        <T as Config>::SystemModuleId::get().into_account()
+    }
+    
 
-    fn is_cdp_valid(position: &CDP<T::Balance>, collateral_price: &T::Balance, collateral_amount: &T::Balance, request_price: &T::Balance, request_amount: &T::Balance) -> bool {
-        let collateral_price_256 = Self::to_u256(&collateral_price);
-        let mtr_price_256 = Self::to_u256(&request_price);
-        let total_collateral_256 = Self::to_u256(&collateral_amount);
+    fn is_cdp_valid(position: &CDP<Balance>, collateral_price: Balance, collateral_amount: Balance, request_price: Balance, request_amount: Balance) -> bool {
+        let collateral_price_256 = Self::to_u256(collateral_price);
+        let mtr_price_256 = Self::to_u256(request_price);
+        let total_collateral_256 = Self::to_u256(collateral_amount);
         let collateral = collateral_price_256.checked_mul(total_collateral_256).expect("Multiplication overflow");
-        let total_request_256 = Self::to_u256(&request_amount);
+        let total_request_256 = Self::to_u256(request_amount);
         let request = mtr_price_256.checked_mul(total_request_256).expect("Multiplication overflow");
         let determinant = collateral.checked_div(position.max_collateraization_rate.1).expect("divided by zero").checked_mul(position.max_collateraization_rate.0).unwrap_or(U256::from(0));
         request < determinant
     }
     
-    pub fn to_u256(value: &<T as balances::Trait>::Balance) -> U256 {
-        U256::from(UniqueSaturatedInto::<u128>::unique_saturated_into(*value))
+    pub fn to_u256(value: Balance) -> U256 {
+        U256::from(UniqueSaturatedInto::<u128>::unique_saturated_into(value))
     }
 
 }

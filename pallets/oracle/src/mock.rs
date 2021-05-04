@@ -42,7 +42,7 @@ parameter_types! {
 	pub const AvailableBlockRatio: Perbill = Perbill::from_percent(75);
 }
 
-impl system::Trait for Test {
+impl system::Config for Test {
 	type BaseCallFilter = ();
 	type Origin = Origin;
 	type Call = ();
@@ -76,7 +76,7 @@ parameter_types! {
 	pub const ValidityPeriod: u64 = 10;
 }
 
-impl pallet_balances::Trait for Test {
+impl pallet_balances::Config for Test {
     type Balance = Balance;
     type Event = ();
     type DustRemoval = ();
@@ -86,14 +86,14 @@ impl pallet_balances::Trait for Test {
     type MaxLocks = ();
 }
 
-impl pallet_standard_token::Trait for Test {
+impl pallet_standard_token::Config for Test {
 	type WeightInfo = ();
 	type ModuleId = AssetModuleId;
 	type Event = ();
 	type AssetId = u64;
 }
 
-impl pallet_chainlink::Trait for Test {
+impl pallet_chainlink::Config for Test {
 	type Event = ();
 	type Currency = pallet_balances::Module<Test>;
 	type Callback = module2::Call<Test>;
@@ -116,7 +116,7 @@ pub mod module2 {
 
 	frame_support::decl_module! {
 		pub struct Module<T: Trait> for enum Call
-			where origin: <T as frame_system::Trait>::Origin
+			where origin: <T as frame_system::Config>::Origin
 		{
 			#[weight = 0]
 			pub fn callback(_origin, result: Vec<u8>) -> frame_support::dispatch::DispatchResult {

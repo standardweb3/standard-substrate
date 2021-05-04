@@ -126,15 +126,11 @@
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{decl_module, decl_event, decl_storage, decl_error, ensure, dispatch};
-use frame_system::{ensure_signed, ensure_root};
-use pallet_balances as balances;
-use codec::{Encode, Decode};
-use sp_runtime::{ traits::{UniqueSaturatedInto, UniqueSaturatedFrom}, DispatchResult, DispatchError};
-use sp_runtime::traits::{CheckedMul, CheckedAdd, CheckedDiv, CheckedSub};
-use crate::sp_api_hidden_includes_decl_storage::hidden_include::traits::Get;
-use pallet_standard_token as token;
+use frame_support::{decl_module, decl_event, decl_storage, decl_error, ensure};
+use frame_system::{ensure_signed };
+use sp_runtime::{ DispatchResult, DispatchError};
 use sp_std::prelude::*;
+use primitives::{Balance, AssetId};
 
 #[cfg(test)]
 mod mock;
@@ -142,9 +138,9 @@ mod mock;
 mod tests;
 
 /// The module configuration trait.
-pub trait Trait: frame_system::Trait + token::Trait  {
+pub trait Config: frame_system::Config {
 	/// The overarching event type.
-    type Event: From<Event<Self>> + Into<<Self as frame_system::Trait>::Event>;
+    type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
 }
 
 // Uniquely identify a request's specification understood by an Operator
@@ -155,7 +151,7 @@ pub type RequestIdentifier = u64;
 pub type DataVersion = u64;
 
 decl_module! {
-	pub struct Module<T: Trait> for enum Call where origin: T::Origin {
+	pub struct Module<T: Config> for enum Call where origin: T::Origin {
 		type Error = Error<T>;
 
         fn deposit_event() = default;
@@ -166,7 +162,7 @@ decl_module! {
 		// Fails with `OperatorAlreadyRegistered` if this Operator (identified by `origin`) has already been registered.
 		#[weight = 10_000]
 		pub fn register_operator(origin) -> DispatchResult {
-			let who : <T as frame_system::Trait>::AccountId = ensure_signed(origin)?;
+			let who : <T as frame_system::Config>::AccountId = ensure_signed(origin)?;
 
 			ensure!(!<Operators<T>>::get(&who), Error::<T>::OperatorAlreadyRegistered);
 
@@ -181,7 +177,7 @@ decl_module! {
 		// TODO check weight
 		#[weight = 10_000]
 		pub fn unregister_operator(origin) -> DispatchResult {
-			let who : <T as frame_system::Trait>::AccountId = ensure_signed(origin)?;
+			let who : <T as frame_system::Config>::AccountId = ensure_signed(origin)?;
 
 			if Operators::<T>::take(who.clone()) {
 				Self::deposit_event(RawEvent::OperatorUnregistered(who));
@@ -192,8 +188,8 @@ decl_module! {
         }
         
         #[weight = 0]
-        fn report(origin, id: <T as pallet_standard_token::Trait>::AssetId, price: <T as pallet_balances::Trait>::Balance) {
-            let who : <T as frame_system::Trait>::AccountId = ensure_signed(origin)?;
+        fn report(origin, _id: AssetId, _price: Balance) {
+            let who : <T as frame_system::Config>::AccountId = ensure_signed(origin)?;
 			ensure!(Operators::<T>::contains_key(who), Error::<T>::WrongOperator);
 			
         }
@@ -203,8 +199,8 @@ decl_module! {
 
 decl_event! {
 	pub enum Event<T> where
-		<T as frame_system::Trait>::AccountId,
-		<T as pallet_balances::Trait>::Balance,
+	    <T as frame_system::Config>::AccountId,
+		Balance = Balance,
 	{
 		// A request has been accepted. Corresponding fee paiement is reserved
 		OracleRequest(AccountId, SpecIndex, RequestIdentifier, AccountId, DataVersion, Vec<u8>, Vec<u8>, Balance),
@@ -225,7 +221,7 @@ decl_event! {
 
 
 decl_error! {
-	pub enum Error for Module<T: Trait> {
+	pub enum Error for Module<T: Config>  {
         /// Error names should be descriptive.
 		NoneValue,
 		/// Errors should have helpful documentation associated with them.
@@ -248,18 +244,18 @@ decl_error! {
 }
 
 decl_storage! {
-	trait Store for Module<T: Trait> as Oracle {
+	trait Store for Module<T: Config> as Oracle {
 		// the result of the oracle call
         pub Result get(fn get_result): i128;
         
         // A set of all registered Operator
-        pub Operators get(fn operator): map hasher(blake2_128_concat) T::AccountId => bool;
+        pub Operators get(fn operator): map hasher(blake2_128_concat) <T as frame_system::Config>::AccountId => bool;
         
-        pub Prices get(fn asset_price): map hasher(blake2_128_concat) <T as pallet_standard_token::Trait>::AssetId =>  Option<<T as balances::Trait>::Balance>;
+        pub Prices get(fn asset_price): map hasher(blake2_128_concat) AssetId =>  Option<Balance>;
 
 	} add_extra_genesis {
 		config(oracles):
-			Vec<<T as frame_system::Trait>::AccountId>;
+			Vec<<T as frame_system::Config>::AccountId>;
 		build(|config: &GenesisConfig<T>| {
 			for oracle in &config.oracles {
 				Operators::<T>::insert(oracle, true);
@@ -269,8 +265,8 @@ decl_storage! {
 }
 
 // The main implementation block for the module.
-impl<T: Trait> Module<T> {
-	pub fn price(id: <T as pallet_standard_token::Trait>::AssetId) -> sp_std::result::Result<<T as pallet_balances::Trait>::Balance, DispatchError> {
+impl<T: Config> Module<T> {
+	pub fn price(id: AssetId) -> sp_std::result::Result<Balance, DispatchError> {
 		match Self::asset_price(id) {
 			Some(x) => {
 				return Ok(x)

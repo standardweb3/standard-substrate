@@ -1,27 +1,33 @@
-use crate::Trait;
-use crate::balances;
-pub fn sqrt<T: Trait>(y: <T as balances::Trait>::Balance) -> <T as balances::Trait>::Balance {
-    if y > <T as balances::Trait>::Balance::from(3) {
+use crate::Config; 
+use primitives::{Balance};
+
+const ONE: Balance = 1;
+const TWO: Balance = 2;
+const THREE: Balance = 3;
+const ZERO: Balance = 0;
+
+pub fn sqrt<T: Config>(y: Balance) -> Balance {
+    if y > Balance::from(THREE) {
         let mut z = y;
-        let mut x: <T as balances::Trait>::Balance = y / <T as balances::Trait>::Balance::from(2);
-        x += <T as balances::Trait>::Balance::from(1);
+        let mut x: Balance = y / Balance::from(TWO);
+        x += Balance::from(ONE);
         while x < z {
             z = x;
-            x = (y / x + x) / <T as balances::Trait>::Balance::from(2);
+            x = (y / x + x) / Balance::from(TWO);
         }
         z
-    } else if y != <T as balances::Trait>::Balance::from(0) {
-        let z = <T as balances::Trait>::Balance::from(1);
+    } else if y != Balance::from(ZERO) {
+        let z = Balance::from(ONE);
         z
     } else {
         y
     }
 }
 
-pub fn min<T: Trait>(
-    x: <T as balances::Trait>::Balance,
-    y: <T as balances::Trait>::Balance,
-) -> <T as balances::Trait>::Balance {
+pub fn min<T: Config>(
+    x: Balance,
+    y: Balance,
+) -> Balance {
     let z = match x < y {
         true => x,
         _ => y,
@@ -29,10 +35,10 @@ pub fn min<T: Trait>(
     z
 }
 
-pub fn absdiff<T: Trait>(
-    x: <T as balances::Trait>::Balance,
-    y: <T as balances::Trait>::Balance,
-) -> <T as balances::Trait>::Balance {
+pub fn absdiff<T: Config>(
+    x: Balance,
+    y: Balance,
+) -> Balance {
     let z = match x < y {
         true => y-x,
         _ => x-y,
@@ -46,11 +52,11 @@ mod tests {
     use super::*;
     #[test]
     fn sqrt_works() {
-        assert_eq!(2, sqrt(4));
+        assert_eq!(2_u128, sqrt(4_u128));
     }
 
     #[test]
     fn min_works() {
-        assert_eq!(1, min(1, 3));
+        assert_eq!(1_u128, min(1_u128, 3_u128));
     }
 }
