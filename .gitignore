@@ -13,3 +13,7 @@
 .local
 
 local-test
+
+
+.vscode
+.devcontainer
