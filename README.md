@@ -36,12 +36,12 @@ We need to clone and install the Polkadot (rococo-v1 branch):
 # Get a fresh clone, or `cd` to where you have polkadot already:
 git clone https://github.com/paritytech/polkadot.git
 cd polkadot
-git checkout rococo-v1
+git checkout 8ab338b7cc2c860eb557adbb3723408054f77330
 
 # build WITH the real-overseer (required) 
 cargo build --release 
 
-# generaete the chainspec - note this file MUST be shared with all nodes!
+# generate the chainspec - note this file MUST be shared with all nodes!
 # Other nodes cannot generate it due to possible non-determanism 
 ./target/release/polkadot build-spec --chain rococo-local --raw --disable-default-bootnode > rococo_local.json
 
