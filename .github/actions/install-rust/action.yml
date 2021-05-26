@@ -1,0 +1,28 @@
+name: "Install Rust for Substrate"
+description: "Install Rust configured for Substrate"
+
+runs:
+  using: "composite"
+  shell: bash
+  steps:
+    - name: Install Dependencies
+      run: >
+        sudo apt install -y build-essential
+                            cmake
+                            clang
+                            curl
+                            git
+                            libclang-dev
+                            libssl-dev
+                            libudev-dev
+                            llvm
+                            pkg-config
+
+    - name: Install Rustup
+      run: |
+        curl https://sh.rustup.rs -sSf | sh -s -- -y
+        source ~/.cargo/env
+        rustup default stable
+        rustup update stable
+        rustup update nightly
+        rustup target add wasm32-unknown-unknown --toolchain nightly
