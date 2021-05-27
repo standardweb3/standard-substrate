@@ -1,0 +1,56 @@
+name: Check format, setup and build
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches:
+      - master
+      - "release/**"
+  pull_request:
+    branches:
+      - master
+      - "release/**"
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./
+
+# Cancel any in-flight jobs for the same PR/branch so there's only one active
+# at a time
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  rust-checks:
+    runs-on: ubuntu-20.04
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # use once repository is tagged
+      # - uses: actions/install-rust@v1
+      - uses: ./.github/actions/install-rust
+
+      # Check codebase style, will output error 1 if
+      # there is formatting to be done
+      # Continues on error for now, need to format code fully first,
+      # then remove `continue-on-error` to enforce it
+      - name: Run Fmt
+        continue-on-error: true
+        run: |
+          make ci-format
+
+      - name: Run Checks
+        run: |
+          make check
+
+      - name: Run Tests
+        run: |
+          make test

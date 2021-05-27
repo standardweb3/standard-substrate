@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  standard-node:
+    container_name: standard-node
+    build:
+      context: ./
+      dockerfile: ./Docker/Dockerfile
+      args:
+        toolchainbuild: "nightly-2021-03-01"
+    # image: paritytech/ci-linux:staging
+    platform: "linux/amd64"
+    ports:
+      - "3000:3000"
+      - "9933:9933"
+      - "9944:9944"
+    environment:
+      # CARGO_HOME: "/var/www/node-template/.cargo"
+      RUST_LOG: "cargo=error"
+    volumes:
+      # - .:/var/www/node-template
+      - type: bind
+        source: ./.local
+        target: /root/.local

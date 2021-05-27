@@ -1,6 +1,6 @@
 {
   "name": "Substrate Node template",
-  "dockerFile": "Dockerfile",
+  "dockerFile": "../docker/Dockerfile",
   "settings": {
     "terminal.integrated.shell.linux": "/bin/bash",
     "lldb.executable": "/usr/bin/lldb"
@@ -10,9 +10,5 @@
     "bungcip.better-toml",
     "vadimcn.vscode-lldb"
   ],
-  "forwardPorts": [
-    3000,
-    9944
-  ],
-  "image": "paritytech/substrate-playground-template-node-template:sha-c9fda53"
+  "forwardPorts": [3000, 9944]
 }

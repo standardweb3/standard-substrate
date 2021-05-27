@@ -2,6 +2,14 @@
 init:
 	./scripts/init.sh
 
+.PHONY: format
+format:
+	SKIP_WASM_BUILD=1 cargo fmt --all
+
+.PHONY: ci-format
+ci-format:
+	SKIP_WASM_BUILD=1 cargo fmt --all -- --check
+
 .PHONY: check
 check:
 	SKIP_WASM_BUILD=1 cargo check

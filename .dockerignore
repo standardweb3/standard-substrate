@@ -1,0 +1,9 @@
+.git/
+.github/
+
+.dockerignore
+
+**/*.env
+**/*.log 
+
+target
