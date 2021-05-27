@@ -38,7 +38,7 @@ jobs:
           load: true
           build-args: |
             toolchainbuild=nightly-2021-03-01
-          push: ${{ github.event_name != 'pull_request' }}
+          # push: ${{ github.event_name != 'pull_request' }}
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
