@@ -1,4 +1,7 @@
-FROM rust as planner
+ARG RUST_IMAGE=rust:1.52-slim
+ARG RUNTIME_IMAGE=alpine:3.13
+
+FROM $RUST_IMAGE as planner
 ARG toolchainbuild
 WORKDIR /opt/app
 # We only pay the installation cost once, 
@@ -12,7 +15,7 @@ RUN cargo install cargo-chef
 COPY . .
 RUN cargo chef prepare  --recipe-path recipe.json
 
-FROM rust as cacher
+FROM $RUST_IMAGE as cacher
 ARG toolchainbuild
 WORKDIR /opt/app
 
@@ -28,7 +31,7 @@ RUN cargo install cargo-chef
 COPY --from=planner /opt/app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 
-FROM rust as builder
+FROM $RUST_IMAGE as builder
 ARG toolchainbuild
 WORKDIR /opt/app
 
@@ -46,11 +49,9 @@ COPY --from=cacher /opt/app/target target
 COPY --from=cacher /usr/local/cargo /usr/local/cargo
 RUN cargo build --release
 
-FROM rust as runtime
-ARG toolchainbuild
-WORKDIR /opt/app
+FROM $RUNTIME_IMAGE as runtime
 
 EXPOSE 30333 9933 9944
 COPY --from=builder /opt/app/target/release/opportunity-standalone /usr/local/bin
 RUN /usr/local/bin/opportunity-standalone --version
-ENTRYPOINT ["./usr/local/bin/app"]
+ENTRYPOINT ["/usr/local/bin/opportunity-standalone"]

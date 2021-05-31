@@ -49,3 +49,7 @@ run-collator1:
 .PHONY: run-collator2
 run-collator2:
 	./target/release/standard-collator -d local-alice --bob --ws-port 9947 --rpc-port 9951;
+
+.PHONY: compose-run
+compose-run:
+	docker-compose up -d

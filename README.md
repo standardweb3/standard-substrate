@@ -54,5 +54,5 @@ make localrun
 Runs docker compose which builds and runs the image.
 
 ```bash
-docker-compose up -d
+make compose-run
 ```
