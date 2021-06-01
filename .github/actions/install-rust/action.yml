@@ -1,6 +1,12 @@
 name: "Install Rust for Substrate"
 description: "Install Rust configured for Substrate"
 
+inputs:
+  toolchain_build: # id of input
+    description: "Which version of rust toolchain to use"
+    required: false
+    default: "nightly-2021-03-01"
+
 runs:
   using: "composite"
   steps:
@@ -16,5 +22,5 @@ runs:
         source ~/.cargo/env
         rustup default stable
         rustup update stable
-        rustup update nightly
-        rustup target add wasm32-unknown-unknown --toolchain nightly
+        rustup update ${{ inputs.toolchain_build }}
+        rustup target add wasm32-unknown-unknown --toolchain ${{ inputs.toolchain_build }}
