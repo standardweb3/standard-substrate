@@ -20,7 +20,11 @@ test:
 
 .PHONY: build
 build:
-	cargo build --release;
+	cargo build --release
+
+.PHONY: build-opportunity-standalone
+build-opportunity-standalone:
+	cargo build --release --bin opportunity-standalone
 
 # Only test business logics without applying standalone consensus
 .PHONY: localrun

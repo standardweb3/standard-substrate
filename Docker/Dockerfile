@@ -1,5 +1,6 @@
 ARG RUST_IMAGE=rust:1.52-slim
 ARG RUNTIME_IMAGE=debian:buster-slim
+ARG TOOLCHAIN_BUILD=nightly-2021-03-01
 
 ### planner stage - builds dependency recipe.json for cargo chef
 FROM $RUST_IMAGE as planner
@@ -9,8 +10,8 @@ WORKDIR /opt/app
 # it will be cached from the second build onwards
 # To ensure a reproducible build consider pinning 
 # the cargo-chef version with `--version X.X.X`
-RUN echo "rust toolchain build: $toolchainbuild"
-RUN rustup default $toolchainbuild
+RUN echo "rust toolchain build: $TOOLCHAIN_BUILD"
+RUN rustup default $TOOLCHAIN_BUILD
 RUN cargo install cargo-chef 
 
 COPY . .
@@ -23,11 +24,11 @@ WORKDIR /opt/app
 
 RUN apt-get update && \
   apt install -y git clang curl libssl-dev llvm libudev-dev
-RUN echo "rust toolchain build: $toolchainbuild"
-RUN rustup install $toolchainbuild &&\
-  rustup default $toolchainbuild &&\
-  rustup update $toolchainbuild &&\
-  rustup target add wasm32-unknown-unknown --toolchain $toolchainbuild
+RUN echo "rust toolchain build: $TOOLCHAIN_BUILD"
+RUN rustup install $TOOLCHAIN_BUILD &&\
+  rustup default $TOOLCHAIN_BUILD &&\
+  rustup update $TOOLCHAIN_BUILD &&\
+  rustup target add wasm32-unknown-unknown --toolchain $TOOLCHAIN_BUILD
 
 RUN cargo install cargo-chef
 COPY --from=planner /opt/app/recipe.json recipe.json
@@ -41,11 +42,11 @@ WORKDIR /opt/app
 RUN apt-get update && \
   apt install -y git clang curl libssl-dev llvm libudev-dev
 
-RUN echo "rust toolchain build: $toolchainbuild"
-RUN rustup install $toolchainbuild &&\
-  rustup default $toolchainbuild &&\
-  rustup update $toolchainbuild &&\
-  rustup target add wasm32-unknown-unknown --toolchain $toolchainbuild
+RUN echo "rust toolchain build: $TOOLCHAIN_BUILD"
+RUN rustup install $TOOLCHAIN_BUILD &&\
+  rustup default $TOOLCHAIN_BUILD &&\
+  rustup update $TOOLCHAIN_BUILD &&\
+  rustup target add wasm32-unknown-unknown --toolchain $TOOLCHAIN_BUILD
 
 COPY . .
 # Copy over the cached dependencies

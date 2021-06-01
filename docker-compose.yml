@@ -9,8 +9,6 @@ services:
       args:
         TOOLCHAIN_BUILD: "nightly-2021-03-01"
         PROFILE: "debug"
-
-    # image: paritytech/ci-linux:staging
     ports:
       - "3000:3000"
       - "9933:9933"
@@ -18,7 +16,6 @@ services:
     environment:
       RUST_LOG: "cargo=error"
     # volumes:
-    #   - .:/var/www/node-template
     #   - type: bind
     #     source: ./.local
     #     target: /root/.local
