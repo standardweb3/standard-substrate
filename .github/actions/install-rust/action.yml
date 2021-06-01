@@ -11,13 +11,16 @@ runs:
   using: "composite"
   steps:
     - name: Get current arch
+      shell: bash
       run: |
         uname -m
 
     - name: Install Dependencies
       shell: bash
       run: >
-        sudo apt install -y build-essential cmake clang curl git libclang-dev libssl-dev libudev-dev llvm pkg-config
+        sudo apt install -y git clang curl libssl-dev llvm libudev-dev
+
+      # sudo apt install -y build-essential cmake clang curl git libclang-dev libssl-dev libudev-dev llvm pkg-config
 
     - name: Install Rustup
       shell: bash
