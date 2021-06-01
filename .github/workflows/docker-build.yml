@@ -48,7 +48,7 @@ jobs:
         with:
           context: .
           builder: ${{ steps.buildx.outputs.name }}
-          file: ./Docker/Dockerfile
+          file: ./Docker/Dockerfile.release
           tags: standard-substrate:latest
           load: true
           tags: |
