@@ -1,10 +1,17 @@
 name: Build Docker
 
+permissions:
+  contents: read
+
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
     branches:
       - master
+  # will turn on once releases are streamlined
+  # release:
+  #   types:
+  #     - published
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -44,6 +51,9 @@ jobs:
           file: ./Docker/Dockerfile
           tags: standard-substrate:latest
           load: true
+          tags: |
+            standardprotocol/standalone:latest
+            standardprotocol/standalone:${{ github.event.release.tag_name }}
           build-args: |
             TOOLCHAIN_BUILD=nightly-2021-03-01
           cache-from: type=local,src=/tmp/.buildx-cache

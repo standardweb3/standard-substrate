@@ -15,7 +15,13 @@ services:
       - "9944:9944"
     environment:
       RUST_LOG: "cargo=error"
+    volumes:
+      - "standard-data:/data"
+    command: opportunity-standalone
     # volumes:
     #   - type: bind
     #     source: ./.local
     #     target: /root/.local
+
+volumes:
+  standard-data:

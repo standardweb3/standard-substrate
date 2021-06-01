@@ -1,0 +1,33 @@
+ARG RUST_IMAGE=rust:1.52-slim
+ARG RUNTIME_IMAGE=debian:buster-slim
+ARG TOOLCHAIN_BUILD=nightly-2021-03-01
+
+FROM $RUST_IMAGE as builder
+
+ARG PROFILE=release
+WORKDIR /opt/app
+
+RUN apt-get update && \
+  apt install -y git clang curl libssl-dev llvm libudev-dev
+
+RUN echo "rust toolchain build: $TOOLCHAIN_BUILD"
+RUN rustup install $TOOLCHAIN_BUILD &&\
+  rustup default $TOOLCHAIN_BUILD &&\
+  rustup update $TOOLCHAIN_BUILD &&\
+  rustup target add wasm32-unknown-unknown --toolchain $TOOLCHAIN_BUILD
+
+COPY . .
+
+RUN cargo build --$PROFILE
+
+FROM RUNTIME_IMAGE as runtime
+
+ARG PROFILE=release
+COPY --from=builder /opt/app/target/$PROFILE/standard-opportunity /usr/local/bin
+RUN ldd /usr/local/bin/opportunity-standalone && \
+	/usr/local/bin/opportunity-standalone --version
+
+EXPOSE 30333 9933 9944
+VOLUME ["/data"]
+
+ENTRYPOINT [ "/usr/local/bin/polkadot" ]

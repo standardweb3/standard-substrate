@@ -10,6 +10,10 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Get current arch
+      run: |
+        uname -m
+
     - name: Install Dependencies
       shell: bash
       run: >

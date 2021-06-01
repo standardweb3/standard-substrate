@@ -1,5 +1,8 @@
 name: Build Binaries
 
+permissions:
+  contents: read
+
 # Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
@@ -21,18 +24,30 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   rust-build:
-    runs-on: ubuntu-20.04
+    strategy:
+    matrix:
+      os: [ubuntu-20.04, macos-11]
+    runs-on: ${{ matrix.os }}
+    # runs-on: ubuntu-20.04
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - name: Checkout - ${{ matrix.os }}
+        uses: actions/checkout@v2
 
       # use once repository is tagged
       # - uses: actions/install-rust@v1
-      - uses: ./.github/actions/install-rust
+      - name: Rust Install - ${{ matrix.os }}
+        uses: ./.github/actions/install-rust
 
-      - name: Run Build
+      - name: Run Build - ${{ matrix.os }}
         run: |
           make build-opportunity-standalone
+
+      - name: Upload Artifacts - ${{ matrix.os }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: binaries-artifact
+          path: |
+            ./target/release/opportunity-standalone
