@@ -28,7 +28,8 @@ jobs:
   rust-build:
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-11]
+        # macos-11 not yet available, currently is in private preview
+        os: [ubuntu-20.04, macos-10.15]
     runs-on: ${{ matrix.os }}
     # runs-on: ubuntu-20.04
     steps:
