@@ -1,8 +1,9 @@
 ARG RUST_IMAGE=rust:1.52-slim
-ARG RUNTIME_IMAGE=alpine:3.13
+ARG RUNTIME_IMAGE=debian:buster-slim
 
+### planner stage - builds dependency recipe.json for cargo chef
 FROM $RUST_IMAGE as planner
-ARG toolchainbuild
+ARG TOOLCHAIN_BUILD
 WORKDIR /opt/app
 # We only pay the installation cost once, 
 # it will be cached from the second build onwards
@@ -15,8 +16,9 @@ RUN cargo install cargo-chef
 COPY . .
 RUN cargo chef prepare  --recipe-path recipe.json
 
+### caching stage - builds out dependency cache
 FROM $RUST_IMAGE as cacher
-ARG toolchainbuild
+ARG TOOLCHAIN_BUILD
 WORKDIR /opt/app
 
 RUN apt-get update && \
@@ -31,8 +33,9 @@ RUN cargo install cargo-chef
 COPY --from=planner /opt/app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 
+### building stage - copies dependencies cache, builds the application
 FROM $RUST_IMAGE as builder
-ARG toolchainbuild
+ARG TOOLCHAIN_BUILD
 WORKDIR /opt/app
 
 RUN apt-get update && \
@@ -43,15 +46,23 @@ RUN rustup install $toolchainbuild &&\
   rustup default $toolchainbuild &&\
   rustup update $toolchainbuild &&\
   rustup target add wasm32-unknown-unknown --toolchain $toolchainbuild
+
 COPY . .
 # Copy over the cached dependencies
 COPY --from=cacher /opt/app/target target
-COPY --from=cacher /usr/local/cargo /usr/local/cargo
+COPY --from=cacher $CARGO_HOME $CARGO_HOME
+
+# RUN --mount=type=cache,target=/usr/local/cargo,from=rust,source=/usr/local/cargo \
+#     --mount=type=cache,target=target \
+#     cargo build --release
+
 RUN cargo build --release
 
+### runtime stage - pulls a small image and pushes the application
 FROM $RUNTIME_IMAGE as runtime
 
 EXPOSE 30333 9933 9944
 COPY --from=builder /opt/app/target/release/opportunity-standalone /usr/local/bin
-RUN /usr/local/bin/opportunity-standalone --version
+RUN ldd /usr/local/bin/opportunity-standalone && \
+	/usr/local/bin/opportunity-standalone --version
 ENTRYPOINT ["/usr/local/bin/opportunity-standalone"]

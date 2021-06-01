@@ -7,7 +7,9 @@ services:
       context: ./
       dockerfile: ./Docker/Dockerfile
       args:
-        toolchainbuild: "nightly-2021-03-01"
+        TOOLCHAIN_BUILD: "nightly-2021-03-01"
+        PROFILE: "debug"
+
     # image: paritytech/ci-linux:staging
     ports:
       - "3000:3000"

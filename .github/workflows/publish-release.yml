@@ -1,0 +1,46 @@
+name: Release binaries and images
+
+# Controls when the action will run.
+on:
+  # Dependency on previous successful workflows
+  workflow_run:
+    workflows: ["Build Binaries"]
+    branches:
+      - master
+    types:
+      - complete
+
+jobs:
+  on-success:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          files: |
+            standard-opportunity
+            CHANGELOG.md
+
+      - name: release
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: false
+          prerelease: false
+          release_name: ${{ steps.version.outputs.version }}
+          tag_name: ${{ github.ref }}
+          body_path: CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  on-failure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - name: Send off notification - TODO
+        run: |
+          echo "Failed"

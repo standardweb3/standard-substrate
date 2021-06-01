@@ -1,4 +1,4 @@
-name: Tests run
+name: Build Binaries
 
 # Controls when the action will run.
 on:
@@ -6,11 +6,6 @@ on:
   push:
     branches:
       - master
-      - "release/**"
-  pull_request:
-    branches:
-      - master
-      - "release/**"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -28,7 +23,7 @@ concurrency:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  rust-checks:
+  rust-build:
     runs-on: ubuntu-20.04
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -38,19 +33,6 @@ jobs:
       # - uses: actions/install-rust@v1
       - uses: ./.github/actions/install-rust
 
-      # Check codebase style, will output error 1 if
-      # there is formatting to be done
-      # Continues on error for now, need to format code fully first,
-      # then remove `continue-on-error` to enforce it
-      - name: Run Fmt
-        continue-on-error: true
+      - name: Run Build
         run: |
-          make ci-format
-
-      - name: Run Checks
-        run: |
-          make check
-
-      - name: Run Tests
-        run: |
-          make test
+          make build --bin opportunity-standalone
