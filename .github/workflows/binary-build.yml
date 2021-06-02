@@ -64,11 +64,13 @@ jobs:
       - name: Retrieve arch
         id: arch
         run: |
-          echo "::set-output name=DETAILS::$(uname -s)-$(uname -m) | awk '{print tolower($0)}'"
+          ARCH="$(uname -s)-$(uname -m)"
+          ARCH_L=$(echo "$ARCH" | tr '[:upper:]' '[:lower:]')
+          echo "::set-output name=DETAILS::${ARCH_L}"
 
       - name: Rename artifacts - ${{ matrix.os }}
         run: |
-          mv /target/release/opportunity-standalone ./opportunity-standalone-${{ steps.arch.outputs.DETAILS }}
+          mv ./target/release/opportunity-standalone ./opportunity-standalone-${{ steps.arch.outputs.DETAILS }}
 
       - name: Upload Artifacts - ${{ matrix.os }}
         uses: actions/upload-artifact@v2
