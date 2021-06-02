@@ -24,14 +24,21 @@ jobs:
     # env:
     #   GITHUB_TOKEN: ${{ github.token }}
     steps:
-      - name: Download binaries
-        uses: actions/download-artifact@v2
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 100
 
-      - name: Download binaries
-        uses: actions/download-artifact@v2
-        # with:
-        #   path: ./bin
-        #   name: binaries-*
+      # - name: Download binaries
+      #   uses: actions/download-artifact@v2
+      # with:
+      #   path: ./bin
+      #   name: binaries-*
+
+      - name: Download artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: binary-build.yml
 
       - name: Display structure of downloaded files
         run: ls -R

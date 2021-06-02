@@ -75,7 +75,7 @@ jobs:
       - name: Upload Artifacts - ${{ matrix.os }}
         uses: actions/upload-artifact@v2
         with:
-          name: binaries-${{ steps.arch.outputs.DETAILS }}
+          name: standard-opportunity-${{ steps.arch.outputs.DETAILS }}
           if-no-files-found: error
           path: |
             ./opportunity-standalone-${{ steps.arch.outputs.DETAILS }}
