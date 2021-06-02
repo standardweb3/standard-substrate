@@ -57,9 +57,23 @@ jobs:
         run: |
           make build-opportunity-standalone
 
+      # retrieves arch details for a build machine
+      # example: 'linux-amd64'
+      # is a bit hacky since we rely output file will have the same arch as
+      # a build machine, will need to look into it
+      - name: Retrieve arch
+        id: arch
+        run: |
+          echo "::set-output name=DETAILS::$(uname -s)-$(uname -m) | awk '{print tolower($0)}'"
+
+      - name: Rename artifacts - ${{ matrix.os }}
+        run: |
+          mv /target/release/opportunity-standalone ./opportunity-standalone-${{ steps.arch.outputs.DETAILS }}
+
       - name: Upload Artifacts - ${{ matrix.os }}
         uses: actions/upload-artifact@v2
         with:
-          name: binaries-artifact
+          name: binaries-${{ steps.arch.outputs.DETAILS }}
+          if-no-files-found: error
           path: |
-            ./target/release/opportunity-standalone
+            ./opportunity-standalone-${{ steps.arch.outputs.DETAILS }}
