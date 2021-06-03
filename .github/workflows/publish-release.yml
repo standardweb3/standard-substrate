@@ -13,6 +13,9 @@ on:
     branches: [master]
     type:
       - complete
+  push:
+    tags:
+      - "*"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -25,7 +28,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          fetch-depth: 100
+          fetch-depth: 0
 
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v2
