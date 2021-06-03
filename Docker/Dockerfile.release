@@ -30,4 +30,4 @@ RUN ldd /usr/local/bin/opportunity-standalone && \
 EXPOSE 30333 9933 9944
 VOLUME ["/data"]
 
-ENTRYPOINT [ "/usr/local/bin/polkadot" ]
+ENTRYPOINT [ "/usr/local/bin/opportunity-standalone" ]
