@@ -8,7 +8,8 @@ name: Release binaries and images
 # Controls when the action will run.
 on:
   push:
-    tags: [0-9]+.[0-9]+.[0-9]+
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+*"
 
   # Dependency on previous successful workflow
   # workflow_run:
