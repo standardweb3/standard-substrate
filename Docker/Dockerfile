@@ -64,7 +64,8 @@ FROM $RUNTIME_IMAGE as runtime
 
 EXPOSE 30333 9933 9944
 COPY --from=builder /opt/app/target/release/opportunity-standalone /usr/local/bin
+COPY ./Docker/entrypoint.sh /
 RUN ldd /usr/local/bin/opportunity-standalone && \
 	/usr/local/bin/opportunity-standalone --version
-ENTRYPOINT ["/usr/local/bin/opportunity-standalone"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["--help"]
