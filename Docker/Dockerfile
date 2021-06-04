@@ -53,10 +53,6 @@ COPY . .
 COPY --from=cacher /opt/app/target target
 COPY --from=cacher $CARGO_HOME $CARGO_HOME
 
-# RUN --mount=type=cache,target=/usr/local/cargo,from=rust,source=/usr/local/cargo \
-#     --mount=type=cache,target=target \
-#     cargo build --release
-
 RUN cargo build --release
 
 ### runtime stage - pulls a small image and pushes the application
@@ -67,5 +63,5 @@ COPY --from=builder /opt/app/target/release/opportunity-standalone /usr/local/bi
 COPY ./Docker/entrypoint.sh /
 RUN ldd /usr/local/bin/opportunity-standalone && \
 	/usr/local/bin/opportunity-standalone --version
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["--help"]
