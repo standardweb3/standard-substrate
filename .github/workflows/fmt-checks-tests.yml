@@ -10,10 +10,14 @@ on:
     branches:
       - master
       - "release/**"
+      - "feature/**"
+      - "bugfix/**"
   pull_request:
     branches:
       - master
       - "release/**"
+      - "feature/**"
+      - "bugfix/**"
   schedule:
     - cron: "0 18 * * *"
 

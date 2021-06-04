@@ -67,3 +67,4 @@ COPY --from=builder /opt/app/target/release/opportunity-standalone /usr/local/bi
 RUN ldd /usr/local/bin/opportunity-standalone && \
 	/usr/local/bin/opportunity-standalone --version
 ENTRYPOINT ["/usr/local/bin/opportunity-standalone"]
+CMD ["--help"]
