@@ -55,7 +55,7 @@ jobs:
         env:
           SLACK_INCOMING_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_MESSAGE: "Details: ${{ steps.release-step.outputs.url }}"
-          SLACK_TITLE: "New release in ${{ github.repository }} - ${{ github.ref:10 }}"
+          SLACK_TITLE: "New release in ${{ github.repository }} - ${GITHUB_REF:10}"
           SLACK_COLOR: "#008000"
           SLACK_CHANNEL: "github-releases"
           SLACK_USERNAME: "release-bot"
