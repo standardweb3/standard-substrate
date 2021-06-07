@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  standard-node:
+    container_name: standard-node
+    build:
+      context: ./
+      dockerfile: ./Docker/Dockerfile
+      args:
+        TOOLCHAIN_BUILD: "nightly-2021-03-01"
+        PROFILE: "debug"
+    ports:
+      - "3000:3000"
+      - "9933:9933"
+      - "9944:9944"
+    environment:
+      RUST_LOG: "cargo=error"
+    volumes:
+      - "standard-data:/data"
+    command: opportunity-standalone
+    # volumes:
+    #   - type: bind
+    #     source: ./.local
+    #     target: /root/.local
+
+volumes:
+  standard-data:

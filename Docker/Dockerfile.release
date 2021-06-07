@@ -1,0 +1,13 @@
+ARG RUNTIME_IMAGE=debian:buster-slim
+
+FROM $RUNTIME_IMAGE as runtime
+
+COPY ./standard-opportunity /usr/local/bin
+RUN ldd /usr/local/bin/opportunity-standalone && \
+	/usr/local/bin/opportunity-standalone --version
+
+EXPOSE 30333 9933 9944
+VOLUME ["/data"]
+
+ENTRYPOINT [ "/usr/local/bin/opportunity-standalone" ]
+CMD ["--help"]

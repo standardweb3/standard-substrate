@@ -2,6 +2,14 @@
 init:
 	./scripts/init.sh
 
+.PHONY: format
+format:
+	SKIP_WASM_BUILD=1 cargo fmt --all
+
+.PHONY: ci-format
+ci-format:
+	SKIP_WASM_BUILD=1 cargo fmt --all -- --check
+
 .PHONY: check
 check:
 	SKIP_WASM_BUILD=1 cargo check
@@ -12,7 +20,11 @@ test:
 
 .PHONY: build
 build:
-	cargo build --release;
+	cargo build --release
+
+.PHONY: build-opportunity-standalone
+build-opportunity-standalone:
+	cargo build --release --bin opportunity-standalone
 
 # Only test business logics without applying standalone consensus
 .PHONY: localrun
@@ -41,3 +53,7 @@ run-collator1:
 .PHONY: run-collator2
 run-collator2:
 	./target/release/standard-collator -d local-alice --bob --ws-port 9947 --rpc-port 9951;
+
+.PHONY: compose-run
+compose-run:
+	docker-compose up -d
