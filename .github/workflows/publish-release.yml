@@ -1,4 +1,4 @@
-name: Release binaries and images
+name: Publish release
 
 # permissions:
 #   contents: write
@@ -9,7 +9,7 @@ name: Release binaries and images
 on:
   push:
     tags:
-      - "[0-9]+.[0-9]+.[0-9]+*"
+      - "*.*.*"
 
   # Dependency on previous successful workflow
   # workflow_run:
@@ -37,7 +37,6 @@ jobs:
 
       - name: Display structure of downloaded files
         run: ls -R
-        # working-directory: ./bin
 
       - name: Build Changelog
         id: build-changelog
