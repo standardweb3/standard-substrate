@@ -6,7 +6,7 @@ structopt = "0.3.8"
 serde = { version = "1.0.119", features = ["derive"] }
 hex-literal = "0.2.1"
 # RPC related dependencies
-jsonrpc-core = "15.1.0"
+jsonrpc-core = "17.1.0"
 
 [dependencies.frame-benchmarking]
 git = 'https://github.com/paritytech/substrate.git'
