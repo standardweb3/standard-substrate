@@ -20,6 +20,15 @@ pub type ChainSpec = sc_service::GenericChainSpec<opportunity_runtime::GenesisCo
 
 pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
 
+const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
+
+const OPPORTUNITY_PROPERTIES: &str = r#"
+        {
+            "ss58Format": 5,
+            "tokenDecimals": 15,
+            "tokenSymbol": "OPT"
+        }"#;
+const OPPORTUNITY_PROTOCOL_ID: &str = "opt";
 
 pub type AssetId = u32;
 pub const CORE_ASSET_ID: AssetId = 1;
@@ -123,7 +132,45 @@ pub fn development_config() -> ChainSpec {
 		None,
 		None,
 		None,
-		None,
+		None
+	)
+}
+
+pub fn opportunity_standalone_config() -> ChainSpec {
+	ChainSpec::from_genesis(
+		// Name
+		"Opportunity Standalone Testnet",
+		// ID
+		"opportunity_standalone",
+		ChainType::Local,
+		move || {
+			testnet_genesis(
+				vec![authority_keys_from_seed("Alice")],
+				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				vec![
+					get_account_id_from_seed::<sr25519::Public>("Alice"),
+					get_account_id_from_seed::<sr25519::Public>("Bob"),
+					get_account_id_from_seed::<sr25519::Public>("Charlie"),
+					get_account_id_from_seed::<sr25519::Public>("Dave"),
+					get_account_id_from_seed::<sr25519::Public>("Eve"),
+					get_account_id_from_seed::<sr25519::Public>("Ferdie"),
+					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
+					get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
+					get_account_id_from_seed::<sr25519::Public>("Charlie//stash"),
+					get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
+					get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
+					get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
+				],
+			)
+		},
+		vec![],
+		Some(
+            sc_telemetry::TelemetryEndpoints::new(vec![(STAGING_TELEMETRY_URL.to_string(), 0)])
+                .unwrap(),
+        ),
+        Some(OPPORTUNITY_PROTOCOL_ID),
+        serde_json::from_str(OPPORTUNITY_PROPERTIES).unwrap(),
+        Default::default(),
 	)
 }
 
