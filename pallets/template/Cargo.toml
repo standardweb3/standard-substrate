@@ -56,7 +56,7 @@ branch = 'rococo-v1'
 version = '3.0.0'
 
 [dev-dependencies]
-serde = { version = "1.0.119" }
+serde = { version = "1.0.126" }
 
 [dev-dependencies.sp-core]
 default-features = false

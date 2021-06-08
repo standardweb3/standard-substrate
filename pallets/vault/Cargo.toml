@@ -13,7 +13,7 @@ targets = ['x86_64-unknown-linux-gnu']
 
 
 [dependencies]
-serde = { version = "1.0.119", optional = true }
+serde = { version = "1.0.126", optional = true }
 codec = { package = "parity-scale-codec", version = "2.0.1", features = ["derive"], default-features = false }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false, version = '3.0.0' }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false, version = '3.0.0' }
