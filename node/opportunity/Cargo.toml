@@ -279,12 +279,12 @@ branch = 'rococo-v1'
 name = 'opportunity-standalone'
 
 [package]
-authors = ['Anonymous']
+authors = ['Digital Native Foundation']
 build = 'build.rs'
-description = 'A new Cumulus FRAME-based Substrate node, ready for hacking.'
+description = 'Opportunity Standalone Testnet'
 edition = '2018'
 homepage = 'https://substrate.dev'
-license = 'Unlicense'
+license = 'Apache-2.0'
 name = 'opportunity-standalone'
 repository = 'https://github.com/substrate-developer-hub/substrate-parachain-template'
 version = '2.0.0'
@@ -294,4 +294,5 @@ targets = ['x86_64-unknown-linux-gnu']
 [features]
 default = []
 runtime-benchmarks = ['opportunity-runtime/runtime-benchmarks']
+
 
