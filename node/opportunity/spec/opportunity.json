@@ -3,7 +3,8 @@
   "id": "opportunity_standalone",
   "chainType": "Local",
   "bootNodes": [
-    "/ip4/127.0.0.1/tcp/30333/p2p/12D3KooWGHFtZxjwTDbGdz4acZtDqcYgDwg1b5Wkmi2Rj8RaUBAs"
+    "/dns/opportunity.standard.tech/tcp/30333/p2p/12D3KooWDPnry4Ei9RxgtY4RfwsM5fnUxg5sXJGbe8LMKrLs8tkf",
+    "/dns/opportunity2.standard.tech/tcp/30333/p2p/12D3KooWGPAekiLHBHyCYe4x1BAbvSpHYbwkSHk3KxNyoZoyCmp6"
   ],
   "telemetryEndpoints": [
     [
