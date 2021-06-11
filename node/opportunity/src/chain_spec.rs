@@ -172,7 +172,7 @@ pub fn opportunity_standalone_config() -> ChainSpec {
         vec![],
         Some(
             sc_telemetry::TelemetryEndpoints::new(vec![(STAGING_TELEMETRY_URL.to_string(), 0)])
-                .unwrap(),
+                .expect("Telemetry url is valid"),
         ),
         Some(OPPORTUNITY_PROTOCOL_ID),
         serde_json::from_str(OPPORTUNITY_PROPERTIES).unwrap(),
