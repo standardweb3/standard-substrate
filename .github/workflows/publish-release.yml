@@ -48,14 +48,14 @@ jobs:
         with:
           artifacts: "standard-opportunity-*/*"
           body: ${{ steps.build-changelog.outputs.changelog }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.BOT_GITHUB_TOKEN }}
 
       - name: Slack Notification
         uses: bryannice/gitactions-slack-notification@2.0.0
         env:
           SLACK_INCOMING_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_MESSAGE: "Details: ${{ steps.release-step.outputs.url }}"
-          SLACK_TITLE: "New release in ${{ github.repository }} - ${GITHUB_REF:10}"
+          SLACK_TITLE: "New release in ${{ github.repository }} - ${{ GITHUB_REF:10 }}"
           SLACK_COLOR: "#008000"
           SLACK_CHANNEL: "github-releases"
           SLACK_USERNAME: "release-bot"
