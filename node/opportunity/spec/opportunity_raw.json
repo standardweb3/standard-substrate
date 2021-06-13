@@ -14,7 +14,7 @@
   ],
   "protocolId": "opt",
   "properties": {
-    "ss58Format": 5,
+    "ss58Format": 42,
     "tokenDecimals": 15,
     "tokenSymbol": "OPT"
   },
