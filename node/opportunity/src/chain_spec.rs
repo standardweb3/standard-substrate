@@ -148,7 +148,7 @@ pub fn opportunity_standalone_config() -> ChainSpec {
         "Opportunity Standalone Testnet",
         // ID
         "opportunity_standalone",
-        ChainType::Staging,
+        ChainType::Live,
         move || {
             testnet_genesis(
                 vec![authority_keys_from_seed("Alice")],
