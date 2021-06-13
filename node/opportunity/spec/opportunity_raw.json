@@ -1,7 +1,7 @@
 {
   "name": "Opportunity Standalone Testnet",
   "id": "opportunity_standalone",
-  "chainType": "Local",
+  "chainType": "Staging",
   "bootNodes": [
     "/dns/opportunity.standard.tech/tcp/30333/p2p/12D3KooWDPnry4Ei9RxgtY4RfwsM5fnUxg5sXJGbe8LMKrLs8tkf",
     "/dns/opportunity2.standard.tech/tcp/30333/p2p/12D3KooWGPAekiLHBHyCYe4x1BAbvSpHYbwkSHk3KxNyoZoyCmp6"
