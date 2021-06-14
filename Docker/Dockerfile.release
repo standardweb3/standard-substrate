@@ -2,7 +2,7 @@ ARG RUNTIME_IMAGE=debian:buster-slim
 
 FROM $RUNTIME_IMAGE as runtime
 
-COPY ./standard-opportunity /usr/local/bin
+COPY ./opportunity-standalone /usr/local/bin
 RUN ldd /usr/local/bin/opportunity-standalone && \
 	/usr/local/bin/opportunity-standalone --version
 
