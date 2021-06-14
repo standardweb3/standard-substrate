@@ -1,4 +1,4 @@
-ARG RUNTIME_IMAGE=debian:buster-slim
+ARG RUNTIME_IMAGE=ubuntu:focal
 
 FROM $RUNTIME_IMAGE as runtime
 
