@@ -1,1 +1,3 @@
 # Docker instructions
+
+Requires BuildKit.

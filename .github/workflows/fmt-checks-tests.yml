@@ -18,6 +18,12 @@ on:
       - "release/**"
       - "feature/**"
       - "bugfix/**"
+    paths:
+      - "node/**"
+      - "orml/**"
+      - "pallets/**"
+      - "primitives/**"
+      - "runtime/**"
   schedule:
     - cron: "0 18 * * *"
 

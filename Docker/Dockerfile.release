@@ -2,7 +2,10 @@ ARG RUNTIME_IMAGE=ubuntu:focal
 
 FROM $RUNTIME_IMAGE as runtime
 
-COPY ./opportunity-standalone /usr/local/bin
+LABEL maintainer="Standard Tech <tech@standard.tech>"
+LABEL description="Standard Tech Opportunity Node"
+
+COPY --chmod=u=rwx,go=rx ./opportunity-standalone /usr/local/bin
 RUN ldd /usr/local/bin/opportunity-standalone && \
 	/usr/local/bin/opportunity-standalone --version
 

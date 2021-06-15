@@ -58,8 +58,10 @@ RUN cargo build --release
 ### runtime stage - pulls a small image and pushes the application
 FROM $RUNTIME_IMAGE as runtime
 
+LABEL maintainer="Standard Tech <tech@standard.tech>"
+LABEL description="Standard Tech Opportunity Node"
 EXPOSE 30333 9933 9944
-COPY --from=builder /opt/app/target/release/opportunity-standalone /usr/local/bin
+COPY --from=builder --chmod=u=rwx,go=rx /opt/app/target/release/opportunity-standalone /usr/local/bin
 COPY ./Docker/entrypoint.sh /
 RUN ldd /usr/local/bin/opportunity-standalone && \
 	/usr/local/bin/opportunity-standalone --version
