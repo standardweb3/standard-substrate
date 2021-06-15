@@ -62,6 +62,17 @@ compose-run:
 docker-build:
 	DOCKER_BUILDKIT=1 docker build -f Docker/Dockerfile -t standard-opportunity:local .
 
+# to be doublechecked
+# reference: make docker-run VOLUME_PATH='./data' DATA_DIR='/data' NODE_NAME='Standard Validator'
 .PHONY: docker-run
 docker-run:
-	docker run --rm -it standard-opportunity:local
+	docker run --rm -it -v $(VOLUME_PATH):$(DATA_DIR) \
+		--name standard-opportunity \
+		standard-opportunity:local \
+		--base-path $(DATA_DIR) \
+		--chain opportunity \
+		--port 30333 \
+		--bootnodes /dns/opportunity.standard.tech/tcp/30333/p2p/12D3KooWDPnry4Ei9RxgtY4RfwsM5fnUxg5sXJGbe8LMKrLs8tkf \
+				/dns/opportunity2.standard.tech/tcp/30333/p2p/12D3KooWGPAekiLHBHyCYe4x1BAbvSpHYbwkSHk3KxNyoZoyCmp6' \
+		--name $(NODE_NAME) \
+		--validator
