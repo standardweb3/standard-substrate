@@ -57,3 +57,11 @@ run-collator2:
 .PHONY: compose-run
 compose-run:
 	docker-compose up -d
+
+.PHONY: docker-build
+docker-build:
+	DOCKER_BUILDKIT=1 docker build -f Docker/Dockerfile -t standard-opportunity:local .
+
+.PHONY: docker-run
+docker-run:
+	docker run --rm -it standard-opportunity:local
