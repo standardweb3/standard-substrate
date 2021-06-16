@@ -6,11 +6,10 @@ LABEL maintainer="Standard Tech <tech@standard.tech>"
 LABEL description="Standard Tech Opportunity Node"
 
 COPY --chmod=u=rwx,go=rx ./opportunity-standalone /usr/local/bin
-RUN ldd /usr/local/bin/opportunity-standalone && \
-	/usr/local/bin/opportunity-standalone --version
+COPY ./Docker/entrypoint.sh /
 
 EXPOSE 30333 9933 9944
 VOLUME ["/data"]
 
-ENTRYPOINT [ "/usr/local/bin/opportunity-standalone" ]
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["--help"]
