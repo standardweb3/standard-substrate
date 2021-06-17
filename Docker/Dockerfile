@@ -65,5 +65,5 @@ COPY --from=builder --chmod=u=rwx,go=rx /opt/app/target/release/opportunity-stan
 COPY ./Docker/entrypoint.sh /
 RUN ldd /usr/local/bin/opportunity-standalone && \
 	/usr/local/bin/opportunity-standalone --version
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh", "/usr/local/bin/opportunity-standalone"]
 CMD ["--help"]

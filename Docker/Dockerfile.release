@@ -11,5 +11,8 @@ COPY ./Docker/entrypoint.sh /
 EXPOSE 30333 9933 9944
 VOLUME ["/data"]
 
+RUN ldd /usr/local/bin/opportunity-standalone && \
+	/usr/local/bin/opportunity-standalone --version
+
 ENTRYPOINT ["/entrypoint.sh", "/usr/local/bin/opportunity-standalone"]
 CMD ["--help"]
