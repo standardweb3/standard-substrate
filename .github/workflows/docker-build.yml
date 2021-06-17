@@ -59,6 +59,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           tags: |
             standardprotocol/standard-opportunity:${{ github.event.release.tag_name }}
+            standardprotocol/standard-opportunity:latest
           push: true
 
       - name: Image digest
