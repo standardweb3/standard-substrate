@@ -5,11 +5,11 @@ FROM $RUNTIME_IMAGE as runtime
 LABEL maintainer="Standard Tech <tech@standard.tech>"
 LABEL description="Standard Tech Opportunity Node"
 
-COPY --chmod=u=rwx,go=rx ./opportunity-standalone /usr/local/bin
+COPY ./opportunity-standalone /usr/local/bin
 COPY ./Docker/entrypoint.sh /
 
 EXPOSE 30333 9933 9944
 VOLUME ["/data"]
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh", "/usr/local/bin/opportunity-standalone"]
 CMD ["--help"]

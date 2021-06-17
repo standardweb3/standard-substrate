@@ -1,11 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 echo "print dependencies"
-exec ldd /usr/local/bin/opportunity-standalone
+ldd /usr/local/bin/opportunity-standalone
 echo "get binary version"
-exec /usr/local/bin/opportunity-standalone --version
-# echo "wait for efs"
-# exec sleep 30
+/usr/local/bin/opportunity-standalone --version
 echo "startup node"
-exec /usr/local/bin/opportunity-standalone
+exec "$@"
