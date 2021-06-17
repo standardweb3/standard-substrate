@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eo pipefail
+set -e
 
 echo "print dependencies"
 ldd /usr/local/bin/opportunity-standalone
