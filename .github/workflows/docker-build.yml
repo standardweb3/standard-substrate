@@ -54,7 +54,7 @@ jobs:
           file: ./Docker/Dockerfile.release
           platforms: ${{ matrix.platform }}
           tags: |
-            standardprotocol/standalone:${{ github.event.release.tag_name }}
+            standardprotocol/standard-opportunity:${{ github.event.release.tag_name }}
           push: true
 
       - name: Image digest
