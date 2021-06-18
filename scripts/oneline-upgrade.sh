@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-$FILE=/usr/local/bin/opportunity-standalone
+$FILE="/usr/local/bin/opportunity-standalone"
 if [[ $(whoami) == "root" ]]; then
     MAKE_ME_ROOT=
     echo "root already, continuing"
