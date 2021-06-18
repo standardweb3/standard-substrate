@@ -36,7 +36,4 @@ echo "starting up the service"
 $MAKE_ME_ROOT systemctl start standard-validator
 
 echo "checking if service started up correctly"
-$MAKE_ME_ROOT systemctl status standard-validator
-
-echo "checking logs to see if there are any issues"
-$MAKE_ME_ROOT journalctl -u standard-validator
+$MAKE_ME_ROOT systemctl status standard-validator --no-pager -o cat
