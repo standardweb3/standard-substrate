@@ -3,7 +3,7 @@
 ## Github Actions status
 
 [![Publish release](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/publish-release.yml/badge.svg?branch=master&event=push)](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/publish-release.yml)
-[![Build Docker](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/docker-build.yml/badge.svg?branch=master&event=release)](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/docker-build.yml)
+[![Build and Publish Docker](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/docker-build.yml/badge.svg?branch=master&event=release)](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/docker-build.yml)
 
 ## Documentation
 
