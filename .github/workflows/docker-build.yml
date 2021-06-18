@@ -35,6 +35,10 @@ jobs:
         run: |
           mv standard-opportunity-darwin-x86_64/opportunity-standalone-darwin-x86_64 ./opportunity-standalone
 
+      - name: Make executable
+        run: |
+          chmod +x ./opportunity-standalone
+
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v1
@@ -54,7 +58,8 @@ jobs:
           file: ./Docker/Dockerfile.release
           platforms: ${{ matrix.platform }}
           tags: |
-            standardprotocol/standalone:${{ github.event.release.tag_name }}
+            standardprotocol/standard-opportunity:${{ github.event.release.tag_name }}
+            standardprotocol/standard-opportunity:latest
           push: true
 
       - name: Image digest

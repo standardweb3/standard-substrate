@@ -1,5 +1,5 @@
 ARG RUST_IMAGE=rust:1.52-slim
-ARG RUNTIME_IMAGE=debian:buster-slim
+ARG RUNTIME_IMAGE=ubuntu:focal
 ARG TOOLCHAIN_BUILD=nightly-2021-03-01
 
 ### planner stage - builds dependency recipe.json for cargo chef
@@ -58,10 +58,10 @@ RUN cargo build --release
 ### runtime stage - pulls a small image and pushes the application
 FROM $RUNTIME_IMAGE as runtime
 
+LABEL maintainer="Standard Tech <tech@standard.tech>"
+LABEL description="Standard Tech Opportunity Node"
 EXPOSE 30333 9933 9944
-COPY --from=builder /opt/app/target/release/opportunity-standalone /usr/local/bin
+COPY --from=builder --chmod=u=rwx,go=rx /opt/app/target/release/opportunity-standalone /usr/local/bin
 COPY ./Docker/entrypoint.sh /
-RUN ldd /usr/local/bin/opportunity-standalone && \
-	/usr/local/bin/opportunity-standalone --version
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh", "/usr/local/bin/opportunity-standalone"]
 CMD ["--help"]

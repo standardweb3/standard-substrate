@@ -1,13 +1,15 @@
-ARG RUNTIME_IMAGE=debian:buster-slim
+ARG RUNTIME_IMAGE=ubuntu:focal
 
 FROM $RUNTIME_IMAGE as runtime
 
-COPY ./standard-opportunity /usr/local/bin
-RUN ldd /usr/local/bin/opportunity-standalone && \
-	/usr/local/bin/opportunity-standalone --version
+LABEL maintainer="Standard Tech <tech@standard.tech>"
+LABEL description="Standard Tech Opportunity Node"
+
+COPY ./opportunity-standalone /usr/local/bin
+COPY ./Docker/entrypoint.sh /
 
 EXPOSE 30333 9933 9944
 VOLUME ["/data"]
 
-ENTRYPOINT [ "/usr/local/bin/opportunity-standalone" ]
+ENTRYPOINT ["/entrypoint.sh", "/usr/local/bin/opportunity-standalone"]
 CMD ["--help"]
