@@ -13,7 +13,7 @@ use sp_runtime::traits::{IdentifyAccount, Verify};
 
 use opportunity_runtime::{
     AssetRegistryConfig, BabeConfig, GrandpaConfig, ImOnlineConfig, OracleConfig, Perbill,
-    SessionConfig, StakerStatus, StakingConfig, TokensConfig,
+    SessionConfig, StakerStatus, StakingConfig, TokensConfig, CouncilConfig, ElectionsConfig, TreasuryConfig
 };
 
 /// Specialized `ChainSpec` for the normal parachain runtime.
@@ -25,7 +25,7 @@ const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
 
 const OPPORTUNITY_PROPERTIES: &str = r#"
         {
-            "ss58Format": 5,
+            "ss58Format": 42,
             "tokenDecimals": 15,
             "tokenSymbol": "OPT"
         }"#;
@@ -297,5 +297,8 @@ fn testnet_genesis(
         pallet_standard_oracle: OracleConfig {
             oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec(),
         },
+        pallet_elections_phragmen: ElectionsConfig::default(),
+        pallet_collective_Instance1: CouncilConfig::default(),
+        pallet_treasury: Default::default()
     }
 }
