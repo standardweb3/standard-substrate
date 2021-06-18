@@ -2,18 +2,14 @@
 
 ## Github Actions status
 
-[![Check format, setup and build](https://github.com/firke/standard-substrate/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/firke/standard-substrate/actions/workflows/main.yml)
-[![Docker Build](https://github.com/firke/standard-substrate/actions/workflows/docker-build.yml/badge.svg?branch=master)](https://github.com/firke/standard-substrate/actions/workflows/docker-build.yml)
+[![Publish release](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/publish-release.yml/badge.svg?branch=master&event=push)](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/publish-release.yml)
+[![Build Docker](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/docker-build.yml/badge.svg?branch=master&event=release)](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/docker-build.yml)
+
+## Documentation
+
+All documentation related to running a validator node can be found on [gitbook.io](https://standard-protocol-1.gitbook.io/standard-protocol-validator-guide/).
 
 ## Pre-requisites
-
-### Supported architectures
-
-| Architecture  | Native | Docker |
-| ------------- | ------ | ------ |
-| amd64         | 🟢     | 🟢     |
-| windows-amd64 | 🔴     | 🔴     |
-| arm64v8       | 🟡     | 🟡     |
 
 ### Rust
 
