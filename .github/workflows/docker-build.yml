@@ -62,5 +62,14 @@ jobs:
             standardprotocol/standard-opportunity:latest
           push: true
 
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/docker@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: standardprotocol/standard-opportunity:latest
+          args: --file=./Docker/Dockerfile.release
+
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
