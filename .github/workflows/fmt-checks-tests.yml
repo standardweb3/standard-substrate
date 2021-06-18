@@ -12,6 +12,12 @@ on:
       - "release/**"
       - "feature/**"
       - "bugfix/**"
+    paths:
+      - "node/**"
+      - "orml/**"
+      - "pallets/**"
+      - "primitives/**"
+      - "runtime/**"
   pull_request:
     branches:
       - master
