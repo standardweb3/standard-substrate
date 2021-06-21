@@ -4,7 +4,7 @@ services:
   standard-validator:
     image: standardprotocol/standard-opportunity:latest
     volumes:
-      - "data:/data"
+      - "data-node:/data"
     ports:
       - "30333:30333"
     command: >-
@@ -15,4 +15,5 @@ services:
       --validator
 
 volumes:
-  data:
+  data-node:
+    name: ${VOLUME_ID}
