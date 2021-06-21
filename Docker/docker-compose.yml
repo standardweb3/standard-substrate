@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  standard-validator:
+    image: standardprotocol/standard-opportunity:latest
+    volumes:
+      - "data:/data"
+    ports:
+      - "30333:30333"
+    command: >-
+      --chain opportunity
+      --base-path /data
+      --port 30333
+      --name "${NAME}"
+      --validator
+
+volumes:
+  data:

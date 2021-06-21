@@ -1,0 +1,41 @@
+version: "3.8"
+
+x-service: &standard-node
+  image: standardprotocol/standard-opportunity:latest
+  deploy:
+    resources:
+      limits:
+        cpus: "2"
+        memory: 4096M
+  ulimits:
+    nofile:
+      soft: 10000
+      hard: 15000
+
+x-volume: &standard-volume
+  driver_opts:
+    backup_policy: ENABLED
+    lifecycle_policy: AFTER_30_DAYS
+    performance_mode: maxIO
+    throughput_mode: provisioned
+    provisioned_throughput: 1
+
+x-aws-vpc: "${VPC_ID}"
+
+services:
+  node-alice:
+    <<: *standard-node
+    volumes:
+      - "data-node:/data"
+    ports:
+      - "30333:30333"
+    command: >-
+      --chain opportunity
+      --base-path /data
+      --port 30333
+      --name "${NAME}"
+      --validator
+
+volumes:
+  data-node:
+    <<: *standard-volume
