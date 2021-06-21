@@ -23,7 +23,7 @@ x-volume: &standard-volume
 x-aws-vpc: "${VPC_ID}"
 
 services:
-  node-alice:
+  standard-validator:
     <<: *standard-node
     volumes:
       - "data-node:/data"
