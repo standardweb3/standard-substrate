@@ -73,10 +73,14 @@ docker-run:
 		--name "$(NAME)" \
 		--validator
 
+# example reference: 
+# NAME='validator' make docker-compose-run
 .PHONY: docker-compose-run
 docker-compose-run:
 	NAME="$(NAME)" docker-compose -f ./Docker/docker-compose.yml up --detached
 
+# example reference: 
+# NAME='validator' make docker-compose-build-run
 .PHONY: docker-compose-build-run
 docker-compose-build-run:
 	NAME="$(NAME)" docker-compose -f ./Docker/docker-compose.build.yml up --detached
