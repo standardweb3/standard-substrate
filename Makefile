@@ -54,25 +54,33 @@ run-collator1:
 run-collator2:
 	./target/release/standard-collator -d local-alice --bob --ws-port 9947 --rpc-port 9951;
 
-.PHONY: compose-run
-compose-run:
-	docker-compose up -d
-
 .PHONY: docker-build
 docker-build:
 	DOCKER_BUILDKIT=1 docker build -f Docker/Dockerfile -t standard-opportunity:local .
 
-# to be doublechecked
-# reference: make docker-run VOLUME_PATH='./data' DATA_DIR='/data' NODE_NAME='Standard Validator'
+# example reference: 
+# VOLUME_PATH='./data' DATA_DIR='/data' NODE_NAME='Standard Validator' make docker-run
 .PHONY: docker-run
 docker-run:
-	docker run --rm -it -v $(VOLUME_PATH):$(DATA_DIR) \
+	docker run --rm -it -v "$(VOLUME_PATH)":"$(DATA_DIR)" \
 		--name standard-opportunity \
 		standard-opportunity:local \
-		--base-path $(DATA_DIR) \
+		--base-path "$(DATA_DIR)" \
 		--chain opportunity \
 		--port 30333 \
 		--bootnodes /dns/opportunity.standard.tech/tcp/30333/p2p/12D3KooWDPnry4Ei9RxgtY4RfwsM5fnUxg5sXJGbe8LMKrLs8tkf \
 				/dns/opportunity2.standard.tech/tcp/30333/p2p/12D3KooWGPAekiLHBHyCYe4x1BAbvSpHYbwkSHk3KxNyoZoyCmp6' \
-		--name $(NODE_NAME) \
+		--name "$(NAME)" \
 		--validator
+
+.PHONY: docker-compose-run
+docker-compose-run:
+	NAME="$(NAME)" docker-compose -f ./Docker/docker-compose.yml up --detached
+
+.PHONY: docker-compose-build-run
+docker-compose-build-run:
+	NAME="$(NAME)" docker-compose -f ./Docker/docker-compose.build.yml up --detached
+
+.PHONY: docker-logs
+docker-logs:
+	docker logs standard-validator -f

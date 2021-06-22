@@ -3,6 +3,7 @@ version: "3.8"
 services:
   standard-validator:
     image: standardprotocol/standard-opportunity:latest
+    container_name: standard-validator
     volumes:
       - "data-node:/data"
     ports:
