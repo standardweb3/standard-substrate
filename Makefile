@@ -77,13 +77,13 @@ docker-run:
 # NAME='validator' make docker-compose-run
 .PHONY: docker-compose-run
 docker-compose-run:
-	NAME="$(NAME)" docker-compose -f ./Docker/docker-compose.yml up --detached
+	NAME="$(NAME)" docker-compose -f ./Docker/docker-compose.yml up --detach
 
 # example reference: 
 # NAME='validator' make docker-compose-build-run
 .PHONY: docker-compose-build-run
 docker-compose-build-run:
-	NAME="$(NAME)" docker-compose -f ./Docker/docker-compose.build.yml up --detached
+	NAME="$(NAME)" docker-compose -f ./Docker/docker-compose.build.yml up --detach
 
 .PHONY: docker-logs
 docker-logs:
