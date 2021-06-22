@@ -2,7 +2,9 @@ version: "3.8"
 
 services:
   standard-validator:
-    image: standardprotocol/standard-opportunity:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: standard-validator
     volumes:
       - "data-node:/data"
