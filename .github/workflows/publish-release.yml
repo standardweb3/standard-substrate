@@ -30,7 +30,7 @@ jobs:
 
       - name: Build Changelog
         id: build-changelog
-        uses: mikepenz/release-changelog-builder-action@v1.8.2
+        uses: mikepenz/release-changelog-builder-action@v1.8.3
         with:
           outputFile: "./release-output.md"
         env:
