@@ -38,6 +38,7 @@ jobs:
         uses: mikepenz/release-changelog-builder-action@v1.8.2
         with:
           outputFile: "./release-output.md"
+          configuration: ".github/release_notes_config.json"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
