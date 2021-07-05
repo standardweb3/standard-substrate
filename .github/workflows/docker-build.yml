@@ -51,7 +51,7 @@ jobs:
 
       - name: Build and push Docker images - ${{ matrix.platform }}
         id: docker_build
-        uses: docker/build-push-action@v2.5.0
+        uses: docker/build-push-action@v2.6.1
         with:
           context: .
           builder: ${{ steps.buildx.outputs.name }}
