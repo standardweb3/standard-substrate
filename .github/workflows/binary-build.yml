@@ -30,6 +30,7 @@ jobs:
       matrix:
         # macos-11 not yet available, currently is in private preview
         os: [ubuntu-20.04, macos-10.15]
+        release: [opportunity-standalone]
     runs-on: ${{ matrix.os }}
     # runs-on: ubuntu-20.04
     steps:
@@ -55,7 +56,7 @@ jobs:
 
       - name: Run Build - ${{ matrix.os }}
         run: |
-          make build-opportunity-standalone
+          make build-${{ matrix.release }}
 
       # retrieves arch details for a build machine
       # example: 'linux-amd64'
@@ -70,13 +71,13 @@ jobs:
 
       - name: Artifact actions - ${{ matrix.os }}
         run: |
-          mv ./target/release/opportunity-standalone ./opportunity-standalone-${{ steps.arch.outputs.DETAILS }}
-          chmod +x opportunity-standalone-${{ steps.arch.outputs.DETAILS }}
+          mv ./target/release/${{ matrix.release }} ./${{ matrix.release }}-${{ steps.arch.outputs.DETAILS }}
+          chmod +x ${{ matrix.release }}-${{ steps.arch.outputs.DETAILS }}
 
       - name: Upload Artifacts - ${{ matrix.os }}
         uses: actions/upload-artifact@v2
         with:
-          name: standard-opportunity-${{ steps.arch.outputs.DETAILS }}
+          name: ${{ matrix.release }}-${{ steps.arch.outputs.DETAILS }}
           if-no-files-found: error
           path: |
-            ./opportunity-standalone-${{ steps.arch.outputs.DETAILS }}
+            ./${{ matrix.release }}-${{ steps.arch.outputs.DETAILS }}

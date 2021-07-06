@@ -1,11 +1,11 @@
 version: "3.8"
 
 services:
-  standard-validator:
+  opportunity-standalone:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: standard-validator
+    container_name: opportunity-standalone
     volumes:
       - "data-node:/data"
     ports:

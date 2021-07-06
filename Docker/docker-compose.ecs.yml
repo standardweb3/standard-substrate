@@ -1,7 +1,7 @@
 version: "3.8"
 
 x-service: &standard-node
-  image: standardprotocol/standard-opportunity:latest
+  image: standardprotocol/opportunity-standalone:latest
   deploy:
     resources:
       limits:
@@ -23,7 +23,7 @@ x-volume: &standard-volume
 x-aws-vpc: "${VPC_ID}"
 
 services:
-  standard-validator:
+  opportunity-standalone:
     <<: *standard-node
     volumes:
       - "data-node:/data"

@@ -1,9 +1,9 @@
 version: "3.8"
 
 services:
-  standard-validator:
-    image: standardprotocol/standard-opportunity:latest
-    container_name: standard-validator
+  opportunity-standalone:
+    image: standardprotocol/opportunity-standalone:latest
+    container_name: opportunity-standalone
     volumes:
       - "data-node:/data"
     ports:

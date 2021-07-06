@@ -14,6 +14,9 @@ on:
 jobs:
   on-success:
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        release: [opportunity-standalone]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -25,13 +28,13 @@ jobs:
         with:
           workflow: binary-build.yml
 
-      - name: Create checksums file
-        run: |
-          find . -type f -name "opportunity-standalone-*" -exec sha256sum {} \; > SHA256CHECKSUMS
-
       - name: Display structure of downloaded files
         run: |
           ls -R
+
+      - name: Create checksums file
+        run: |
+          find . -type f -name "${{ matrix.release }}-*" -exec sha256sum {} \; >> SHA256CHECKSUMS
 
       - name: Build Changelog
         id: build-changelog
@@ -56,7 +59,27 @@ jobs:
           bodyFile: "./release-output.md"
           token: ${{ secrets.BOT_GITHUB_TOKEN }}
 
-      - name: Slack Notification
+      - name: Public Discord notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_USERNAME: standard-bot
+          DISCORD_AVATAR: https://avatars.githubusercontent.com/u/85697462?v=4
+        uses: Ilshidur/action-discord@0.3.2
+        with:
+          args: |
+            "New release in ${{ github.repository }} - ${{ env.RELEASE_VERSION }}.
+            Details: ${{ steps.release-step.outputs.html_url }}"
+
+      - name: Public Telegram notification
+        uses: appleboy/telegram-action@0.1.1
+        with:
+          to: ${{ secrets.TELEGRAM_TOKEN }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            "New release in ${{ github.repository }} - ${{ env.RELEASE_VERSION }}.
+            Details: ${{ steps.release-step.outputs.html_url }}"
+
+      - name: Internal Slack Notification
         uses: bryannice/gitactions-slack-notification@2.0.0
         env:
           SLACK_INCOMING_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
