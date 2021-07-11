@@ -62,8 +62,7 @@ fn remove_dust_work() {
 		assert_eq!(Tokens::free_balance(DOT, &DustAccount::get()), 1);
 		assert_eq!(System::providers(&DustAccount::get()), 1);
 
-		let dust_lost_event = Event::tokens(crate::Event::DustLost(ALICE, DOT, 1));
-		assert!(System::events().iter().any(|record| record.event == dust_lost_event));
+		System::assert_last_event(Event::tokens(crate::Event::DustLost(ALICE, DOT, 1)));
 	});
 }
 
@@ -306,8 +305,7 @@ fn transfer_should_work() {
 			assert_eq!(Tokens::free_balance(DOT, &BOB), 150);
 			assert_eq!(Tokens::total_issuance(DOT), 200);
 
-			let transferred_event = Event::tokens(crate::Event::Transferred(DOT, ALICE, BOB, 50));
-			assert!(System::events().iter().any(|record| record.event == transferred_event));
+			System::assert_last_event(Event::tokens(crate::Event::Transferred(DOT, ALICE, BOB, 50)));
 
 			assert_noop!(
 				Tokens::transfer(Some(ALICE).into(), BOB, DOT, 60),
@@ -328,8 +326,7 @@ fn transfer_all_should_work() {
 			assert_eq!(Tokens::free_balance(DOT, &ALICE), 0);
 			assert_eq!(Tokens::free_balance(DOT, &BOB), 200);
 
-			let transferred_event = Event::tokens(crate::Event::Transferred(DOT, ALICE, BOB, 100));
-			assert!(System::events().iter().any(|record| record.event == transferred_event));
+			System::assert_last_event(Event::tokens(crate::Event::Transferred(DOT, ALICE, BOB, 100)));
 		});
 }
 
@@ -345,7 +342,7 @@ fn deposit_should_work() {
 
 			assert_noop!(
 				Tokens::deposit(DOT, &ALICE, Balance::max_value()),
-				Error::<Runtime>::TotalIssuanceOverflow,
+				ArithmeticError::Overflow,
 			);
 		});
 }
@@ -431,7 +428,7 @@ fn no_op_if_amount_is_zero() {
 }
 
 #[test]
-fn merge_account_should_work() {
+fn transfer_all_trait_should_work() {
 	ExtBuilder::default()
 		.balances(vec![(ALICE, DOT, 100), (ALICE, BTC, 200)])
 		.build()
@@ -440,18 +437,18 @@ fn merge_account_should_work() {
 			assert_eq!(Tokens::free_balance(BTC, &ALICE), 200);
 			assert_eq!(Tokens::free_balance(DOT, &BOB), 0);
 
-			assert_ok!(Tokens::reserve(DOT, &ALICE, 1));
-			assert_noop!(
-				Tokens::merge_account(&ALICE, &BOB),
-				Error::<Runtime>::StillHasActiveReserved
-			);
-			Tokens::unreserve(DOT, &ALICE, 1);
-
-			assert_ok!(Tokens::merge_account(&ALICE, &BOB));
+			assert_ok!(<Tokens as TransferAll<AccountId>>::transfer_all(&ALICE, &BOB));
 			assert_eq!(Tokens::free_balance(DOT, &ALICE), 0);
 			assert_eq!(Tokens::free_balance(BTC, &ALICE), 0);
 			assert_eq!(Tokens::free_balance(DOT, &BOB), 100);
 			assert_eq!(Tokens::free_balance(BTC, &BOB), 200);
+
+			assert_ok!(Tokens::reserve(DOT, &BOB, 1));
+			assert_ok!(<Tokens as TransferAll<AccountId>>::transfer_all(&BOB, &ALICE));
+			assert_eq!(Tokens::free_balance(DOT, &ALICE), 99);
+			assert_eq!(Tokens::free_balance(BTC, &ALICE), 200);
+			assert_eq!(Tokens::free_balance(DOT, &BOB), 0);
+			assert_eq!(Tokens::free_balance(BTC, &BOB), 0);
 		});
 }
 
@@ -961,7 +958,7 @@ fn currency_adapter_transferring_too_high_value_should_not_panic() {
 				u64::max_value(),
 				ExistenceRequirement::AllowDeath
 			),
-			Error::<Runtime>::BalanceOverflow,
+			ArithmeticError::Overflow,
 		);
 
 		assert_eq!(
@@ -970,4 +967,22 @@ fn currency_adapter_transferring_too_high_value_should_not_panic() {
 		);
 		assert_eq!(TreasuryCurrencyAdapter::free_balance(&ALICE), 2);
 	});
+}
+
+#[test]
+fn exceeding_max_locks_should_fail() {
+	ExtBuilder::default()
+		.one_hundred_for_alice_n_bob()
+		.build()
+		.execute_with(|| {
+			assert_ok!(Tokens::set_lock(ID_1, DOT, &ALICE, 10));
+			assert_eq!(Tokens::locks(ALICE, DOT).len(), 1);
+			assert_ok!(Tokens::set_lock(ID_2, DOT, &ALICE, 10));
+			assert_eq!(Tokens::locks(ALICE, DOT).len(), 2);
+			assert_noop!(
+				Tokens::set_lock(ID_3, DOT, &ALICE, 10),
+				Error::<Runtime>::MaxLocksExceeded
+			);
+			assert_eq!(Tokens::locks(ALICE, DOT).len(), 2);
+		});
 }
