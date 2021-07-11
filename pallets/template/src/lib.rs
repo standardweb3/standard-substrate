@@ -19,8 +19,8 @@ mod benchmarking;
 pub mod pallet {
 	use frame_support::{dispatch::DispatchResultWithPostInfo, pallet_prelude::*};
 	use frame_system::pallet_prelude::*;
-	use sp_runtime::{
-		ModuleId,
+	use frame_support::{
+		PalletId,
    };
    use frame_support::traits::{Get};
 
@@ -29,7 +29,7 @@ pub mod pallet {
 	pub trait Config: frame_system::Config {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
-		type ModuleId: Get<ModuleId>;
+		type PalletId: Get<PalletId>;
 
 	}
 
