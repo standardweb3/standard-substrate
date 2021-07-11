@@ -31,13 +31,15 @@ use frame_support::{
 use frame_system::pallet_prelude::*;
 use sp_runtime::{
 	traits::{CheckedSub, Dispatchable, Saturating},
-	DispatchError, DispatchResult, RuntimeDebug,
+	ArithmeticError, DispatchError, DispatchResult, RuntimeDebug,
 };
 use sp_std::prelude::*;
 
-mod default_weight;
 mod mock;
 mod tests;
+mod weights;
+
+pub use weights::WeightInfo;
 
 /// A delayed origin. Can only be dispatched via `dispatch_as` with a delay.
 #[derive(PartialEq, Eq, Clone, RuntimeDebug, Encode, Decode)]
@@ -120,15 +122,6 @@ pub use module::*;
 pub mod module {
 	use super::*;
 
-	pub trait WeightInfo {
-		fn dispatch_as() -> Weight;
-		fn schedule_dispatch_without_delay() -> Weight;
-		fn schedule_dispatch_with_delay() -> Weight;
-		fn fast_track_scheduled_dispatch() -> Weight;
-		fn delay_scheduled_dispatch() -> Weight;
-		fn cancel_scheduled_dispatch() -> Weight;
-	}
-
 	/// Origin for the authority module.
 	pub type Origin<T> = DelayedOrigin<<T as frame_system::Config>::BlockNumber, <T as Config>::PalletsOrigin>;
 	pub(crate) type CallOf<T> = <T as Config>::Call;
@@ -170,8 +163,6 @@ pub mod module {
 
 	#[pallet::error]
 	pub enum Error<T> {
-		/// Calculation overflow.
-		Overflow,
 		/// Failed to schedule a task.
 		FailedToSchedule,
 		/// Failed to cancel a task.
@@ -202,7 +193,7 @@ pub mod module {
 	pub type NextTaskIndex<T: Config> = StorageValue<_, ScheduleTaskIndex, ValueQuery>;
 
 	#[pallet::pallet]
-	pub struct Pallet<T>(PhantomData<T>);
+	pub struct Pallet<T>(_);
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {}
@@ -241,12 +232,12 @@ pub mod module {
 
 			let id = NextTaskIndex::<T>::mutate(|id| -> sp_std::result::Result<ScheduleTaskIndex, DispatchError> {
 				let current_id = *id;
-				*id = id.checked_add(1).ok_or(Error::<T>::Overflow)?;
+				*id = id.checked_add(1).ok_or(ArithmeticError::Overflow)?;
 				Ok(current_id)
 			})?;
 			let now = frame_system::Pallet::<T>::block_number();
 			let delay = match when {
-				DispatchTime::At(x) => x.checked_sub(&now).ok_or(Error::<T>::Overflow)?,
+				DispatchTime::At(x) => x.checked_sub(&now).ok_or(ArithmeticError::Overflow)?,
 				DispatchTime::After(x) => x,
 			};
 			let schedule_origin = if with_delayed_origin {
@@ -285,7 +276,7 @@ pub mod module {
 		) -> DispatchResultWithPostInfo {
 			let now = frame_system::Pallet::<T>::block_number();
 			let new_delay = match when {
-				DispatchTime::At(x) => x.checked_sub(&now).ok_or(Error::<T>::Overflow)?,
+				DispatchTime::At(x) => x.checked_sub(&now).ok_or(ArithmeticError::Overflow)?,
 				DispatchTime::After(x) => x,
 			};
 			let dispatch_at = match when {

@@ -11,10 +11,8 @@
 //! offchain data. The raw values can be combined to provide an aggregated
 //! value.
 //!
-//! The data is valid only if feeded by an authorized operator. This module
-//! implements `frame_support::traits::InitializeMembers` and `frame_support::
-//! traits::ChangeMembers`, to provide a way to manage operators membership.
-//! Typically it could be leveraged to `pallet_membership` in FRAME.
+//! The data is valid only if feeded by an authorized operator.
+//! `pallet_membership` in FRAME can be used to as source of `T::Members`.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 // Disable the following two lints since they originate from an external macro (namely decl_storage)
@@ -29,7 +27,7 @@ use serde::{Deserialize, Serialize};
 use frame_support::{
 	ensure,
 	pallet_prelude::*,
-	traits::{ChangeMembers, Get, InitializeMembers, Time},
+	traits::{ChangeMembers, Get, SortedMembers, Time},
 	weights::{Pays, Weight},
 	Parameter,
 };
@@ -42,20 +40,16 @@ use sp_std::{prelude::*, vec};
 pub use crate::default_combine_data::DefaultCombineData;
 
 mod default_combine_data;
-mod default_weight;
 mod mock;
 mod tests;
+mod weights;
 
 pub use module::*;
+pub use weights::WeightInfo;
 
 #[frame_support::pallet]
 pub mod module {
 	use super::*;
-
-	pub trait WeightInfo {
-		fn feed_values(c: u32) -> Weight;
-		fn on_finalize() -> Weight;
-	}
 
 	pub(crate) type MomentOf<T, I = ()> = <<T as Config<I>>::Time as Time>::Moment;
 	pub(crate) type TimestampedValueOf<T, I = ()> = TimestampedValue<<T as Config<I>>::OracleValue, MomentOf<T, I>>;
@@ -89,6 +83,9 @@ pub mod module {
 
 		/// The root operator account id, record all sudo feeds on this account.
 		type RootOperatorAccountId: Get<Self::AccountId>;
+
+		/// Oracle operators.
+		type Members: SortedMembers<Self::AccountId>;
 
 		/// Weight information for extrinsics in this module.
 		type WeightInfo: WeightInfo;
@@ -132,36 +129,6 @@ pub mod module {
 	pub(crate) type HasDispatched<T: Config<I>, I: 'static = ()> =
 		StorageValue<_, OrderedSet<T::AccountId>, ValueQuery>;
 
-	// TODO: this shouldn't be required https://github.com/paritytech/substrate/issues/6041
-	/// The current members of the collective. This is stored sorted (just by
-	/// value).
-	#[pallet::storage]
-	#[pallet::getter(fn members)]
-	pub type Members<T: Config<I>, I: 'static = ()> = StorageValue<_, OrderedSet<T::AccountId>, ValueQuery>;
-
-	#[pallet::genesis_config]
-	pub struct GenesisConfig<T: Config<I>, I: 'static = ()> {
-		pub members: OrderedSet<T::AccountId>,
-		pub phantom: sp_std::marker::PhantomData<I>,
-	}
-
-	#[cfg(feature = "std")]
-	impl<T: Config<I>, I: 'static> Default for GenesisConfig<T, I> {
-		fn default() -> Self {
-			GenesisConfig {
-				members: Default::default(),
-				phantom: Default::default(),
-			}
-		}
-	}
-
-	#[pallet::genesis_build]
-	impl<T: Config<I>, I: 'static> GenesisBuild<T, I> for GenesisConfig<T, I> {
-		fn build(&self) {
-			<Members<T, I>>::put(self.members.clone());
-		}
-	}
-
 	#[pallet::pallet]
 	pub struct Pallet<T, I = ()>(PhantomData<(T, I)>);
 
@@ -198,8 +165,7 @@ pub mod module {
 
 impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	pub fn read_raw_values(key: &T::OracleKey) -> Vec<TimestampedValueOf<T, I>> {
-		Self::members()
-			.0
+		T::Members::sorted_members()
 			.iter()
 			.chain(vec![T::RootOperatorAccountId::get()].iter())
 			.filter_map(|x| Self::raw_values(x, key))
@@ -252,7 +218,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	fn do_feed_values(who: T::AccountId, values: Vec<(T::OracleKey, T::OracleValue)>) -> DispatchResult {
 		// ensure feeder is authorized
 		ensure!(
-			Self::members().contains(&who) || who == T::RootOperatorAccountId::get(),
+			T::Members::contains(&who) || who == T::RootOperatorAccountId::get(),
 			Error::<T, I>::NoPermission
 		);
 
@@ -278,23 +244,12 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	}
 }
 
-impl<T: Config<I>, I: 'static> InitializeMembers<T::AccountId> for Pallet<T, I> {
-	fn initialize_members(members: &[T::AccountId]) {
-		if !members.is_empty() {
-			assert!(Members::<T, I>::get().0.is_empty(), "Members are already initialized!");
-			Members::<T, I>::put(OrderedSet::from_sorted_set(members.into()));
-		}
-	}
-}
-
 impl<T: Config<I>, I: 'static> ChangeMembers<T::AccountId> for Pallet<T, I> {
-	fn change_members_sorted(_incoming: &[T::AccountId], outgoing: &[T::AccountId], new: &[T::AccountId]) {
-		// remove session keys and its values
+	fn change_members_sorted(_incoming: &[T::AccountId], outgoing: &[T::AccountId], _new: &[T::AccountId]) {
+		// remove values
 		for removed in outgoing {
 			RawValues::<T, I>::remove_prefix(removed);
 		}
-
-		Members::<T, I>::put(OrderedSet::from_sorted_set(new.into()));
 
 		// not bothering to track which key needs recompute, just update all
 		IsUpdated::<T, I>::remove_all();

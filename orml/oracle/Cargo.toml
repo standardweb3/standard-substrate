@@ -21,8 +21,6 @@ frame-system = { git = "https://github.com/paritytech/substrate", branch = "polk
 orml-traits = { path = "../traits", version = "0.4.1-dev", default-features = false }
 orml-utilities = { path = "../utilities", version = "0.4.1-dev", default-features = false }
 
-funty = { version = "=1.1.0", default-features = false } # https://github.com/bitvecto-rs/bitvec/issues/105
-
 [dev-dependencies]
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6", default-features = false }
 
@@ -40,3 +38,4 @@ std = [
 	"orml-traits/std",
 	"orml-utilities/std",
 ]
+try-runtime = ["frame-support/try-runtime"]
