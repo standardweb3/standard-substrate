@@ -10,10 +10,11 @@ use sp_consensus_babe::AuthorityId as BabeId;
 use sp_core::{sr25519, Pair, Public};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
+use sc_service::ChainType;
 
 use opportunity_runtime::{
     AssetRegistryConfig, BabeConfig, GrandpaConfig, ImOnlineConfig, OracleConfig, Perbill,
-    SessionConfig, StakerStatus, StakingConfig, TokensConfig, CouncilConfig, ElectionsConfig, TreasuryConfig
+    SessionConfig, StakerStatus, StakingConfig, TokensConfig, CouncilConfig, ElectionsConfig, TreasuryConfig, AuraConfig,
 };
 
 /// Specialized `ChainSpec` for the normal parachain runtime.
@@ -41,12 +42,14 @@ pub const BABE_GENESIS_EPOCH_CONFIG: sp_consensus_babe::BabeEpochConfiguration =
     };
 
 fn session_keys(
+    aura: AuraId,
     grandpa: GrandpaId,
     babe: BabeId,
     im_online: ImOnlineId,
     authority_discovery: AuthorityDiscoveryId,
 ) -> SessionKeys {
     SessionKeys {
+        aura,
         grandpa,
         babe,
         im_online,
@@ -85,6 +88,7 @@ pub fn authority_keys_from_seed(
 ) -> (
     AccountId,
     AccountId,
+    AuraId,
     GrandpaId,
     BabeId,
     ImOnlineId,
@@ -93,6 +97,7 @@ pub fn authority_keys_from_seed(
     (
         get_account_id_from_seed::<sr25519::Public>(&format!("{}//stash", seed)),
         get_account_id_from_seed::<sr25519::Public>(seed),
+        get_from_seed::<AuraId>(seed),
         get_from_seed::<GrandpaId>(seed),
         get_from_seed::<BabeId>(seed),
         get_from_seed::<ImOnlineId>(seed),
@@ -125,6 +130,12 @@ pub fn development_config() -> ChainSpec {
                     get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
                     get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
                 ],
+                vec![
+					get_from_seed::<AuraId>("Alice"),
+					get_from_seed::<AuraId>("Bob"),
+					get_from_seed::<AuraId>("Alice//stash"),
+					get_from_seed::<AuraId>("Bob//stash"),
+				],
             )
         },
         vec![],
@@ -167,6 +178,12 @@ pub fn opportunity_standalone_config() -> ChainSpec {
                     get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
                     get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
                 ],
+                vec![
+					get_from_seed::<AuraId>("Alice"),
+					get_from_seed::<AuraId>("Bob"),
+					get_from_seed::<AuraId>("Alice//stash"),
+					get_from_seed::<AuraId>("Bob//stash"),
+				],
             )
         },
         vec![],
@@ -219,6 +236,7 @@ fn testnet_genesis(
     initial_authorities: Vec<(
         AccountId,
         AccountId,
+        AuraId,
         GrandpaId,
         BabeId,
         ImOnlineId,
@@ -226,6 +244,7 @@ fn testnet_genesis(
     )>,
     root_key: AccountId,
     endowed_accounts: Vec<AccountId>,
+    initials: Vec<AuraId>,
 ) -> opportunity_runtime::GenesisConfig {
     opportunity_runtime::GenesisConfig {
         frame_system: opportunity_runtime::SystemConfig {
@@ -241,8 +260,11 @@ fn testnet_genesis(
                 .map(|k| (k, 1 << 60))
                 .collect(),
         },
+        pallet_aura: AuraConfig {
+			authorities: initial_authorities.iter().map(|x| (x.2.clone())).collect(),
+		},
         pallet_grandpa: GrandpaConfig {
-            authorities: vec![],
+            authorities: initial_authorities.iter().map(|x| (x.3.clone(), 1)).collect(),
         },
         pallet_sudo: opportunity_runtime::SudoConfig { key: root_key },
         pallet_babe: BabeConfig {
@@ -257,7 +279,7 @@ fn testnet_genesis(
                     (
                         x.0.clone(),
                         x.0.clone(),
-                        session_keys(x.2.clone(), x.3.clone(), x.4.clone(), x.5.clone()),
+                        session_keys(x.2.clone(), x.3.clone(), x.4.clone(), x.5.clone(), x.6.clone()),
                     )
                 })
                 .collect::<Vec<_>>(),
@@ -284,7 +306,7 @@ fn testnet_genesis(
         orml_tokens: TokensConfig {
             endowed_accounts: endowed_accounts.iter().flat_map(|_x| vec![]).collect(),
         },
-        pallet_asset_registry: AssetRegistryConfig {
+        asset_registry: AssetRegistryConfig {
             core_asset_id: CORE_ASSET_ID,
             asset_ids: vec![
                 (b"STD".to_vec(), 1),
@@ -294,7 +316,7 @@ fn testnet_genesis(
             ],
             next_asset_id: 5,
         },
-        pallet_standard_oracle: OracleConfig {
+        oracle: OracleConfig {
             oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec(),
         },
         pallet_elections_phragmen: ElectionsConfig::default(),
