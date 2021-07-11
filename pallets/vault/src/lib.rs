@@ -133,13 +133,13 @@
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{decl_module, decl_event, decl_storage, decl_error, ensure};
+use frame_support::{PalletId, decl_module, decl_event, decl_storage, decl_error, ensure};
 use frame_system::ensure_root;
 use sp_std::{prelude::*, fmt::Debug};
 use frame_system::ensure_signed;
 use sp_core::U256;
 use codec::{Encode, Decode};
-use sp_runtime::{RuntimeDebug, traits::{UniqueSaturatedInto, AccountIdConversion}, ModuleId};
+use sp_runtime::{RuntimeDebug, traits::{UniqueSaturatedInto, AccountIdConversion}};
 use crate::sp_api_hidden_includes_decl_storage::hidden_include::traits::Get;
 use pallet_standard_market as market;
 use pallet_standard_oracle as oracle;
@@ -164,9 +164,9 @@ pub trait Config: frame_system::Config + market::Config + oracle::Config {
     type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
     
     /// The Module account for burning assets
-    type SystemModuleId: Get<ModuleId>;
+    type SystemPalletId: Get<PalletId>;
 
-    type VaultModuleId: Get<ModuleId>;
+    type VaultPalletId: Get<PalletId>;
 
     type Currency: MultiCurrencyExtended<Self::AccountId, CurrencyId = AssetId, Balance = Balance, Amount = Amount>
 			+ MultiReservableCurrency<Self::AccountId>;
@@ -378,12 +378,12 @@ impl<T: Config> Module<T> {
 
     // Module account id
     pub fn account_id() -> T::AccountId  {
-		<T as Config>::VaultModuleId::get().into_account()
+		<T as Config>::VaultPalletId::get().into_account()
     }
     
     // System account id
     pub fn sys_account_id() -> T::AccountId  {
-        <T as Config>::SystemModuleId::get().into_account()
+        <T as Config>::SystemPalletId::get().into_account()
     }
     
 
