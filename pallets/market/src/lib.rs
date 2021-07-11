@@ -88,11 +88,11 @@
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{ decl_module, decl_event, decl_storage, decl_error, ensure, dispatch, traits::{Get}};
+use frame_support::{ PalletId, decl_module, decl_event, decl_storage, decl_error, ensure, dispatch, traits::{Get}};
 use sp_runtime::traits::{ Zero, };
 use frame_system::ensure_signed;
 use sp_core::U256;
-use sp_runtime::{FixedU128, ModuleId, traits::{UniqueSaturatedInto, UniqueSaturatedFrom}};
+use sp_runtime::{FixedU128, traits::{UniqueSaturatedInto, UniqueSaturatedFrom}};
 use sp_runtime::traits::{  AccountIdConversion};
 use primitives::{AssetId, Balance, Amount};
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
@@ -105,7 +105,7 @@ mod math;
 pub trait Config: frame_system::Config  + pallet_asset_registry::Config{
 	/// The overarching event type.
     type Event: From<Event> + Into<<Self as frame_system::Config>::Event>;
-    type SystemModuleId: Get<ModuleId>;
+    type SystemPalletId: Get<PalletId>;
  //   type AssetId: Parameter + Member + Into<u32> + AtLeast32Bit + Default + Copy + MaybeSerializeDeserialize;
 
     type Currency: MultiCurrencyExtended<Self::AccountId, CurrencyId = AssetId, Balance = Balance, Amount = Amount>
@@ -318,7 +318,7 @@ decl_storage! {
 impl<T: Config> Module<T> {
     
     pub fn account_id() -> T::AccountId  {
-		<T as Config>::SystemModuleId::get().into_account()
+		<T as Config>::SystemPalletId::get().into_account()
 	}
 
 	// Market methods
