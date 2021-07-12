@@ -20,8 +20,8 @@
 
 /// Money matters.
 pub mod currency {
-
-	pub use primitives::{Balance};
+	// Balance type created directly here instead of importing the whole node_primitives module
+	type Balance = u128;
 	pub const MILLICENTS: Balance = 1_000_000_000;
 	pub const CENTS: Balance = 1_000 * MILLICENTS;    // assume this is worth about a cent.
 	pub const DOLLARS: Balance = 100 * CENTS;
@@ -33,7 +33,9 @@ pub mod currency {
 
 /// Time.
 pub mod time {
-	use crate::{Moment, BlockNumber};
+	// Moment/BlockNumber type created directly here instead of importing the whole node_primitives module
+	type Moment = u64;
+	type BlockNumber = u32;
 	
 	pub const MILLISECS_PER_BLOCK: Moment = 6000;
 	pub const SECS_PER_BLOCK: Moment = MILLISECS_PER_BLOCK / 1000;
