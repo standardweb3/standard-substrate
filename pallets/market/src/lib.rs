@@ -139,7 +139,6 @@ decl_module! {
                     lptoken_amount = lptoken_amount.checked_sub(minimum_liquidity).expect("Integer overflow");
                     // Issue LPtoken
                     let lptoken_id: AssetId = <pallet_asset_registry::Pallet<T>>::get_or_create_asset((*b"lptoken").to_vec())?.into();
-                   
                     // Deposit assets to the reserve
                     Self::_set_reserves(token0, token1, amount0, amount1, lptoken_id);
                     // Set pairs for swap lookup
@@ -410,5 +409,3 @@ impl<T: Config> Module<T> {
     }
     */
 }
-
-

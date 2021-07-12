@@ -201,7 +201,6 @@ fn testnet_genesis(
 		AccountId,
 		AuraId,
 		GrandpaId,
-
 	)>,
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
@@ -228,7 +227,6 @@ fn testnet_genesis(
 			authorities: initial_authorities.iter().map(|x| (x.3.clone(), 1)).collect(),
 		},
 		sudo: opportunity_runtime::SudoConfig { key: root_key },
-
 		tokens: TokensConfig {
 			endowed_accounts: endowed_accounts.iter().flat_map(|_x| vec![]).collect(),
 		},
@@ -239,15 +237,14 @@ fn testnet_genesis(
 				(b"MTR".to_vec(), 2),
 				(b"DOT".to_vec(), 3),
 				(b"KSM".to_vec(), 4),
-
 			],
 			next_asset_id: 5,
 		},
 		oracle: OracleConfig{
 			oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec()
 		},
-		elections_phragmen: ElectionsConfig::default(),
-		collective_Instance1: CouncilConfig::default(),
-		treasury: Default::default()
+		elections: ElectionsConfig::default(),
+		council: CouncilConfig::default(),
+		treasury: TreasuryConfig::default()
 	}
 }
