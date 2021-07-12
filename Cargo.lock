@@ -4659,8 +4659,10 @@ dependencies = [
  "pallet-sudo",
  "pallet-template",
  "pallet-timestamp",
+ "pallet-tips",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-treasury",
  "parity-scale-codec",
  "primitives",
  "sp-api",
@@ -4675,12 +4677,13 @@ dependencies = [
  "sp-std 3.0.0 (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.6)",
  "sp-transaction-pool",
  "sp-version 3.0.0 (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.6)",
+ "static_assertions",
  "substrate-wasm-builder 4.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "opportunity-standalone"
-version = "3.0.0"
+version = "2.0.0"
 dependencies = [
  "frame-benchmarking",
  "frame-benchmarking-cli",
