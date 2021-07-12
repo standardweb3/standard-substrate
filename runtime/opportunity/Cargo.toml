@@ -13,7 +13,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
 codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = ["derive"] }
-
+static_assertions = "1.1.0"
 pallet-aura = { version = "3.0.0", default-features = false, git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 pallet-balances = { version = "3.0.0", default-features = false, git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6"}
 frame-support = { version = "3.0.0", default-features = false, git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6"}
@@ -58,6 +58,15 @@ pallet-transaction-payment-rpc-runtime-api = { version = "3.0.0", default-featur
 frame-benchmarking = { version = "3.1.0", default-features = false,  optional = true, git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 frame-system-benchmarking = { version = "3.0.0", default-features = false,  optional = true, git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 hex-literal = { version = "0.3.1", optional = true}
+
+# identity pallet
+pallet-identity = { version = "3.0.0", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.6"}
+pallet-collective = { version = "3.0.0", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.6"}
+pallet-elections-phragmen = { version = "4.0.0", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.6"}
+# treasury pallet
+pallet-tips = { version = "3.0.0", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.6"}
+pallet-bounties = { version = "3.0.0", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.6"}
+pallet-treasury = { version = "3.0.0", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.6"}
 
 
 [build-dependencies]
