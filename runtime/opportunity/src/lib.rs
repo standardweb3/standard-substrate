@@ -4,9 +4,9 @@
 
 use sp_std::prelude::*;
 use sp_runtime::{
-	Permill, Perquintill, Percent, ApplyExtrinsicResult, impl_opaque_keys, generic,
-	create_runtime_str, FixedPointNumber, curve::PiecewiseLinear, MultiSignature,
-    transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
+	Permill, Percent, ApplyExtrinsicResult, impl_opaque_keys,
+	generic, create_runtime_str, MultiSignature,
+  transaction_validity::{TransactionSource, TransactionValidity},
 };
 pub use sp_runtime::Perbill;
 use sp_core::{
@@ -15,7 +15,7 @@ use sp_core::{
 	OpaqueMetadata,
 };
 use sp_runtime::traits::{
-	BlakeTwo256, Block as BlockT, AccountIdLookup, Verify, IdentifyAccount, NumberFor, AccountIdConversion, Zero, OpaqueKeys,
+	BlakeTwo256, Block as BlockT, AccountIdLookup, Verify, IdentifyAccount, NumberFor, AccountIdConversion, Zero,
 };
 use static_assertions::const_assert;
 use sp_api::impl_runtime_apis;
@@ -71,7 +71,6 @@ pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::Account
 /// The type for looking up accounts. We don't expect more than 4 billion of them, but you
 /// never know...
 pub type AccountIndex = u32;
-
 
 /// Index of a transaction in the chain.
 pub type Index = u32;
