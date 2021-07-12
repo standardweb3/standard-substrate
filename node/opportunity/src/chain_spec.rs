@@ -199,7 +199,6 @@ fn testnet_genesis(
 		AccountId,
 		AuraId,
 		GrandpaId,
-
 	)>,
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,

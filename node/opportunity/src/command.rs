@@ -50,6 +50,7 @@ impl SubstrateCli for Cli {
 			Ok(match id {
 					"dev" => Box::new(chain_spec::development_config()),
 					"" | "opportunity" => Box::new(chain_spec::opportunity_config()),
+					"opportunity_local" => Box::new(chain_spec::opportunity_standalone_config()),
 					"local" => Box::new(chain_spec::local_testnet_config()),
 					path => Box::new(chain_spec::ChainSpec::from_json_file(
 							std::path::PathBuf::from(path),
