@@ -1,11 +1,27 @@
-# Standard Protocol Parachain
+# Standard Substrate
+
+![banner](./media/standard_substrate.png "Standard")
 
 ## Github Actions status
 
-[![Publish release](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/publish-release.yml/badge.svg?branch=master&event=push)](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/publish-release.yml)
-[![Build and Publish Docker](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/docker-build.yml/badge.svg?branch=master&event=release)](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/docker-build.yml)
+[![Tests run](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/fmt-checks-tests.yml/badge.svg?branch=master)](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/fmt-checks-tests.yml)
+[![Build Binaries](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/binary-build.yml/badge.svg?branch=master)](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/binary-build.yml)
+
+# Contact
+
+For questions about interacting with Standard protocol, please visit [our Discord server](https://discord.standard.tech).
+
+For security concerns, email [contact@standard.tech](mailto:contact@standard.tech).
+
+## Overview
+
+This repo has the implementation for Standard Protocol in Parity Substrate.
+
+Standard protocol is the omni-stablecoin protocol secured with stability mechanisms and collaterized by digital assets across blockchains.
 
 ## Documentation
+
+Documentation describing how Standard Protocol works is available [here](https://docs.standard.tech).
 
 All documentation related to running a validator node can be found on [gitbook.io](https://standard-protocol-1.gitbook.io/standard-protocol-validator-guide/).
 
@@ -13,13 +29,13 @@ All documentation related to running a validator node can be found on [gitbook.i
 
 ### Rust
 
-Installation instructions can be found locally [here](./docs/rust-install.md), or by navigating to [Substrate docs](https://substrate.dev/docs/en/knowledgebase/getting-started/).
+Installation instructions can be found by navigating to [Substrate docs](https://substrate.dev/docs/en/knowledgebase/getting-started/).
 
 ### Docker
 
 If opting in to use Docker, you will need to install both Docker and Docker Compose - once integrated compose goes to GA separate installation of docker-compose will not be required. Up to date docs can be found here for [Docker](https://docs.docker.com/engine/install/) and for [Docker Compose](https://docs.docker.com/compose/install/).
 
-## Using Local Standard Protocol parachain
+## Using Local Standard Protocol
 
 All commands used are referenced in a [Makefile](./Makefile).
 
@@ -45,7 +61,7 @@ Will build as well if not done in a previous step.
 make localrun
 ```
 
-## Using Docker Standard Protocol parachain
+## Using Docker Standard Protocol testnet
 
 Runs docker compose which builds and runs the image.
 

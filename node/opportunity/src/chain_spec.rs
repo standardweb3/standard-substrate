@@ -2,25 +2,31 @@ use opportunity_runtime::opaque::SessionKeys;
 use opportunity_runtime::{AccountId, Signature};
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use pallet_staking::Forcing;
-use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
-use sc_service::ChainType;
-use serde::{Deserialize, Serialize};
-use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
-use sp_consensus_babe::AuthorityId as BabeId;
+// use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
+// use sc_service::ChainType;
+// use serde::{Deserialize, Serialize};
+// use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
+// use sp_consensus_babe::AuthorityId as BabeId;
 use sp_core::{sr25519, Pair, Public};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use sc_service::ChainType;
 
+// use opportunity_runtime::{
+//     AssetRegistryConfig, BabeConfig, GrandpaConfig, ImOnlineConfig, OracleConfig, Perbill,
+//     SessionConfig, StakerStatus, StakingConfig, TokensConfig, CouncilConfig, ElectionsConfig, TreasuryConfig, AuraConfig, Perbill, 
+// };
+
 use opportunity_runtime::{
-    AssetRegistryConfig, BabeConfig, GrandpaConfig, ImOnlineConfig, OracleConfig, Perbill,
-    SessionConfig, StakerStatus, StakingConfig, TokensConfig, CouncilConfig, ElectionsConfig, TreasuryConfig, AuraConfig,
+	TokensConfig, AssetRegistryConfig, OracleConfig, GrandpaConfig, AuraConfig, CouncilConfig, ElectionsConfig, TreasuryConfig, 
 };
+
+use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 
 /// Specialized `ChainSpec` for the normal parachain runtime.
 pub type ChainSpec = sc_service::GenericChainSpec<opportunity_runtime::GenesisConfig>;
 
-pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
+// pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
 
 const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
 
@@ -35,27 +41,27 @@ const OPPORTUNITY_PROTOCOL_ID: &str = "opt";
 pub type AssetId = u32;
 pub const CORE_ASSET_ID: AssetId = 1;
 
-pub const BABE_GENESIS_EPOCH_CONFIG: sp_consensus_babe::BabeEpochConfiguration =
-    sp_consensus_babe::BabeEpochConfiguration {
-        c: PRIMARY_PROBABILITY,
-        allowed_slots: sp_consensus_babe::AllowedSlots::PrimaryAndSecondaryPlainSlots,
-    };
+// pub const BABE_GENESIS_EPOCH_CONFIG: sp_consensus_babe::BabeEpochConfiguration =
+//     sp_consensus_babe::BabeEpochConfiguration {
+//         c: PRIMARY_PROBABILITY,
+//         allowed_slots: sp_consensus_babe::AllowedSlots::PrimaryAndSecondaryPlainSlots,
+//     };
 
-fn session_keys(
-    aura: AuraId,
-    grandpa: GrandpaId,
-    babe: BabeId,
-    im_online: ImOnlineId,
-    authority_discovery: AuthorityDiscoveryId,
-) -> SessionKeys {
-    SessionKeys {
-        aura,
-        grandpa,
-        babe,
-        im_online,
-        authority_discovery,
-    }
-}
+// fn session_keys(
+// 		aura: AuraId,
+//     grandpa: GrandpaId,
+//     // babe: BabeId,
+//     // im_online: ImOnlineId,
+//     // authority_discovery: AuthorityDiscoveryId,
+// ) -> SessionKeys {
+//     SessionKeys {
+// 				aura,
+//         grandpa,
+//         // babe,
+//         // im_online,
+//         // authority_discovery,
+//     }
+// }
 
 /// Helper function to generate a crypto pair from seed
 pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
@@ -65,21 +71,21 @@ pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Pu
 }
 
 /// The extensions for the [`ChainSpec`].
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
-#[serde(deny_unknown_fields)]
-pub struct Extensions {
-    /// The relay chain of the Parachain.
-    pub relay_chain: String,
-    /// The id of the Parachain.
-    pub para_id: u32,
+// #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
+// #[serde(deny_unknown_fields)]
+// pub struct Extensions {
+//     /// The relay chain of the Parachain.
+//     pub relay_chain: String,
+//     /// The id of the Parachain.
+//     pub para_id: u32,
 }
 
-impl Extensions {
-    /// Try to get the extension from the given `ChainSpec`.
-    pub fn try_get(chain_spec: &dyn sc_service::ChainSpec) -> Option<&Self> {
-        sc_chain_spec::get_extension(chain_spec.extensions())
-    }
-}
+// impl Extensions {
+//     /// Try to get the extension from the given `ChainSpec`.
+//     pub fn try_get(chain_spec: &dyn sc_service::ChainSpec) -> Option<&Self> {
+//         sc_chain_spec::get_extension(chain_spec.extensions())
+//     }
+// }
 
 type AccountPublic = <Signature as Verify>::Signer;
 
@@ -88,20 +94,20 @@ pub fn authority_keys_from_seed(
 ) -> (
     AccountId,
     AccountId,
-    AuraId,
+		AuraId,
     GrandpaId,
-    BabeId,
-    ImOnlineId,
-    AuthorityDiscoveryId,
+    // BabeId,
+    // ImOnlineId,
+    // AuthorityDiscoveryId,
 ) {
     (
         get_account_id_from_seed::<sr25519::Public>(&format!("{}//stash", seed)),
         get_account_id_from_seed::<sr25519::Public>(seed),
-        get_from_seed::<AuraId>(seed),
+				get_from_seed::<AuraId>(seed),
         get_from_seed::<GrandpaId>(seed),
-        get_from_seed::<BabeId>(seed),
-        get_from_seed::<ImOnlineId>(seed),
-        get_from_seed::<AuthorityDiscoveryId>(seed),
+        // get_from_seed::<BabeId>(seed),
+        // get_from_seed::<ImOnlineId>(seed),
+        // get_from_seed::<AuthorityDiscoveryId>(seed),
     )
 }
 
@@ -130,12 +136,12 @@ pub fn development_config() -> ChainSpec {
                     get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
                     get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
                 ],
-                vec![
-					get_from_seed::<AuraId>("Alice"),
-					get_from_seed::<AuraId>("Bob"),
-					get_from_seed::<AuraId>("Alice//stash"),
-					get_from_seed::<AuraId>("Bob//stash"),
-				],
+								vec![
+										get_from_seed::<AuraId>("Alice"),
+										get_from_seed::<AuraId>("Bob"),
+										get_from_seed::<AuraId>("Alice//stash"),
+										get_from_seed::<AuraId>("Bob//stash"),
+								],
             )
         },
         vec![],
@@ -178,12 +184,12 @@ pub fn opportunity_standalone_config() -> ChainSpec {
                     get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
                     get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
                 ],
-                vec![
-					get_from_seed::<AuraId>("Alice"),
-					get_from_seed::<AuraId>("Bob"),
-					get_from_seed::<AuraId>("Alice//stash"),
-					get_from_seed::<AuraId>("Bob//stash"),
-				],
+								vec![
+									get_from_seed::<AuraId>("Alice"),
+									get_from_seed::<AuraId>("Bob"),
+									get_from_seed::<AuraId>("Alice//stash"),
+									get_from_seed::<AuraId>("Bob//stash"),
+								],
             )
         },
         vec![],
@@ -222,6 +228,12 @@ pub fn local_testnet_config() -> ChainSpec {
                     get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
                     get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
                 ],
+								vec![
+									get_from_seed::<AuraId>("Alice"),
+									get_from_seed::<AuraId>("Bob"),
+									get_from_seed::<AuraId>("Alice//stash"),
+									get_from_seed::<AuraId>("Bob//stash"),
+								],
             )
         },
         vec![],
@@ -236,74 +248,76 @@ fn testnet_genesis(
     initial_authorities: Vec<(
         AccountId,
         AccountId,
-        AuraId,
+				AuraId,
         GrandpaId,
-        BabeId,
-        ImOnlineId,
-        AuthorityDiscoveryId,
+        // BabeId,
+        // ImOnlineId,
+        // AuthorityDiscoveryId,
     )>,
     root_key: AccountId,
     endowed_accounts: Vec<AccountId>,
-    initials: Vec<AuraId>,
+		initials: Vec<AuraId>,
 ) -> opportunity_runtime::GenesisConfig {
     opportunity_runtime::GenesisConfig {
-        frame_system: opportunity_runtime::SystemConfig {
+        system: opportunity_runtime::SystemConfig {
             code: opportunity_runtime::WASM_BINARY
                 .expect("WASM binary was not build, please build it!")
                 .to_vec(),
             changes_trie_config: Default::default(),
         },
-        pallet_balances: opportunity_runtime::BalancesConfig {
+        balances: opportunity_runtime::BalancesConfig {
             balances: endowed_accounts
                 .iter()
                 .cloned()
                 .map(|k| (k, 1 << 60))
                 .collect(),
         },
-        pallet_aura: AuraConfig {
-			authorities: initial_authorities.iter().map(|x| (x.2.clone())).collect(),
-		},
-        pallet_grandpa: GrandpaConfig {
+				aura: AuraConfig {
+					authorities: initial_authorities.iter().map(|x| (x.2.clone())).collect(),
+				},
+        grandpa: GrandpaConfig {
             authorities: initial_authorities.iter().map(|x| (x.3.clone(), 1)).collect(),
         },
-        pallet_sudo: opportunity_runtime::SudoConfig { key: root_key },
-        pallet_babe: BabeConfig {
-            authorities: vec![],
-            epoch_config: Some(BABE_GENESIS_EPOCH_CONFIG),
-        },
-        pallet_im_online: ImOnlineConfig { keys: vec![] },
-        pallet_session: SessionConfig {
-            keys: initial_authorities
-                .iter()
-                .map(|x| {
-                    (
-                        x.0.clone(),
-                        x.0.clone(),
-                        session_keys(x.2.clone(), x.3.clone(), x.4.clone(), x.5.clone(), x.6.clone()),
-                    )
-                })
-                .collect::<Vec<_>>(),
-        },
-        pallet_staking: StakingConfig {
-            validator_count: initial_authorities.len() as u32 * 2,
-            minimum_validator_count: initial_authorities.len() as u32,
-            stakers: initial_authorities
-                .iter()
-                .map(|x| {
-                    (
-                        x.0.clone(),
-                        x.1.clone(),
-                        100_000_000_000_000_000_u128,
-                        StakerStatus::Validator,
-                    )
-                })
-                .collect(),
-            invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
-            force_era: Forcing::ForceNone,
-            slash_reward_fraction: Perbill::from_percent(10),
-            ..Default::default()
-        },
-        orml_tokens: TokensConfig {
+        // pallet_sudo: opportunity_runtime::SudoConfig { key: root_key },
+        // pallet_babe: BabeConfig {
+        //     authorities: vec![],
+        //     epoch_config: Some(BABE_GENESIS_EPOCH_CONFIG),
+        // },
+        // pallet_im_online: ImOnlineConfig { keys: vec![] },
+        // pallet_session: SessionConfig {
+        //     keys: initial_authorities
+        //         .iter()
+        //         .map(|x| {
+        //             (
+        //                 x.0.clone(),
+        //                 x.0.clone(),
+        //                 session_keys(x.2.clone(), x.3.clone(), x.4.clone(), x.5.clone(), x.6.clone()),
+        //             )
+        //         })
+        //         .collect::<Vec<_>>(),
+        // },
+        // pallet_staking: StakingConfig {
+        //     validator_count: initial_authorities.len() as u32 * 2,
+        //     minimum_validator_count: initial_authorities.len() as u32,
+        //     stakers: initial_authorities
+        //         .iter()
+        //         .map(|x| {
+        //             (
+        //                 x.0.clone(),
+        //                 x.1.clone(),
+        //                 100_000_000_000_000_000_u128,
+        //                 StakerStatus::Validator,
+        //             )
+        //         })
+        //         .collect(),
+        //     invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
+        //     force_era: Forcing::ForceNone,
+        //     slash_reward_fraction: Perbill::from_percent(10),
+        //     ..Default::default()
+        // },
+        // orml_tokens: TokensConfig {
+				sudo: opportunity_runtime::SudoConfig { key: root_key },
+				tokens: TokensConfig {
             endowed_accounts: endowed_accounts.iter().flat_map(|_x| vec![]).collect(),
         },
         asset_registry: AssetRegistryConfig {
@@ -319,8 +333,8 @@ fn testnet_genesis(
         oracle: OracleConfig {
             oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec(),
         },
-        pallet_elections_phragmen: ElectionsConfig::default(),
-        pallet_collective_Instance1: CouncilConfig::default(),
-        pallet_treasury: Default::default()
+        elections_phragmen: ElectionsConfig::default(),
+        collective_Instance1: CouncilConfig::default(),
+        treasury: Default::default()
     }
 }
