@@ -79,7 +79,7 @@ pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Pu
 //     pub relay_chain: String,
 //     /// The id of the Parachain.
 //     pub para_id: u32,
-}
+// }
 
 // impl Extensions {
 //     /// Try to get the extension from the given `ChainSpec`.
