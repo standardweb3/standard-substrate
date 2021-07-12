@@ -1,6 +1,6 @@
 ARG RUST_IMAGE=rust:1.52-slim
 ARG RUNTIME_IMAGE=ubuntu:focal
-ARG TOOLCHAIN_BUILD=nightly-2021-03-01
+ARG TOOLCHAIN_BUILD=nightly-2021-04-22
 
 ### planner stage - builds dependency recipe.json for cargo chef
 FROM $RUST_IMAGE as planner

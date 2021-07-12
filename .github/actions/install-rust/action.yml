@@ -5,7 +5,7 @@ inputs:
   toolchain_build: # id of input
     description: "Which version of rust toolchain to use"
     required: false
-    default: "nightly-2021-03-01"
+    default: "nightly-2021-04-22"
 
 runs:
   using: "composite"
