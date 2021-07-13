@@ -4,13 +4,13 @@
 
 use frame_election_provider_support::onchain::OnChainSequentialPhragmen;
 use frame_support::{
-	PalletId,
     construct_runtime, match_type, parameter_types,
     traits::{Filter, U128CurrencyToVote},
     weights::{
         constants::{BlockExecutionWeight, ExtrinsicBaseWeight, WEIGHT_PER_SECOND},
         DispatchClass, IdentityFee, Weight,
     },
+    PalletId,
 };
 use frame_system::limits::{BlockLength, BlockWeights};
 use pallet_session::historical as pallet_session_historical;
@@ -24,7 +24,10 @@ use sp_runtime::{
     create_runtime_str,
     curve::PiecewiseLinear,
     generic, impl_opaque_keys,
-    traits::{AccountIdConversion, Zero, AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto, OpaqueKeys, Verify},
+    traits::{
+        AccountIdConversion, AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto,
+        OpaqueKeys, Verify, Zero,
+    },
     transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
     ApplyExtrinsicResult, FixedPointNumber, Perbill, Perquintill,
 };
@@ -49,11 +52,10 @@ pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
-use primitives::{CurrencyId, Amount, Balance, AssetId};
-pub use template;
 use orml_currencies::BasicCurrencyAdapter;
 use orml_traits::parameter_type_with_key;
-
+use primitives::{Amount, AssetId, Balance, CurrencyId};
+pub use template;
 
 /// Constant values used within the runtime.
 pub const MILLISTD: Balance = 1_000_000_000_000_000;
@@ -189,7 +191,7 @@ impl frame_system::Config for Runtime {
     type BlockWeights = RuntimeBlockWeights;
     type BlockLength = RuntimeBlockLength;
     type SS58Prefix = SS58Prefix;
-	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
+    type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 }
 
 parameter_types! {
@@ -451,7 +453,6 @@ impl pallet_vesting::Config for Runtime {
     type WeightInfo = ();
 }
 
-
 parameter_type_with_key! {
     pub ExistentialDeposits: |_currency_id: CurrencyId| -> Balance {
         Zero::zero()
@@ -459,62 +460,61 @@ parameter_type_with_key! {
 }
 
 parameter_types! {
-	pub TreasuryModuleAccount: AccountId = TemplatePalletId::get().into_account();
+    pub TreasuryModuleAccount: AccountId = TemplatePalletId::get().into_account();
 }
 
 impl orml_tokens::Config for Runtime {
-	type Event = Event;
-	type Balance = Balance;
-	type Amount = Amount;
-	type CurrencyId = CurrencyId;
-	type WeightInfo = ();
-	type ExistentialDeposits = ExistentialDeposits;
-	type OnDust = orml_tokens::TransferDust<Runtime, TreasuryModuleAccount>;
-	type MaxLocks = MaxLocks;
+    type Event = Event;
+    type Balance = Balance;
+    type Amount = Amount;
+    type CurrencyId = CurrencyId;
+    type WeightInfo = ();
+    type ExistentialDeposits = ExistentialDeposits;
+    type OnDust = orml_tokens::TransferDust<Runtime, TreasuryModuleAccount>;
+    type MaxLocks = MaxLocks;
 }
 
 parameter_types! {
-	pub const GetNativeCurrencyId: CurrencyId = 0;
+    pub const GetNativeCurrencyId: CurrencyId = 0;
 }
 
 impl orml_currencies::Config for Runtime {
-	type Event = Event;
-	type MultiCurrency = Tokens;
-	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
-	type GetNativeCurrencyId = GetNativeCurrencyId;
-	type WeightInfo = ();
+    type Event = Event;
+    type MultiCurrency = Tokens;
+    type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
+    type GetNativeCurrencyId = GetNativeCurrencyId;
+    type WeightInfo = ();
 }
 
 impl pallet_asset_registry::Config for Runtime {
-	type AssetId = AssetId;
-} 
+    type AssetId = AssetId;
+}
 
 impl pallet_standard_oracle::Config for Runtime {
     type Event = Event;
 }
 
 parameter_types! {
-	pub const SysPalletId: PalletId = PalletId(*b"stnd/mkt");
+    pub const SysPalletId: PalletId = PalletId(*b"stnd/mkt");
 }
 
 impl pallet_standard_market::Config for Runtime {
-	type Event = Event;
-	type Currency = Currencies;
-	type SystemPalletId = SysPalletId;
+    type Event = Event;
+    type Currency = Currencies;
+    type SystemPalletId = SysPalletId;
 }
 
 parameter_types! {
-	pub const VltPalletId: PalletId = PalletId(*b"stnd/vlt");
+    pub const VltPalletId: PalletId = PalletId(*b"stnd/vlt");
 
 }
 
 impl pallet_standard_vault::Config for Runtime {
-	type Event = Event;
-	type VaultPalletId = VltPalletId;
-	type Currency = Currencies;
-	type SystemPalletId = SysPalletId;
+    type Event = Event;
+    type VaultPalletId = VltPalletId;
+    type Currency = Currencies;
+    type SystemPalletId = SysPalletId;
 }
-
 
 parameter_types! {
     pub const TransactionByteFee: Balance = 10 * MILLISTD;
@@ -524,12 +524,12 @@ parameter_types! {
 }
 
 parameter_types! {
-	pub const TemplatePalletId: PalletId = PalletId(*b"template");
+    pub const TemplatePalletId: PalletId = PalletId(*b"template");
 }
 
 impl template::Config for Runtime {
-	type Event = Event;
-	type PalletId = TemplatePalletId;
+    type Event = Event;
+    type PalletId = TemplatePalletId;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -585,15 +585,15 @@ construct_runtime!(
         Offences: pallet_offences::{Pallet, Call, Storage, Event} = 47,
         Historical: pallet_session_historical::{Pallet} = 48,
 
-		CumulusXcm: cumulus_pallet_xcm::{Pallet, Call, Event<T>, Origin} = 50,
-		
-		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
-		Currencies: orml_currencies::{Pallet, Call, Event<T>},
+        CumulusXcm: cumulus_pallet_xcm::{Pallet, Call, Event<T>, Origin} = 50,
+
+        Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
+        Currencies: orml_currencies::{Pallet, Call, Event<T>},
         TemplatePallet: template::{Pallet, Call, Storage, Event<T>},
         AssetRegistry: pallet_asset_registry::{Pallet, Storage, Config<T>},
-		Market: pallet_standard_market::{Pallet, Call, Storage, Event},
-		Oracle: pallet_standard_oracle::{Pallet, Call, Storage, Event<T>, Config<T>},
-		Vault: pallet_standard_vault::{Pallet, Call, Storage, Event<T>},
+        Market: pallet_standard_market::{Pallet, Call, Storage, Event},
+        Oracle: pallet_standard_oracle::{Pallet, Call, Storage, Event<T>, Config<T>},
+        Vault: pallet_standard_vault::{Pallet, Call, Storage, Event<T>},
     }
 );
 

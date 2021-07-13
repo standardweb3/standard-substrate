@@ -6,8 +6,8 @@ use cumulus_client_service::{
 use sc_client_api::call_executor::ExecutorProvider;
 use sc_service::{Configuration, PartialComponents, Role, TFullBackend, TFullClient, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryWorker, TelemetryWorkerHandle};
-use standard_runtime::RuntimeApi;
 use sp_consensus::SlotData;
+use standard_runtime::RuntimeApi;
 use std::sync::Arc;
 
 type BlockNumber = u32;
@@ -173,26 +173,24 @@ where
             block_announce_validator_builder: Some(Box::new(|_| block_announce_validator)),
         })?;
 
-//	let rpc_client = client.clone();
-	
-//	let rpc_extensions_builder = Box::new(move |_, _| rpc_ext_builder(rpc_client.clone()));
-	
-	let rpc_extensions_builder = {
-		let client = client.clone();
-		let pool = transaction_pool.clone();
+    //	let rpc_client = client.clone();
 
-		Box::new(move |deny_unsafe, _| {
-			let deps = crate::rpc::FullDeps {
-				client: client.clone(),
-				pool: pool.clone(),
-				deny_unsafe,
-			};
+    //	let rpc_extensions_builder = Box::new(move |_, _| rpc_ext_builder(rpc_client.clone()));
 
-			crate::rpc::create_full(deps)
-		})
-	};
+    let rpc_extensions_builder = {
+        let client = client.clone();
+        let pool = transaction_pool.clone();
 
+        Box::new(move |deny_unsafe, _| {
+            let deps = crate::rpc::FullDeps {
+                client: client.clone(),
+                pool: pool.clone(),
+                deny_unsafe,
+            };
 
+            crate::rpc::create_full(deps)
+        })
+    };
 
     sc_service::spawn_tasks(sc_service::SpawnTasksParams {
         on_demand: None,

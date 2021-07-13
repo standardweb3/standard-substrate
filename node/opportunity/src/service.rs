@@ -99,13 +99,13 @@ pub fn new_partial(
 
     let select_chain = sc_consensus::LongestChain::new(backend.clone());
 
-	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
-		config.transaction_pool.clone(),
-		config.role.is_authority().into(),
-		config.prometheus_registry(),
-		task_manager.spawn_essential_handle(),
-		client.clone(),
-	);
+    let transaction_pool = sc_transaction_pool::BasicPool::new_full(
+        config.transaction_pool.clone(),
+        config.role.is_authority().into(),
+        config.prometheus_registry(),
+        task_manager.spawn_essential_handle(),
+        client.clone(),
+    );
 
     let (grandpa_block_import, grandpa_link) = grandpa::block_import(
         client.clone(),
@@ -404,7 +404,7 @@ pub fn new_full_base(
         name: Some(name),
         observer_enabled: false,
         keystore,
-		local_role: role,
+        local_role: role,
         telemetry: telemetry.as_ref().map(|x| x.handle()),
     };
 
@@ -610,7 +610,9 @@ mod tests {
     use crate::service::{new_full_base, new_light_base, NewFullBase};
     use codec::Encode;
     use opportunity_runtime::constants::{currency::CENTS, time::SLOT_DURATION};
-    use opportunity_runtime::{Address, BalancesCall, Call, UncheckedExtrinsic, Block, DigestItem, Signature};
+    use opportunity_runtime::{
+        Address, BalancesCall, Block, Call, DigestItem, Signature, UncheckedExtrinsic,
+    };
     use sc_client_api::BlockBackend;
     use sc_consensus_babe::{BabeIntermediate, CompatibleDigestItem, INTERMEDIATE_KEY};
     use sc_consensus_epochs::descendent_query;

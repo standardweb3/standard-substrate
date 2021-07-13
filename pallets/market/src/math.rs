@@ -1,5 +1,5 @@
-use crate::Config; 
-use primitives::{Balance};
+use crate::Config;
+use primitives::Balance;
 
 const ONE: Balance = 1;
 const TWO: Balance = 2;
@@ -24,10 +24,7 @@ pub fn sqrt<T: Config>(y: Balance) -> Balance {
     }
 }
 
-pub fn min<T: Config>(
-    x: Balance,
-    y: Balance,
-) -> Balance {
+pub fn min<T: Config>(x: Balance, y: Balance) -> Balance {
     let z = match x < y {
         true => x,
         _ => y,
@@ -35,17 +32,13 @@ pub fn min<T: Config>(
     z
 }
 
-pub fn absdiff<T: Config>(
-    x: Balance,
-    y: Balance,
-) -> Balance {
+pub fn absdiff<T: Config>(x: Balance, y: Balance) -> Balance {
     let z = match x < y {
-        true => y-x,
-        _ => x-y,
+        true => y - x,
+        _ => x - y,
     };
     z
 }
-
 
 #[cfg(test)]
 mod tests {

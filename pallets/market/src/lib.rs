@@ -46,7 +46,7 @@
 //!
 //! * Reward liquidity providers with tokens to receive exchanges fees which is proportional to their contribution.
 //! * Swap assets with automated market price equation(e.g. X*Y=K or curve function from Kyber, dodoex, etc).
-//! * Issue an fungible asset which can be backed with opening exchange with other assets 
+//! * Issue an fungible asset which can be backed with opening exchange with other assets
 //!
 //! ## Interface
 //!
@@ -61,7 +61,7 @@
 //!
 //! ### Public Functions
 //!
-//! 
+//!
 //! Please refer to the [`Module`](./struct.Module.html) struct for details on publicly available functions.
 //!
 //! ## Usage
@@ -88,39 +88,45 @@
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{ PalletId, decl_module, decl_event, decl_storage, decl_error, ensure, dispatch, traits::{Get}};
-use sp_runtime::traits::{ Zero, };
+use frame_support::{
+    decl_error, decl_event, decl_module, decl_storage, dispatch, ensure, traits::Get, PalletId,
+};
 use frame_system::ensure_signed;
-use sp_core::U256;
-use sp_runtime::{FixedU128, traits::{UniqueSaturatedInto, UniqueSaturatedFrom}};
-use sp_runtime::traits::{  AccountIdConversion};
-use primitives::{AssetId, Balance, Amount};
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
 use pallet_asset_registry;
+use primitives::{Amount, AssetId, Balance};
+use sp_core::U256;
+use sp_runtime::traits::AccountIdConversion;
+use sp_runtime::traits::Zero;
+use sp_runtime::{
+    traits::{UniqueSaturatedFrom, UniqueSaturatedInto},
+    FixedU128,
+};
 //use crate::sp_api_hidden_includes_decl_storage::hidden_include::traits::Get;
 mod math;
 
-
 /// The module configuration trait.
-pub trait Config: frame_system::Config  + pallet_asset_registry::Config{
-	/// The overarching event type.
+pub trait Config: frame_system::Config + pallet_asset_registry::Config {
+    /// The overarching event type.
     type Event: From<Event> + Into<<Self as frame_system::Config>::Event>;
     type SystemPalletId: Get<PalletId>;
- //   type AssetId: Parameter + Member + Into<u32> + AtLeast32Bit + Default + Copy + MaybeSerializeDeserialize;
+    //   type AssetId: Parameter + Member + Into<u32> + AtLeast32Bit + Default + Copy + MaybeSerializeDeserialize;
 
-    type Currency: MultiCurrencyExtended<Self::AccountId, CurrencyId = AssetId, Balance = Balance, Amount = Amount>
-            + MultiReservableCurrency<Self::AccountId>;
-        
-
+    type Currency: MultiCurrencyExtended<
+            Self::AccountId,
+            CurrencyId = AssetId,
+            Balance = Balance,
+            Amount = Amount,
+        > + MultiReservableCurrency<Self::AccountId>;
 }
 
 decl_module! {
-	pub struct Module<T: Config> for enum Call where origin: T::Origin {
-		type Error = Error<T>;
+    pub struct Module<T: Config> for enum Call where origin: T::Origin {
+        type Error = Error<T>;
 
-		fn deposit_event() = default;
-		
-		// Mint liquidity by adding a liquidity in a pair
+        fn deposit_event() = default;
+
+        // Mint liquidity by adding a liquidity in a pair
         #[weight = 10_000 + T::DbWeight::get().reads_writes(1,1)]
         pub fn mint_liquidity(origin, token0: AssetId, amount0: Balance, token1: AssetId, amount1: Balance) -> dispatch::DispatchResult {
             let one: Balance = 1;
@@ -177,10 +183,10 @@ decl_module! {
                     Err(Error::<T>::InsufficientLiquidityMinted)?
                 },
                 Some(_) => Err(Error::<T>::NoneValue)?,
-			}
-		}
-		
-		#[weight = 10_000 + T::DbWeight::get().reads_writes(1,1)]
+            }
+        }
+
+        #[weight = 10_000 + T::DbWeight::get().reads_writes(1,1)]
         pub fn burn_liquidity(origin, lpt: AssetId, amount: Balance) -> dispatch::DispatchResult{
             let sender = ensure_signed(origin)?;
             let mut reserves = Self::reserves(lpt);
@@ -208,9 +214,9 @@ decl_module! {
             // Update price
             //Self::_update(&lpt)?;
             Ok(())
-		}
-		
-		#[weight = 10_000 + T::DbWeight::get().reads_writes(1,1)]
+        }
+
+        #[weight = 10_000 + T::DbWeight::get().reads_writes(1,1)]
         pub fn swap(origin, from: AssetId, amount_in: Balance, to: AssetId) -> dispatch::DispatchResult {
             let sender = ensure_signed(origin)?;
             ensure!(amount_in > Zero::zero(), Error::<T>::InsufficientAmount);
@@ -240,27 +246,27 @@ decl_module! {
             Ok(())
         }
 
-	}
+    }
 }
 
 decl_event! {
-	pub enum Event 
-	{
+    pub enum Event
+    {
         /// Pair between two assets is created. \[token0, token1, lptoken]
-		CreatePair(AssetId, AssetId, AssetId),
-		/// An asset is swapped to another asset. \[token0, amount_in, token1, amount_out]
-		Swap(AssetId, Balance, AssetId, Balance),
-		/// Liquidity is minted. \[token0, token1, lptoken]
-		MintedLiquidity(AssetId, AssetId, AssetId),
-		/// Liquidity is burned. \[lptoken, token0, token1]
-		BurnedLiquidity(AssetId, AssetId, AssetId),
-		/// Sync oracle. \[price0, price1]
+        CreatePair(AssetId, AssetId, AssetId),
+        /// An asset is swapped to another asset. \[token0, amount_in, token1, amount_out]
+        Swap(AssetId, Balance, AssetId, Balance),
+        /// Liquidity is minted. \[token0, token1, lptoken]
+        MintedLiquidity(AssetId, AssetId, AssetId),
+        /// Liquidity is burned. \[lptoken, token0, token1]
+        BurnedLiquidity(AssetId, AssetId, AssetId),
+        /// Sync oracle. \[price0, price1]
         SyncOracle(FixedU128, FixedU128),
-	}
+    }
 }
 
 decl_error! {
-	pub enum Error for Module<T: Config> {
+    pub enum Error for Module<T: Config> {
         /// Transfer amount should be non-zero
         AmountZero,
         /// Account balance must be greater than or equal to the transfer amount
@@ -272,56 +278,55 @@ decl_error! {
         /// Not the approver for the account
         NotApproved,
         /// Created by System
-		CreatedBySystem,
-		/// No value
-		NoneValue,
-		/// Insufficient balance
-		InSufficientBalance,
-		/// Pair already exists
-		PairExists,
-		/// Lp token id already exists
-		LptExists,
-		/// Invalid pair
-		InvalidPair,
-		/// Pair with identical identifiers
-		IdenticalIdentifier,
-		/// Insufficient liquidity minted
-		InsufficientLiquidityMinted,
-		/// Insufficient liquidity burned
-		InsufficientLiquidityBurned,
-		/// Insufficient output amount for swap
-		InsufficientOutputAmount,
-		/// Insufficient amont for swap
-		InsufficientAmount,
-		/// Insufficiient liquidity for swap
+        CreatedBySystem,
+        /// No value
+        NoneValue,
+        /// Insufficient balance
+        InSufficientBalance,
+        /// Pair already exists
+        PairExists,
+        /// Lp token id already exists
+        LptExists,
+        /// Invalid pair
+        InvalidPair,
+        /// Pair with identical identifiers
+        IdenticalIdentifier,
+        /// Insufficient liquidity minted
+        InsufficientLiquidityMinted,
+        /// Insufficient liquidity burned
+        InsufficientLiquidityBurned,
+        /// Insufficient output amount for swap
+        InsufficientOutputAmount,
+        /// Insufficient amont for swap
+        InsufficientAmount,
+        /// Insufficiient liquidity for swap
         InsufficientLiquidity,
         /// The ratio does not match from previous K
         K,
 
-	}
+    }
 }
 
 decl_storage! {
-	trait Store for Module<T: Config> as Assets {
-		/// Market storage
-		//pub LastBlockTimestamp get(fn last_block_timestamp): T::Moment;
+    trait Store for Module<T: Config> as Assets {
+        /// Market storage
+        //pub LastBlockTimestamp get(fn last_block_timestamp): T::Moment;
         // Accumulated price data for each pair. key is lptoken identifier
         pub LastAccumulativePrice get(fn last_cumulative_price): map hasher(blake2_128_concat) AssetId => (FixedU128, FixedU128);
         pub Rewards get(fn reward): map hasher(blake2_128_concat) AssetId => (AssetId, AssetId);
         pub Reserves get(fn reserves): map hasher(blake2_128_concat) AssetId => (Balance, Balance);
         pub Pairs get(fn pair): map hasher(blake2_128_concat) (AssetId, AssetId) => Option<AssetId>;
-	}
+    }
 }
 
 // The main implementation block for the module.
 impl<T: Config> Module<T> {
-    
-    pub fn account_id() -> T::AccountId  {
-		<T as Config>::SystemPalletId::get().into_account()
-	}
+    pub fn account_id() -> T::AccountId {
+        <T as Config>::SystemPalletId::get().into_account()
+    }
 
-	// Market methods
-	pub fn _set_reserves(
+    // Market methods
+    pub fn _set_reserves(
         token0: AssetId,
         token1: AssetId,
         amount0: Balance,
@@ -342,10 +347,8 @@ impl<T: Config> Module<T> {
         Pairs::insert((token0, token1), lptoken);
         Pairs::insert((token1, token0), lptoken);
     }
-    
-	fn _set_rewards(
-        token0: AssetId, token1: AssetId, lptoken: AssetId
-    ) {
+
+    fn _set_rewards(token0: AssetId, token1: AssetId, lptoken: AssetId) {
         match token0 > token1 {
             true => {
                 Rewards::insert(lptoken, (token1, token0));
@@ -360,7 +363,7 @@ impl<T: Config> Module<T> {
         U256::from(UniqueSaturatedInto::<u128>::unique_saturated_into(value))
     }
 
-	pub fn _get_amount_out(
+    pub fn _get_amount_out(
         amount_in: Balance,
         reserve_in: Balance,
         reserve_out: Balance,
@@ -379,12 +382,17 @@ impl<T: Config> Module<T> {
             .expect("Multiplication overflow")
             .checked_add(amount_in_with_fee)
             .expect("Overflow");
-        Balance::unique_saturated_from(numerator.checked_div(denominator).expect("divided by zero").as_u128())
+        Balance::unique_saturated_from(
+            numerator
+                .checked_div(denominator)
+                .expect("divided by zero")
+                .as_u128(),
+        )
     }
-	/* 
+    /*
 
-	// TODO: Reimplement TWAP so that checked calculation does not lose values
-	fn _update(pair: &T::AssetId) -> dispatch::DispatchResult {
+    // TODO: Reimplement TWAP so that checked calculation does not lose values
+    fn _update(pair: &T::AssetId) -> dispatch::DispatchResult {
         let block_timestamp = <timestamp::Module<T>>::get() % T::Moment::from(2u32.pow(32));
         let time_elapsed = block_timestamp - Self::last_block_timestamp();
         let reserves = Self::reserves(pair);

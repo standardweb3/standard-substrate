@@ -47,7 +47,7 @@
 //!
 //! * `issue` - Issues the total supply of a new fungible asset to the account of the caller of the function.
 //! * `mint` - Mints the asset to the account in the argument with the requested amount from the caller. Caller must be the creator of the asset.
-//! * `burn` - Burns the asset from the caller by the amount in the argument 
+//! * `burn` - Burns the asset from the caller by the amount in the argument
 //! * `transfer` - Transfers an `amount` of units of fungible asset `id` from the balance of
 //! the function caller's account (`origin`) to a `target` account.
 //! * `destroy` - Destroys the entire holding of a fungible asset `id` associated with the account
@@ -66,9 +66,9 @@
 //! * `burn_from_system` - Burn asset from the system to an account, decreasing total supply.
 //! * `transfer_from_system - Transfer asset from an account to the system with no change in total supply.
 //! * `transfer_to_system - Transfer asset from system to the user with no chang in total supply.
-//! * `issue_from_system` - Issue asset from system 
+//! * `issue_from_system` - Issue asset from system
 //! * `swap` - Swap one asset to another asset
-//! 
+//!
 //! Please refer to the [`Module`](./struct.Module.html) struct for details on publicly available functions.
 //!
 //! ## Usage
@@ -93,7 +93,7 @@
 //! use frame_system::ensure_signed;
 //!
 //! pub trait Trait: subswap::Trait + balances::Trait {
-//! 
+//!
 //!  }
 //!
 //! decl_module! {
@@ -101,8 +101,8 @@
 //! 		pub fn trade(origin, token0: T::AssetId, amount0: <T as balances::Trait>::Balance, token1: T::AssetId) -> dispatch::DispatchResult {
 //! 			let sender = ensure_signed(origin).map_err(|e| e.as_str())?;
 //!
-//!             let amount_out = subswap::Module<T>::swap(&token0, &amount0, &token1); 
-//! 			
+//!             let amount_out = subswap::Module<T>::swap(&token0, &amount0, &token1);
+//!
 //! 			Self::deposit_event(RawEvent::Trade(token0, amount0, token1, amount_out));
 //! 			Ok(())
 //! 		}
@@ -126,11 +126,11 @@
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{decl_module, decl_event, decl_storage, decl_error, ensure};
-use frame_system::{ensure_signed };
-use sp_runtime::{ DispatchResult, DispatchError};
+use frame_support::{decl_error, decl_event, decl_module, decl_storage, ensure};
+use frame_system::ensure_signed;
+use primitives::{AssetId, Balance};
+use sp_runtime::{DispatchError, DispatchResult};
 use sp_std::prelude::*;
-use primitives::{Balance, AssetId};
 
 #[cfg(test)]
 mod mock;
@@ -139,7 +139,7 @@ mod tests;
 
 /// The module configuration trait.
 pub trait Config: frame_system::Config {
-	/// The overarching event type.
+    /// The overarching event type.
     type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
 }
 
@@ -151,131 +151,126 @@ pub type RequestIdentifier = u64;
 pub type DataVersion = u64;
 
 decl_module! {
-	pub struct Module<T: Config> for enum Call where origin: T::Origin {
-		type Error = Error<T>;
+    pub struct Module<T: Config> for enum Call where origin: T::Origin {
+        type Error = Error<T>;
 
         fn deposit_event() = default;
-        
+
 
         // REVIEW: Use `///` instead of `//` to make these doc comments that are part of the crate documentation.
-		// Register a new Operator.
-		// Fails with `OperatorAlreadyRegistered` if this Operator (identified by `origin`) has already been registered.
-		#[weight = 10_000]
-		pub fn register_operator(origin) -> DispatchResult {
-			let who : <T as frame_system::Config>::AccountId = ensure_signed(origin)?;
+        // Register a new Operator.
+        // Fails with `OperatorAlreadyRegistered` if this Operator (identified by `origin`) has already been registered.
+        #[weight = 10_000]
+        pub fn register_operator(origin) -> DispatchResult {
+            let who : <T as frame_system::Config>::AccountId = ensure_signed(origin)?;
 
-			ensure!(!<Operators<T>>::get(&who), Error::<T>::OperatorAlreadyRegistered);
+            ensure!(!<Operators<T>>::get(&who), Error::<T>::OperatorAlreadyRegistered);
 
-			Operators::<T>::insert(&who, true);
+            Operators::<T>::insert(&who, true);
 
-			Self::deposit_event(RawEvent::OperatorRegistered(who));
+            Self::deposit_event(RawEvent::OperatorRegistered(who));
 
-			Ok(())
-		}
-
-		// Unregisters an existing Operator
-		// TODO check weight
-		#[weight = 10_000]
-		pub fn unregister_operator(origin) -> DispatchResult {
-			let who : <T as frame_system::Config>::AccountId = ensure_signed(origin)?;
-
-			if Operators::<T>::take(who.clone()) {
-				Self::deposit_event(RawEvent::OperatorUnregistered(who));
-				Ok(())
-			} else {
-				Err(Error::<T>::UnknownOperator.into())
-			}
+            Ok(())
         }
-        
+
+        // Unregisters an existing Operator
+        // TODO check weight
+        #[weight = 10_000]
+        pub fn unregister_operator(origin) -> DispatchResult {
+            let who : <T as frame_system::Config>::AccountId = ensure_signed(origin)?;
+
+            if Operators::<T>::take(who.clone()) {
+                Self::deposit_event(RawEvent::OperatorUnregistered(who));
+                Ok(())
+            } else {
+                Err(Error::<T>::UnknownOperator.into())
+            }
+        }
+
         #[weight = 0]
         fn report(origin, _id: AssetId, _price: Balance) {
             let who : <T as frame_system::Config>::AccountId = ensure_signed(origin)?;
-			ensure!(Operators::<T>::contains_key(who), Error::<T>::WrongOperator);
-			
+            ensure!(Operators::<T>::contains_key(who), Error::<T>::WrongOperator);
+
         }
 
-	}
+    }
 }
 
 decl_event! {
-	pub enum Event<T> where
-	    <T as frame_system::Config>::AccountId,
-		Balance = Balance,
-	{
-		// A request has been accepted. Corresponding fee paiement is reserved
-		OracleRequest(AccountId, SpecIndex, RequestIdentifier, AccountId, DataVersion, Vec<u8>, Vec<u8>, Balance),
+    pub enum Event<T> where
+        <T as frame_system::Config>::AccountId,
+        Balance = Balance,
+    {
+        // A request has been accepted. Corresponding fee paiement is reserved
+        OracleRequest(AccountId, SpecIndex, RequestIdentifier, AccountId, DataVersion, Vec<u8>, Vec<u8>, Balance),
 
-		// A request has been answered. Corresponding fee paiement is transfered
-		OracleAnswer(AccountId, RequestIdentifier, AccountId, Vec<u8>, Balance),
+        // A request has been answered. Corresponding fee paiement is transfered
+        OracleAnswer(AccountId, RequestIdentifier, AccountId, Vec<u8>, Balance),
 
-		// A new operator has been registered
-		OperatorRegistered(AccountId),
+        // A new operator has been registered
+        OperatorRegistered(AccountId),
 
-		// An existing operator has been unregistered
-		OperatorUnregistered(AccountId),
+        // An existing operator has been unregistered
+        OperatorUnregistered(AccountId),
 
-		// A request didn't receive any result in time
-		KillRequest(RequestIdentifier),
-	}
+        // A request didn't receive any result in time
+        KillRequest(RequestIdentifier),
+    }
 }
 
-
 decl_error! {
-	pub enum Error for Module<T: Config>  {
+    pub enum Error for Module<T: Config>  {
         /// Error names should be descriptive.
-		NoneValue,
-		/// Errors should have helpful documentation associated with them.
+        NoneValue,
+        /// Errors should have helpful documentation associated with them.
         StorageOverflow,
         // Manipulating an unknown operator
-		UnknownOperator,
-		// Manipulating an unknown request
-		UnknownRequest,
-		// Not the expected operator
-		WrongOperator,
-		// An operator is already registered.
-		OperatorAlreadyRegistered,
-		// Callback cannot be deserialized
-		UnknownCallback,
-		// Fee provided does not match minimum required fee
-		InsufficientFee,
-		// Price does not exist
-		PriceDoesNotExist,
-	}
+        UnknownOperator,
+        // Manipulating an unknown request
+        UnknownRequest,
+        // Not the expected operator
+        WrongOperator,
+        // An operator is already registered.
+        OperatorAlreadyRegistered,
+        // Callback cannot be deserialized
+        UnknownCallback,
+        // Fee provided does not match minimum required fee
+        InsufficientFee,
+        // Price does not exist
+        PriceDoesNotExist,
+    }
 }
 
 decl_storage! {
-	trait Store for Module<T: Config> as Oracle {
-		// the result of the oracle call
+    trait Store for Module<T: Config> as Oracle {
+        // the result of the oracle call
         pub Result get(fn get_result): i128;
-        
+
         // A set of all registered Operator
         pub Operators get(fn operator): map hasher(blake2_128_concat) <T as frame_system::Config>::AccountId => bool;
-        
+
         pub Prices get(fn asset_price): map hasher(blake2_128_concat) AssetId =>  Option<Balance>;
 
-	} add_extra_genesis {
-		config(oracles):
-			Vec<<T as frame_system::Config>::AccountId>;
-		build(|config: &GenesisConfig<T>| {
-			for oracle in &config.oracles {
-				Operators::<T>::insert(oracle, true);
-			}
-		});
-	}
+    } add_extra_genesis {
+        config(oracles):
+            Vec<<T as frame_system::Config>::AccountId>;
+        build(|config: &GenesisConfig<T>| {
+            for oracle in &config.oracles {
+                Operators::<T>::insert(oracle, true);
+            }
+        });
+    }
 }
 
 // The main implementation block for the module.
 impl<T: Config> Module<T> {
-	pub fn price(id: AssetId) -> sp_std::result::Result<Balance, DispatchError> {
-		match Self::asset_price(id) {
-			Some(x) => {
-				return Ok(x)
-			},
-			None => {
-				return Err(DispatchError::from(crate::Error::<T>::PriceDoesNotExist).into());
-			}
-		}
-		
+    pub fn price(id: AssetId) -> sp_std::result::Result<Balance, DispatchError> {
+        match Self::asset_price(id) {
+            Some(x) => return Ok(x),
+            None => {
+                return Err(DispatchError::from(crate::Error::<T>::PriceDoesNotExist).into());
+            }
+        }
     }
 }
-

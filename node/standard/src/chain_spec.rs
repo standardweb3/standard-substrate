@@ -2,12 +2,13 @@ use cumulus_primitives_core::ParaId;
 use sc_chain_spec::ChainSpecExtension;
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
-use standard_runtime::{
-    wasm_binary_unwrap, AccountId, AuraConfig, AuraId, BalancesConfig, GenesisConfig, OracleConfig, AssetRegistryConfig, TokensConfig,
-    ImOnlineConfig, ImOnlineId, ParachainInfoConfig, SessionConfig, SessionKeys, Signature, 
-    StakerStatus, StakingConfig, SudoConfig, SystemConfig, VestingConfig, STD,
-};
 use sp_core::{sr25519, Pair, Public};
+use standard_runtime::{
+    wasm_binary_unwrap, AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig,
+    GenesisConfig, ImOnlineConfig, ImOnlineId, OracleConfig, ParachainInfoConfig, SessionConfig,
+    SessionKeys, Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig, TokensConfig,
+    VestingConfig, STD,
+};
 
 use sp_runtime::{
     traits::{IdentifyAccount, Verify},
@@ -70,8 +71,6 @@ pub fn authority_keys_from_seed(seed: &str) -> (AccountId, AccountId, AuraId, Im
 
 /// Gen chain specification for given parachain id
 pub fn get_chain_spec(id: ParaId) -> ChainSpec {
-
-
     ChainSpec::from_genesis(
         "Local Testnet",
         "local_testnet",
@@ -94,7 +93,6 @@ pub fn get_chain_spec(id: ParaId) -> ChainSpec {
     )
 }
 
-
 fn testnet_genesis(
     sudo_key: AccountId,
     endowed_accounts: Option<Vec<AccountId>>,
@@ -102,7 +100,8 @@ fn testnet_genesis(
 ) -> GenesisConfig {
     const ENDOWMENT: Balance = 1_000_000_000 * STD;
 
-    let balances: Vec<(AccountId, Balance)> = endowed_accounts.clone()
+    let balances: Vec<(AccountId, Balance)> = endowed_accounts
+        .clone()
         .unwrap_or_else(|| {
             vec![
                 get_account_id_from_seed::<sr25519::Public>("Alice"),
@@ -120,7 +119,8 @@ fn testnet_genesis(
         .map(|acc| (acc, ENDOWMENT))
         .collect();
 
-		let endowed_accounts: Vec<(AccountId, Balance)> = endowed_accounts.clone()
+    let endowed_accounts: Vec<(AccountId, Balance)> = endowed_accounts
+        .clone()
         .unwrap_or_else(|| {
             vec![
                 get_account_id_from_seed::<sr25519::Public>("Alice"),
@@ -147,8 +147,8 @@ fn session_keys(aura: AuraId, im_online: ImOnlineId) -> SessionKeys {
 
 /// Helper function to create GenesisConfig
 fn make_genesis(
-	balances: Vec<(AccountId, Balance)>,
-	endowed_accounts: Vec<(AccountId, Balance)>,
+    balances: Vec<(AccountId, Balance)>,
+    endowed_accounts: Vec<(AccountId, Balance)>,
     root_key: AccountId,
     parachain_id: ParaId,
 ) -> GenesisConfig {
@@ -200,23 +200,22 @@ fn make_genesis(
             authorities: vec![],
         },
         im_online: ImOnlineConfig { keys: vec![] },
-		aura_ext: Default::default(),
-		tokens: TokensConfig {
-			endowed_accounts: endowed_accounts.iter().flat_map(|_x| vec![]).collect(),
-		},
-		asset_registry: AssetRegistryConfig {
-			core_asset_id: CORE_ASSET_ID,
-			asset_ids: vec![
-				(b"STD".to_vec(), 1),
-				(b"MTR".to_vec(), 2),
-				(b"DOT".to_vec(), 3),
-				(b"KSM".to_vec(), 4),
-
-			],
-			next_asset_id: 5,
-		},
-		oracle: OracleConfig{
-			oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec()
-		},
+        aura_ext: Default::default(),
+        tokens: TokensConfig {
+            endowed_accounts: endowed_accounts.iter().flat_map(|_x| vec![]).collect(),
+        },
+        asset_registry: AssetRegistryConfig {
+            core_asset_id: CORE_ASSET_ID,
+            asset_ids: vec![
+                (b"STD".to_vec(), 1),
+                (b"MTR".to_vec(), 2),
+                (b"DOT".to_vec(), 3),
+                (b"KSM".to_vec(), 4),
+            ],
+            next_asset_id: 5,
+        },
+        oracle: OracleConfig {
+            oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec(),
+        },
     }
 }
