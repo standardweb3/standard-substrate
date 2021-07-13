@@ -1,14 +1,16 @@
 [package]
-authors = ['Anonymous']
+authors = ['Digital Native Foundation']
 build = 'build.rs'
-description = 'A new Cumulus FRAME-based Substrate node, ready for hacking.'
+description = 'Standard Node Client.'
 edition = '2018'
-homepage = 'https://substrate.dev'
-license = 'Unlicense'
+homepage = 'https://standard.tech'
+license = 'Apache-2.0'
 name = 'standard-collator'
-repository = 'https://github.com/substrate-developer-hub/substrate-parachain-template'
+repository = 'https://github.com/digitalnativeinc/standard-substrate'
 version = '2.0.0'
 
+[[bin]]
+name = 'standard-collator'
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -96,7 +98,3 @@ cli = [
     "structopt",
 	"vergen",
 ]
-
-
-[[bin]]
-name = 'standard-collator'
