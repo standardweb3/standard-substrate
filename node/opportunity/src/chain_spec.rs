@@ -1,16 +1,35 @@
-use opportunity_runtime::{AccountId, Signature};
 use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
+<<<<<<< HEAD
 use hex_literal::hex;
 
 use opportunity_runtime::{
     AssetRegistryConfig, BabeConfig, GrandpaConfig, ImOnlineConfig, OracleConfig, Perbill, DemocracyConfig, TechnicalCommitteeConfig,
     SessionConfig, StakerStatus, StakingConfig, TokensConfig, CouncilConfig, ElectionsConfig, TreasuryConfig
+=======
+use sp_finality_grandpa::AuthorityId as GrandpaId;
+use sp_consensus_babe::AuthorityId as BabeId;
+use sc_service::ChainType;
+use pallet_im_online::sr25519::{AuthorityId as ImOnlineId};
+use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
+use pallet_staking::Forcing;
+
+use opportunity_runtime::{
+	Perbill, TokensConfig, AssetRegistryConfig, ImOnlineConfig, OracleConfig, SessionConfig,
+	BabeConfig, StakerStatus, StakingConfig, GrandpaConfig, CouncilConfig, ElectionsConfig, TreasuryConfig,
+	AccountId, Signature, SessionKeys
+>>>>>>> e4cd842 (Switch consensus back to babe for opportunity.)
 };
 
 pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
 pub type AssetId = u32;
 pub const CORE_ASSET_ID: AssetId = 1;
+
+pub const BABE_GENESIS_EPOCH_CONFIG: sp_consensus_babe::BabeEpochConfiguration =
+    sp_consensus_babe::BabeEpochConfiguration {
+        c: PRIMARY_PROBABILITY,
+        allowed_slots: sp_consensus_babe::AllowedSlots::PrimaryAndSecondaryPlainSlots,
+    };
 
 /// Specialized `ChainSpec` for the normal parachain runtime.
 pub type ChainSpec = sc_service::GenericChainSpec<opportunity_runtime::GenesisConfig>;
@@ -24,12 +43,16 @@ const OPPORTUNITY_PROPERTIES: &str = r#"
 const OPPORTUNITY_PROTOCOL_ID: &str = "opt";
 
 fn session_keys(
-	aura: AuraId,
+	babe: BabeId,
 	grandpa: GrandpaId,
+	im_online: ImOnlineId,
+	authority_discovery: AuthorityDiscoveryId,
 ) -> SessionKeys {
 	SessionKeys {
-		aura,
+		babe,
 		grandpa,
+		im_online,
+		authority_discovery,
 	}
 }
 
@@ -47,16 +70,18 @@ pub fn authority_keys_from_seed(
 ) -> (
 	AccountId,
 	AccountId,
-	AuraId,
+	BabeId, 
 	GrandpaId,
-
+	ImOnlineId,
+	AuthorityDiscoveryId,
 ) {
 	(
 		get_account_id_from_seed::<sr25519::Public>(&format!("{}//stash", seed)),
 		get_account_id_from_seed::<sr25519::Public>(seed),
-		get_from_seed::<AuraId>(seed),
+		get_from_seed::<BabeId>(seed),
 		get_from_seed::<GrandpaId>(seed),
-
+		get_from_seed::<ImOnlineId>(seed),
+		get_from_seed::<AuthorityDiscoveryId>(seed),
 	)
 }
 
@@ -100,12 +125,6 @@ pub fn opportunity_standalone_config() -> ChainSpec {
                     get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
                     get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
                 ],
-								vec![
-									get_from_seed::<AuraId>("Alice"),
-									get_from_seed::<AuraId>("Bob"),
-									get_from_seed::<AuraId>("Alice//stash"),
-									get_from_seed::<AuraId>("Bob//stash"),
-								],
             )
         },
         vec![],
@@ -135,12 +154,6 @@ pub fn development_config() -> ChainSpec {
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
 					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
 					get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-				],
-				vec![
-					get_from_seed::<AuraId>("Alice"),
-					get_from_seed::<AuraId>("Bob"),
-					get_from_seed::<AuraId>("Alice//stash"),
-					get_from_seed::<AuraId>("Bob//stash"),
 				],
 			)
 		},
@@ -177,12 +190,6 @@ pub fn local_testnet_config() -> ChainSpec {
 					get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
 					get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
 				],
-				vec![
-					get_from_seed::<AuraId>("Alice"),
-					get_from_seed::<AuraId>("Bob"),
-					get_from_seed::<AuraId>("Alice//stash"),
-					get_from_seed::<AuraId>("Bob//stash"),
-				],
 			)
 		},
 		vec![],
@@ -197,12 +204,13 @@ fn testnet_genesis(
 	initial_authorities: Vec<(
 		AccountId,
 		AccountId,
-		AuraId,
+		BabeId,
 		GrandpaId,
+		ImOnlineId,
+		AuthorityDiscoveryId,
 	)>,
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
-	initials: Vec<AuraId>,
 ) -> opportunity_runtime::GenesisConfig {
     opportunity_runtime::GenesisConfig {
         system: opportunity_runtime::SystemConfig {

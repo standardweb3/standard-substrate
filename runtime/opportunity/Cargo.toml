@@ -1,12 +1,13 @@
 [package]
-authors = ['Anonymous']
+authors = ['Digital Native Foundation']
+build = 'build.rs'
+description = 'Opportunity Runtime.'
 edition = '2018'
-homepage = 'https://substrate.dev'
-license = 'Unlicense'
+homepage = 'https://standard.tech'
+license = 'Apache-2.0'
 name = 'opportunity-runtime'
-repository = 'https://github.com/substrate-developer-hub/substrate-parachain-template'
+repository = 'https://github.com/digitalnativeinc/standard-substrate'
 version = '2.0.0'
-
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
@@ -14,7 +15,8 @@ targets = ["x86_64-unknown-linux-gnu"]
 [dependencies]
 codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = ["derive"] }
 static_assertions = "1.1.0"
-pallet-aura = { version = "3.0.0", default-features = false, git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
+pallet-mmr-primitives = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.6" }
+pallet-babe = { version = "3.0.0", default-features = false, git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 pallet-balances = { version = "3.0.0", default-features = false, git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6"}
 frame-support = { version = "3.0.0", default-features = false, git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6"}
 pallet-grandpa = { version = "3.1.0", default-features = false, git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6"}
@@ -26,7 +28,7 @@ pallet-transaction-payment = { version = "3.0.0", default-features = false, git 
 frame-executive = { version = "3.0.0", default-features = false, git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6"}
 sp-api = { version = "3.0.0", default-features = false, git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 sp-block-builder = { default-features = false, version = "3.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6"}
-sp-consensus-aura = { version = "0.9.0", default-features = false, git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6"}
+sp-consensus-babe = { version = "0.9.0", default-features = false, git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6"}
 sp-core = { version = "3.0.0", default-features = false, git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 sp-inherents = { default-features = false, version = "3.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6"}
 sp-offchain = { version = "3.0.0", default-features = false, git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
@@ -38,6 +40,8 @@ sp-version = { version = "3.0.0", default-features = false, git = "https://githu
 orml-currencies = { path = "../../orml/currencies", default-features = false }
 orml-tokens = { path = "../../orml/tokens", default-features = false }
 orml-traits = { path = "../../orml/traits", default-features = false }
+pallet-im-online = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.6"}
+sp-authority-discovery = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.6"}
 pallet-asset-registry = { path = "../../pallets/asset-registry", default-features= false }
 pallet-standard-oracle = { path = "../../pallets/oracle", default-features= false }
 pallet-standard-market = { path = '../../pallets/market', default_features = false }
@@ -61,6 +65,9 @@ pallet-babe = {default-features = false, version = '3.0.0', git = 'https://githu
 pallet-template = { path = "../../pallets/template", default-features = false }
 primitives = {default-features = false, path = "../../primitives"}
 sp-staking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6", default-features = false }
+pallet-indices = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.6"}
+pallet-authority-discovery = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.6"}
+pallet-offences = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.6"}
 pallet-session = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6", default-features = false, features = ["historical"] }
 pallet-staking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6", default-features = false }
 pallet-staking-reward-curve = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
@@ -137,17 +144,20 @@ std = [
 	"frame-support/std",
 	"frame-system-rpc-runtime-api/std",
 	"frame-system/std",
-	"pallet-aura/std",
+	"pallet-babe/std",
 	"pallet-balances/std",
 	"pallet-grandpa/std",
 	"pallet-randomness-collective-flip/std",
 	"pallet-sudo/std",
 	"pallet-timestamp/std",
+	'pallet-offences/std',
+	'pallet-indices/std',
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
+	'sp-authority-discovery/std',
 	"sp-api/std",
 	"sp-block-builder/std",
-	"sp-consensus-aura/std",
+	"sp-consensus-babe/std",
 	"sp-core/std",
 	"sp-inherents/std",
 	"sp-offchain/std",
@@ -158,12 +168,14 @@ std = [
 	"sp-version/std",
 >>>>>>> 7fd5c87 (Update Polkadot/Substrate/Cumulus dependencies to 0.9.6, chainspec change.)
 	'orml-tokens/std',
-    'orml-currencies/std',
-    'orml-traits/std',
+  'orml-currencies/std',
+  'orml-traits/std',
+	'pallet-authority-discovery/std',
+	'pallet-im-online/std',
 	'pallet-asset-registry/std',
-    'pallet-standard-oracle/std',
-    'pallet-standard-market/std',
-    'pallet-standard-vault/std',
+  'pallet-standard-oracle/std',
+  'pallet-standard-market/std',
+  'pallet-standard-vault/std',
 	'pallet-template/std',
 ]
 runtime-benchmarks = [
