@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        release: [opportunity-standalone]
+        release: [opportunity-standalone, standard-collator]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -38,7 +38,7 @@ jobs:
 
       - name: Build Changelog
         id: build-changelog
-        uses: mikepenz/release-changelog-builder-action@v1.8.2
+        uses: mikepenz/release-changelog-builder-action@v2.1.0
         with:
           outputFile: "./release-output.md"
           configuration: ".github/release_notes_config.json"
@@ -53,16 +53,15 @@ jobs:
       - uses: ncipollo/release-action@v1.8.6
         id: release-step
         with:
-          artifacts: "SHA256CHECKSUMS, standard-opportunity-*/*"
+          artifacts: "SHA256CHECKSUMS, standard-opportunity-*/*, standard-collatory-*/*"
           allowUpdates: true
-          # body: ${{ steps.build-changelog.outputs.changelog }}
-          bodyFile: "./release-output.md"
+          body: ${{ steps.build-changelog.outputs.changelog }}
           token: ${{ secrets.BOT_GITHUB_TOKEN }}
 
       - name: Public Discord notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_USERNAME: standard-bot
+          DISCORD_USERNAME: "Standard Tech Bot"
           DISCORD_AVATAR: https://avatars.githubusercontent.com/u/85697462?v=4
         uses: Ilshidur/action-discord@0.3.2
         with:
@@ -70,14 +69,14 @@ jobs:
             "New release in ${{ github.repository }} - ${{ env.RELEASE_VERSION }}.
             Details: ${{ steps.release-step.outputs.html_url }}"
 
-      - name: Public Telegram notification
-        uses: appleboy/telegram-action@0.1.1
-        with:
-          to: ${{ secrets.TELEGRAM_TOKEN }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            "New release in ${{ github.repository }} - ${{ env.RELEASE_VERSION }}.
-            Details: ${{ steps.release-step.outputs.html_url }}"
+      # - name: Public Telegram notification
+      #   uses: appleboy/telegram-action@0.1.1
+      #   with:
+      #     to: ${{ secrets.TELEGRAM_TOKEN }}
+      #     token: ${{ secrets.TELEGRAM_TOKEN }}
+      #     message: |
+      #       "New release in ${{ github.repository }} - ${{ env.RELEASE_VERSION }}.
+      #       Details: ${{ steps.release-step.outputs.html_url }}"
 
       - name: Internal Slack Notification
         uses: bryannice/gitactions-slack-notification@2.0.0

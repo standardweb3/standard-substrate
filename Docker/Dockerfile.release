@@ -2,14 +2,18 @@ ARG RUNTIME_IMAGE=ubuntu:focal
 
 FROM $RUNTIME_IMAGE as runtime
 
+ARG BINARY
+ENV BINARY=$BINARY
 LABEL maintainer="Standard Tech <tech@standard.tech>"
-LABEL description="Standard Tech Opportunity Node"
+LABEL description="Standard Tech $BINARY Node"
 
-COPY ./opportunity-standalone /usr/local/bin
-COPY ./Docker/entrypoint.sh /
+RUN echo "#!/bin/bash \n set -e \n exec $BINARY" > ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
+
+COPY ./$BINARY /usr/local/bin
 
 EXPOSE 30333 9933 9944
 VOLUME ["/data"]
 
-ENTRYPOINT ["/entrypoint.sh", "/usr/local/bin/opportunity-standalone"]
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["--help"]
