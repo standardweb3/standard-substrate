@@ -13,6 +13,7 @@ jobs:
     strategy:
       matrix:
         platform: [linux/amd64]
+        release: [opportunity-standalone]
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -25,19 +26,19 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R
 
-      - name: Artifact move - ${{ matrix.platform }}
+      - name: Artifact move - ${{ matrix.platform }} - ${{ matrix.release }}
         if: ${{ matrix.platform == 'linux/amd64' }}
         run: |
-          mv standard-opportunity-linux-x86_64/opportunity-standalone-linux-x86_64 ./opportunity-standalone
+          mv ${{ matrix.release }}-linux-x86_64/${{ matrix.release }}-linux-x86_64 ./${{ matrix.release }}
 
-      - name: Artifact move - ${{ matrix.platform }}
+      - name: Artifact move - ${{ matrix.platform }} - ${{ matrix.release }}
         if: ${{ matrix.platform == 'darwin/amd64' }}
         run: |
-          mv standard-opportunity-darwin-x86_64/opportunity-standalone-darwin-x86_64 ./opportunity-standalone
+          mv ${{ matrix.release }}-darwin-x86_64/${{ matrix.release }}-darwin-x86_64 ./${{ matrix.release }}
 
-      - name: Make executable
+      - name: Make executable - ${{ matrix.platform }} - ${{ matrix.release }}
         run: |
-          chmod +x ./opportunity-standalone
+          chmod +x ./${{ matrix.release }}
 
       - name: Set up Docker Buildx
         id: buildx
@@ -49,27 +50,29 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push Docker images - ${{ matrix.platform }}
-        id: docker_build
-        uses: docker/build-push-action@v2.5.0
+      - name: Build and push Docker images - ${{ matrix.platform }} - ${{ matrix.release }}
+        id: docker_build-${{ matrix.release }}
+        uses: docker/build-push-action@v2.6.1
         with:
           context: .
           builder: ${{ steps.buildx.outputs.name }}
           file: ./Docker/Dockerfile.release
           platforms: ${{ matrix.platform }}
+          # build-args: BINARY=${{ matrix.release }}
           tags: |
-            standardprotocol/standard-opportunity:${{ github.event.release.tag_name }}
-            standardprotocol/standard-opportunity:latest
+            standardprotocol/${{ matrix.release }}:${{ github.event.release.tag_name }}
+            standardprotocol/${{ matrix.release }}:latest
           push: true
 
-      - name: Run Snyk to check for vulnerabilities
+      - name: Run Snyk to check for vulnerabilities - ${{ matrix.release }}
         uses: snyk/actions/docker@master
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: standardprotocol/standard-opportunity:latest
+          image: standardprotocol/${{ matrix.release }}:latest
           args: --file=./Docker/Dockerfile.release
 
       - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+        run: |
+          echo ${{ steps.docker_build.outputs.digest }}

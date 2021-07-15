@@ -26,6 +26,10 @@ build:
 build-opportunity-standalone:
 	cargo build --release --bin opportunity-standalone
 
+.PHONY: build-standard-collator
+build-standard-collator:
+	cargo build --release --bin standard-collator
+
 # Only test business logics without applying standalone consensus
 .PHONY: localrun
 localrun:

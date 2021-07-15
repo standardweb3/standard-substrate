@@ -14,6 +14,9 @@ on:
 jobs:
   on-success:
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        release: [opportunity-standalone, standard-collator]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -26,31 +29,54 @@ jobs:
           workflow: binary-build.yml
 
       - name: Display structure of downloaded files
-        run: ls -R
+        run: |
+          ls -R
+
+      - name: Create checksums file
+        run: |
+          find . -type f -name "${{ matrix.release }}-*" -exec sha256sum {} \; >> SHA256CHECKSUMS
 
       - name: Build Changelog
         id: build-changelog
-        uses: mikepenz/release-changelog-builder-action@v1.8.3
+        uses: mikepenz/release-changelog-builder-action@v2.1.0
         with:
-          outputFile: "./release-output.md"
+          configuration: ".github/release_notes_config.json"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set release tag
         run: |
           echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-          cat ./release-output.md
 
       - uses: ncipollo/release-action@v1.8.6
         id: release-step
         with:
-          artifacts: "standard-opportunity-*/*"
+          artifacts: "SHA256CHECKSUMS, standard-opportunity-*/*, standard-collator-*/*"
           allowUpdates: true
-          # body: ${{ steps.build-changelog.outputs.changelog }}
-          bodyFile: "./release-output.md"
+          body: ${{ steps.build-changelog.outputs.changelog }}
           token: ${{ secrets.BOT_GITHUB_TOKEN }}
 
-      - name: Slack Notification
+      - name: Public Discord notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_USERNAME: "Standard Tech Bot"
+          DISCORD_AVATAR: https://avatars.githubusercontent.com/u/85697462?v=4
+        uses: Ilshidur/action-discord@0.3.2
+        with:
+          args: |
+            "New release in ${{ github.repository }} - ${{ env.RELEASE_VERSION }}.
+            Details: ${{ steps.release-step.outputs.html_url }}"
+
+      # - name: Public Telegram notification
+      #   uses: appleboy/telegram-action@0.1.1
+      #   with:
+      #     to: ${{ secrets.TELEGRAM_TOKEN }}
+      #     token: ${{ secrets.TELEGRAM_TOKEN }}
+      #     message: |
+      #       "New release in ${{ github.repository }} - ${{ env.RELEASE_VERSION }}.
+      #       Details: ${{ steps.release-step.outputs.html_url }}"
+
+      - name: Internal Slack Notification
         uses: bryannice/gitactions-slack-notification@2.0.0
         env:
           SLACK_INCOMING_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

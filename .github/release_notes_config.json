@@ -1,0 +1,21 @@
+{
+  "categories": [
+    {
+      "title": "## 🚀 Features",
+      "labels": ["feature"]
+    },
+    {
+      "title": "## 🐛 Fixes",
+      "labels": ["bugfix"]
+    },
+    {
+      "title": "## 🧪 Tests",
+      "labels": ["test"]
+    }
+  ],
+  "ignore_labels": ["ignore"],
+  "sort": "ASC",
+  "template": "${{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n${{UNCATEGORIZED}}\n</details>",
+  "pr_template": "- ${{TITLE}} [#${{NUMBER}}](${{URL}})",
+  "empty_template": "- None"
+}
