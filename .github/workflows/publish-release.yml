@@ -40,7 +40,6 @@ jobs:
         id: build-changelog
         uses: mikepenz/release-changelog-builder-action@v2.1.0
         with:
-          outputFile: "./release-output.md"
           configuration: ".github/release_notes_config.json"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -48,12 +47,11 @@ jobs:
       - name: Set release tag
         run: |
           echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-          cat ./release-output.md
 
       - uses: ncipollo/release-action@v1.8.6
         id: release-step
         with:
-          artifacts: "SHA256CHECKSUMS, standard-opportunity-*/*, standard-collatory-*/*"
+          artifacts: "SHA256CHECKSUMS, standard-opportunity-*/*, standard-collator-*/*"
           allowUpdates: true
           body: ${{ steps.build-changelog.outputs.changelog }}
           token: ${{ secrets.BOT_GITHUB_TOKEN }}
