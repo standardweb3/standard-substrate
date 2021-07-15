@@ -41,6 +41,7 @@ pallet-indices = {default-features = false, version = '3.0.0', git = 'https://gi
 # identity pallet
 pallet-identity = { version = "3.0.0", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "rococo-v1"}
 pallet-collective = { version = "3.0.0", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "rococo-v1"}
+pallet-membership = { version = "3.0.0", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "rococo-v1"}
 pallet-elections-phragmen = { version = "3.0.0", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "rococo-v1"}
 # treasury pallet
 pallet-tips = { version = "3.0.0", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "rococo-v1"}

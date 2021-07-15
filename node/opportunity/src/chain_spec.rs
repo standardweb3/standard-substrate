@@ -10,9 +10,10 @@ use sp_consensus_babe::AuthorityId as BabeId;
 use sp_core::{sr25519, Pair, Public};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
+use hex_literal::hex;
 
 use opportunity_runtime::{
-    AssetRegistryConfig, BabeConfig, GrandpaConfig, ImOnlineConfig, OracleConfig, Perbill,
+    AssetRegistryConfig, BabeConfig, GrandpaConfig, ImOnlineConfig, OracleConfig, Perbill, DemocracyConfig, TechnicalCommitteeConfig,
     SessionConfig, StakerStatus, StakingConfig, TokensConfig, CouncilConfig, ElectionsConfig, TreasuryConfig
 };
 
@@ -297,8 +298,17 @@ fn testnet_genesis(
         pallet_standard_oracle: OracleConfig {
             oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec(),
         },
+        pallet_democracy: DemocracyConfig::default(),
         pallet_elections_phragmen: ElectionsConfig::default(),
         pallet_collective_Instance1: CouncilConfig::default(),
+        pallet_collective_Instance2: TechnicalCommitteeConfig {
+			members: endowed_accounts.iter()
+						.take((endowed_accounts.len() + 1) / 2)
+						.cloned()
+						.collect(),
+			phantom: Default::default(),
+		},
+        pallet_membership_Instance1: Default::default(),
         pallet_treasury: Default::default()
     }
 }
