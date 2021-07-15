@@ -896,7 +896,7 @@ construct_runtime!(
         // Upgrade pallets
         Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
         // Governance pallets
-        Democracy: pallet_democracy::{Pallet, Call, Storage, Config<T>, Event<T>},
+        Democracy: pallet_democracy::{Pallet, Call, Storage, Config, Event<T>},
         Council: pallet_collective::<Instance1>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
         TechnicalMembership: pallet_membership::<Instance1>::{Pallet, Call, Storage, Event<T>, Config<T>},
         TechnicalCommittee: pallet_collective::<Instance2>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
@@ -950,7 +950,7 @@ pub type Executive = frame_executive::Executive<
     Block,
     frame_system::ChainContext<Runtime>,
     Runtime,
-    AllModules,
+    AllPallets,
 >;
 
 impl_runtime_apis! {
