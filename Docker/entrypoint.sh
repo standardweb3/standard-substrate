@@ -2,8 +2,8 @@
 set -e
 
 echo "print dependencies"
-ldd "$@"
+ldd /usr/local/bin/opportunity-standalone
 echo "get binary version"
-"$@" --version
+/usr/local/bin/opportunity-standalone --version
 echo "startup node"
 exec "$@"

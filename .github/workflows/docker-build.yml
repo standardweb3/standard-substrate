@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         platform: [linux/amd64]
-        release: [opportunity-standalone, standard-collator]
+        release: [opportunity-standalone]
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -58,7 +58,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           file: ./Docker/Dockerfile.release
           platforms: ${{ matrix.platform }}
-          build-args: BINARY=${{ matrix.release }}
+          # build-args: BINARY=${{ matrix.release }}
           tags: |
             standardprotocol/${{ matrix.release }}:${{ github.event.release.tag_name }}
             standardprotocol/${{ matrix.release }}:latest
