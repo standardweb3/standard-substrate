@@ -35,6 +35,7 @@ pallet-standard-market = { path = '../../pallets/market', default_features = fal
 pallet-standard-vault = { path = '../../pallets/vault', default_features = false }
 pallet-grandpa = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = "rococo-v1"}
 pallet-scheduler = { default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = "rococo-v1" }
+pallet-democracy = { default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = "rococo-v1" }
 sp-consensus-babe = {default-features = false, version = '0.9.0', git = 'https://github.com/paritytech/substrate.git', branch = "rococo-v1"}
 pallet-indices = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = "rococo-v1"}
 # identity pallet
@@ -295,6 +296,7 @@ std = [
     'pallet-grandpa/std',
 	'pallet-session/std',
 	'pallet-scheduler/std',
+	'pallet-democracy/std',
 	'pallet-im-online/std',
     'frame-election-provider-support/std',
 	'parachain-info/std',

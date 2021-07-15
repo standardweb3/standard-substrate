@@ -494,13 +494,90 @@ parameter_types! {
         BondingDuration::get() as u64 * SessionsPerEra::get() as u64 * EpochDuration::get();
 }
 
-/// Define the types required by the Scheduler pallet.
+parameter_types! {
+	pub const LaunchPeriod: BlockNumber = 28 * DAYS;
+	pub const VotingPeriod: BlockNumber = 28 * DAYS;
+	pub const FastTrackVotingPeriod: BlockNumber = 3 * HOURS;
+	pub const MinimumDeposit: Balance = 100 * DOLLARS;
+	pub const EnactmentPeriod: BlockNumber = 28 * DAYS;
+	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
+	// One cent: $10,000 / MB
+	pub const PreimageByteDeposit: Balance = 1 * CENTS;
+	pub const InstantAllowed: bool = true;
+	pub const MaxVotes: u32 = 100;
+	pub const MaxProposals: u32 = 100;
+}
+
+impl pallet_democracy::Config for Runtime {
+	type Proposal = Call;
+	type Event = Event;
+	type Currency = Balances;
+	type EnactmentPeriod = EnactmentPeriod;
+	type LaunchPeriod = LaunchPeriod;
+	type VotingPeriod = VotingPeriod;
+	type MinimumDeposit = MinimumDeposit;
+	// A straight majority of the council can decide what their next motion is.
+	type ExternalOrigin = frame_system::EnsureOneOf<AccountId,
+		pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilCollective>,
+		frame_system::EnsureRoot<AccountId>,
+	>;
+	// A 60% super-majority can have the next scheduled referendum be a straight majority-carries vote.
+	type ExternalMajorityOrigin = frame_system::EnsureOneOf<AccountId,
+		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, CouncilCollective>,
+		frame_system::EnsureRoot<AccountId>,
+	>;
+	// A unanimous council can have the next scheduled referendum be a straight default-carries
+	// (NTB) vote.
+	type ExternalDefaultOrigin = frame_system::EnsureOneOf<AccountId,
+		pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilCollective>,
+		frame_system::EnsureRoot<AccountId>,
+	>;
+	// Two thirds of the technical committee can have an `ExternalMajority/ExternalDefault` vote
+	// be tabled immediately and with a shorter voting/enactment period.
+	type FastTrackOrigin = frame_system::EnsureOneOf<AccountId,
+		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechnicalCollective>,
+		frame_system::EnsureRoot<AccountId>,
+	>;
+	type InstantOrigin = frame_system::EnsureOneOf<AccountId,
+		pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, TechnicalCollective>,
+		frame_system::EnsureRoot<AccountId>,
+	>;
+	type InstantAllowed = InstantAllowed;
+	type FastTrackVotingPeriod = FastTrackVotingPeriod;
+	// To cancel a proposal which has been passed, 2/3 of the council must agree to it.
+	type CancellationOrigin = EnsureOneOf<AccountId,
+		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, CouncilCollective>,
+		EnsureRoot<AccountId>,
+	>;
+    // Origin from which proposals may be blacklisted.
+    type BlacklistOrigin = EnsureRoot<AccountId>;
+	// To cancel a proposal before it has been passed, the technical committee must be unanimous or
+	// Root must agree.
+	type CancelProposalOrigin = EnsureOneOf<AccountId,
+		pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, TechnicalCollective>,
+		EnsureRoot<AccountId>,
+	>;
+	// Any single technical committee member may veto a coming council proposal, however they can
+	// only do it once and it lasts only for the cooloff period.
+	type VetoOrigin = pallet_collective::EnsureMember<AccountId, TechnicalCollective>;
+	type CooloffPeriod = CooloffPeriod;
+	type PreimageByteDeposit = PreimageByteDeposit;
+	type OperationalPreimageOrigin = pallet_collective::EnsureMember<AccountId, CouncilCollective>;
+	type Slash = Treasury;
+	type Scheduler = Scheduler;
+	type PalletsOrigin = OriginCaller;
+	type MaxVotes = MaxVotes;
+	type WeightInfo = weights::pallet_democracy::WeightInfo<Runtime>;
+	type MaxProposals = MaxProposals;
+}
+
+// Define the types required by the Scheduler pallet.
 parameter_types! {
   pub MaximumSchedulerWeight: Weight = 10_000_000;
   pub const MaxScheduledPerBlock: u32 = 50;
 }
 
-/// Configure the runtime's implementation of the Scheduler pallet.
+// Configure the runtime's implementation of the Scheduler pallet.
 impl pallet_scheduler::Config for Runtime {
   type Event = Event;
   type Origin = Origin;
@@ -789,16 +866,17 @@ construct_runtime!(
         Historical: pallet_session_historical::{Pallet},
         // Upgrade pallets
         Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
-        // Identity pallets
-        Identity: pallet_identity::{Pallet, Call, Storage, Event<T>},
+        // Governance pallets
+        Democracy: pallet_democracy::{Pallet, Call, Storage, Config<T>, Event<T>},
         Council: pallet_collective::<Instance1>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
         Elections: pallet_elections_phragmen::{Pallet, Call, Storage, Event<T>, Config<T>},
+        // Identity pallets
+        Identity: pallet_identity::{Pallet, Call, Storage, Event<T>},
         // Treasury pallets
         Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>},
         Bounties: pallet_bounties::{Pallet, Call, Storage, Event<T>},
 		Tips: pallet_tips::{Pallet, Call, Storage, Event<T>},
         // Include the custom logic from the template pallet in the runtime.
-
         TemplateModule: pallet_template::{Pallet, Call, Storage, Event<T>},
         Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
         Currencies: orml_currencies::{Pallet, Storage, Call, Event<T>},
