@@ -129,9 +129,9 @@ pub fn wasm_binary_unwrap() -> &'static [u8] {
 
 pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: create_runtime_str!("opportunity"),
-    impl_name: create_runtime_str!("opportunity0"),
+    impl_name: create_runtime_str!("opportunity10"),
     authoring_version: 1,
-    spec_version: 0,
+    spec_version: 10,
     impl_version: 1,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 1,
@@ -494,6 +494,24 @@ parameter_types! {
         BondingDuration::get() as u64 * SessionsPerEra::get() as u64 * EpochDuration::get();
 }
 
+/// Define the types required by the Scheduler pallet.
+parameter_types! {
+  pub MaximumSchedulerWeight: Weight = 10_000_000;
+  pub const MaxScheduledPerBlock: u32 = 50;
+}
+
+/// Configure the runtime's implementation of the Scheduler pallet.
+impl pallet_scheduler::Config for Runtime {
+  type Event = Event;
+  type Origin = Origin;
+  type PalletsOrigin = OriginCaller;
+  type Call = Call;
+  type MaximumWeight = MaximumSchedulerWeight;
+  type ScheduleOrigin = frame_system::EnsureRoot<AccountId>;
+  type MaxScheduledPerBlock = MaxScheduledPerBlock;
+  type WeightInfo = ();
+}
+
 impl pallet_babe::Config for Runtime {
     type EpochDuration = EpochDuration;
     type ExpectedBlockTime = ExpectedBlockTime;
@@ -769,6 +787,8 @@ construct_runtime!(
         Indices: pallet_indices::{Pallet, Call, Storage, Event<T>},
         Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>},
         Historical: pallet_session_historical::{Pallet},
+        // Upgrade pallets
+        Scheduler: pallet_scheduler::{Module, Call, Storage, Event<T>},
         // Identity pallets
         Identity: pallet_identity::{Pallet, Call, Storage, Event<T>},
         Council: pallet_collective::<Instance1>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
