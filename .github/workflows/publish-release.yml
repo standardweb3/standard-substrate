@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        release: [opportunity-standalone, standard-collator]
+        release: [opportunity-standalone]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
