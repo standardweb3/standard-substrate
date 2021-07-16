@@ -51,7 +51,7 @@ jobs:
       - uses: ncipollo/release-action@v1.8.6
         id: release-step
         with:
-          artifacts: "SHA256CHECKSUMS, standard-opportunity-*/*, standard-collator-*/*"
+          artifacts: "SHA256CHECKSUMS, opportunity-standalone-*/*, standard-collator-*/*"
           allowUpdates: true
           body: ${{ steps.build-changelog.outputs.changelog }}
           token: ${{ secrets.BOT_GITHUB_TOKEN }}
