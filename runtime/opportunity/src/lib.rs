@@ -666,7 +666,7 @@ pallet_staking_reward_curve::build! {
 }
 
 parameter_types! {
-    pub const SessionsPerEra: sp_staking::SessionIndex = 6;
+    pub const SessionsPerEra: sp_staking::SessionIndex = 6 * 24;
     pub const BondingDuration: pallet_staking::EraIndex = 24 * 28;
     pub const RewardCurve: &'static PiecewiseLinear<'static> = &REWARD_CURVE;
     pub const SlashDeferDuration: pallet_staking::EraIndex = 24 * 7; // 1/4 the bonding duration.
@@ -825,6 +825,7 @@ impl pallet_asset_registry::Config for Runtime {
 
 impl pallet_standard_oracle::Config for Runtime {
     type Event = Event;
+    type WeightInfo = ();
 }
 
 parameter_types! {

@@ -236,7 +236,8 @@ fn testnet_genesis(
 			next_asset_id: 5,
 		},
 		pallet_standard_oracle: OracleConfig{
-			oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec()
+			oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec(),
+			provider_count: 5,
         },
 	}
 }

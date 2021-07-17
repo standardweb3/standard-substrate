@@ -297,6 +297,7 @@ fn testnet_genesis(
         },
         pallet_standard_oracle: OracleConfig {
             oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec(),
+            provider_count: 5
         },
         pallet_democracy: DemocracyConfig::default(),
         pallet_elections_phragmen: ElectionsConfig::default(),
