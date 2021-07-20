@@ -168,7 +168,7 @@ decl_event! {
 		OperatorUnregistered(AccountId),
 
 		// Price reported by an oracle provider
-		PriceSubmitted(SlotIndex, AccountId, i128),
+		PriceSubmitted(SlotIndex, AccountId, u128),
 	}
 }
 
@@ -234,11 +234,9 @@ decl_storage! {
 impl<T: Config> Module<T> {
 	pub fn price(id: AssetId) -> sp_std::result::Result<Balance, DispatchError> {
 		match Self::asset_price(id) {
-			Some(mut reports) => {
+			Some(reports) => {
 				// get median value
-				reports.sort();
-				let mid = reports.len() / 2;
-				let median = reports[mid];
+				let median = Self::get_median(reports);
 				return Ok(median);
 			}
 			None => {
@@ -247,15 +245,28 @@ impl<T: Config> Module<T> {
 		}
 	}
 
-	fn determine_outlier(mut batch: Vec<Balance>, value: Balance) -> bool {
+	pub fn determine_outlier(mut batch: Vec<Balance>, value: Balance) -> bool {
+		batch.retain(|&i|i != 0);
 		batch.sort();
-		batch.reverse();
 		let len = batch.len();
 		let mid = len / 2;
-		let quartile = len - mid - 1; // -1 since array starts with 0
+		let quartile = mid/2;
 		let q3 = mid + quartile;
-		let q1 = mid + 1 as usize - quartile;
+		let q1 = mid - quartile;
 		let iqr = 3 * (batch[q3] - batch[q1]) / 2;
 		return batch[q3] + iqr < value || batch[q1] - iqr > value;
+	}
+
+	pub fn get_median(mut batch: Vec<Balance>) -> Balance {
+		batch.retain(|&i|i != 0);
+		batch.sort();
+		let mid = batch.len() / 2;
+		batch[mid]
+	}
+
+	pub fn test(mut batch: Vec<Balance>) -> Vec<u128> {
+		batch.retain(|&i|i != 0);
+		batch.sort();
+		batch
 	}
 }

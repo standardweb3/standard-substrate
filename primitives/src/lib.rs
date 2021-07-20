@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 /// Balance for and account
-pub type Balance = i128;
+pub type Balance = u128;
 
 /// Index for identifying an asset
 pub type AssetId = u32;

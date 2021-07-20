@@ -129,9 +129,9 @@ pub fn wasm_binary_unwrap() -> &'static [u8] {
 
 pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: create_runtime_str!("opportunity"),
-    impl_name: create_runtime_str!("opportunity10"),
+    impl_name: create_runtime_str!("opportunity11"),
     authoring_version: 1,
-    spec_version: 10,
+    spec_version: 11,
     impl_version: 1,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 1,
