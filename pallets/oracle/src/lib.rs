@@ -31,7 +31,7 @@ decl_module! {
 		fn deposit_event() = default;
 
 
-        // REVIEW: Use `///` instead of `//` to make these doc comments that are part of the crate documentation.
+		// REVIEW: Use `///` instead of `//` to make these doc comments that are part of the crate documentation.
 		// Register a new Operator.
 		// Fails with `OperatorAlreadyRegistered` if this Operator (identified by `origin`) has already been registered.
 		#[weight = 10_000]
@@ -161,6 +161,5 @@ impl<T: Config> Module<T> {
 				return Err(DispatchError::from(crate::Error::<T>::PriceDoesNotExist).into());
 			}
 		}
-		
-    }
+	}
 }
