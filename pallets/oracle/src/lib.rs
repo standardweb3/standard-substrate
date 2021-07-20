@@ -246,25 +246,23 @@ impl<T: Config> Module<T> {
 	}
 
 	pub fn determine_outlier(mut batch: Vec<Balance>, value: Balance) -> bool {
-		batch.retain(|&i|i != 0);
-		batch.sort();
-		let len = batch.len();
+		let processed = Self::preprocess(batch);
+		let len = processed.len();
 		let mid = len / 2;
 		let quartile = mid/2;
 		let q3 = mid + quartile;
 		let q1 = mid - quartile;
-		let iqr = 3 * (batch[q3] - batch[q1]) / 2;
-		return batch[q3] + iqr < value || batch[q1] - iqr > value;
+		let iqr = 3 * (processed[q3] - processed[q1]) / 2;
+		return processed[q3] + iqr < value || processed[q1] - iqr > value;
 	}
 
 	pub fn get_median(mut batch: Vec<Balance>) -> Balance {
-		batch.retain(|&i|i != 0);
-		batch.sort();
-		let mid = batch.len() / 2;
-		batch[mid]
+		let processed = Self::preprocess(batch);
+		let mid = processed.len() / 2;
+		processed[mid]
 	}
 
-	pub fn test(mut batch: Vec<Balance>) -> Vec<u128> {
+	pub fn preprocess(mut batch: Vec<Balance>) -> Vec<u128> {
 		batch.retain(|&i|i != 0);
 		batch.sort();
 		batch

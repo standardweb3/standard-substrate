@@ -20,11 +20,7 @@ fn add_oracle_provider_works() {
 fn oracle_report_works() {
 	new_test_ext().execute_with(|| {
 		let provider = 1u64;
-		// Adding operator requires root.
-		assert_noop!(
-			Oracle::register_operator(Origin::signed(11), 1, provider),
-			BadOrigin
-		);
+
 		assert_ok!(Oracle::register_operator(Origin::root(), 1, provider));
 
 		assert_ok!(Oracle::report(Origin::signed(provider.into()), 1, 1, 2));
@@ -42,11 +38,7 @@ fn oracle_slash_works() {
 		let provider_4 = 4u64;
 		let provider_5 = 5u64;
 		let slasher = 6u64;
-		// Adding operator requires root.
-		assert_noop!(
-			Oracle::register_operator(Origin::signed(11), 1, provider_1),
-			BadOrigin
-		);
+
 		// setup batch of oracle providers
 		assert_ok!(Oracle::register_operator(Origin::root(), 0, provider_1));
 		assert_ok!(Oracle::register_operator(Origin::root(), 1, provider_2));
@@ -65,9 +57,7 @@ fn oracle_slash_works() {
 		// and one of providers submit an manipulated value which goes out of acceptable error range
 		assert_ok!(Oracle::report(Origin::signed(provider_1.into()), 0, 1, 4));
 		assert_eq!(Oracle::asset_price(1), Some(vec! {4,2,1,2,1}));
-		// detect outlier and slash the provider
-		let dd = Oracle::asset_price(1).unwrap();
-		assert_eq!(Oracle::test(dd), vec![1,1,2,2,4]);
+		// should detect outlier and slash the provider
 		assert_ok!(Oracle::slash(Origin::signed(slasher), 0, 1));
 		// slot for oracle submission is now empty
 		assert_eq!(Oracle::provider_at(0), 0);
@@ -82,7 +72,6 @@ fn oracle_excludes_zeros_and_return_median() {
 		let provider_3 = 3u64;
 		let provider_4 = 4u64;
 		let provider_5 = 5u64;
-		let slasher = 6u64;
 		// Adding operator requires root.
 		assert_noop!(
 			Oracle::register_operator(Origin::signed(11), 1, provider_1),
@@ -95,7 +84,7 @@ fn oracle_excludes_zeros_and_return_median() {
 		assert_ok!(Oracle::register_operator(Origin::root(), 3, provider_4));
 		assert_ok!(Oracle::register_operator(Origin::root(), 4, provider_5));
 
-		// setup batch of oracle values [0,0,1,2,3]
+		// setup batch of oracle values [0,0,1,2,3,4]
 		assert_ok!(Oracle::report(Origin::signed(provider_1.into()), 0, 1, 0));
 		assert_ok!(Oracle::report(Origin::signed(provider_2.into()), 1, 1, 0));
 		assert_ok!(Oracle::report(Origin::signed(provider_3.into()), 2, 1, 1));
@@ -105,6 +94,43 @@ fn oracle_excludes_zeros_and_return_median() {
 
 		// and the median should be 2
 		assert_eq!(Oracle::get_median(Oracle::asset_price(1).unwrap()), 2);
+
+	})
+}
+
+#[test]
+fn oracle_excludes_zeros_and_return_median_even() {
+	new_test_ext().execute_with(|| {
+		let provider_1 = 1u64;
+		let provider_2 = 2u64;
+		let provider_3 = 3u64;
+		let provider_4 = 4u64;
+		let provider_5 = 5u64;
+		let provider_6 = 6u64;
+		// Setting provider count requires root.
+		assert_ok!(
+			Oracle::set_validator_count(Origin::root(), 6)
+		);
+		// setup batch of oracle providers
+		assert_ok!(Oracle::register_operator(Origin::root(), 0, provider_1));
+		assert_ok!(Oracle::register_operator(Origin::root(), 1, provider_2));
+		assert_ok!(Oracle::register_operator(Origin::root(), 2, provider_3));
+		assert_ok!(Oracle::register_operator(Origin::root(), 3, provider_4));
+		assert_ok!(Oracle::register_operator(Origin::root(), 4, provider_5));
+		assert_ok!(Oracle::register_operator(Origin::root(), 5, provider_6));
+
+
+		// setup batch of oracle values [0,0,1,2,3,4]
+		assert_ok!(Oracle::report(Origin::signed(provider_1.into()), 0, 1, 0));
+		assert_ok!(Oracle::report(Origin::signed(provider_2.into()), 1, 1, 0));
+		assert_ok!(Oracle::report(Origin::signed(provider_3.into()), 2, 1, 1));
+		assert_ok!(Oracle::report(Origin::signed(provider_4.into()), 3, 1, 2));
+		assert_ok!(Oracle::report(Origin::signed(provider_5.into()), 4, 1, 3));
+		assert_ok!(Oracle::report(Origin::signed(provider_6.into()), 5, 1, 4));		
+		assert_eq!(Oracle::asset_price(1), Some(vec! {0,0,1,2,3,4}));
+
+		// and the median should be 3
+		assert_eq!(Oracle::get_median(Oracle::asset_price(1).unwrap()), 3);
 
 	})
 }
