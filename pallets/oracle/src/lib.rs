@@ -46,7 +46,7 @@ decl_module! {
 		// Unregisters an existing Operator
 		// TODO check weight
 		#[weight = 10_000]
-		pub fn unregister_operator(origin) -> DispatchResult {
+		pub fn deregister_operator(origin) -> DispatchResult {
 			let who : <T as frame_system::Config>::AccountId = ensure_signed(origin)?;
 
 			if Providers::<T>::take(who.clone()) {
@@ -245,7 +245,7 @@ impl<T: Config> Module<T> {
 		}
 	}
 
-	pub fn determine_outlier(mut batch: Vec<Balance>, value: Balance) -> bool {
+	pub fn determine_outlier(batch: Vec<Balance>, value: Balance) -> bool {
 		let processed = Self::preprocess(batch);
 		let len = processed.len();
 		let mid = len / 2;
@@ -256,7 +256,7 @@ impl<T: Config> Module<T> {
 		return processed[q3] + iqr < value || processed[q1] - iqr > value;
 	}
 
-	pub fn get_median(mut batch: Vec<Balance>) -> Balance {
+	pub fn get_median(batch: Vec<Balance>) -> Balance {
 		let processed = Self::preprocess(batch);
 		let mid = processed.len() / 2;
 		processed[mid]
