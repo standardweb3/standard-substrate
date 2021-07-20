@@ -13,8 +13,8 @@ mod tests;
 
 /// The module configuration trait.
 pub trait Config: frame_system::Config {
-    /// The overarching event type.
-    type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
+	/// The overarching event type.
+	type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
 }
 
 // Uniquely identify a request's specification understood by an Operator
@@ -25,10 +25,10 @@ pub type RequestIdentifier = u64;
 pub type DataVersion = u64;
 
 decl_module! {
-    pub struct Module<T: Config> for enum Call where origin: T::Origin {
-        type Error = Error<T>;
+	pub struct Module<T: Config> for enum Call where origin: T::Origin {
+		type Error = Error<T>;
 
-        fn deposit_event() = default;
+		fn deposit_event() = default;
 
 
         // REVIEW: Use `///` instead of `//` to make these doc comments that are part of the crate documentation.
@@ -40,26 +40,26 @@ decl_module! {
 
 			//ensure!(!<Operators<T>>::get(&who), Error::<T>::OperatorAlreadyRegistered);
 
-            Operators::<T>::insert(&who, true);
+			Operators::<T>::insert(&who, true);
 
-            Self::deposit_event(RawEvent::OperatorRegistered(who));
+			Self::deposit_event(RawEvent::OperatorRegistered(who));
 
-            Ok(())
-        }
+			Ok(())
+		}
 
-        // Unregisters an existing Operator
-        // TODO check weight
-        #[weight = 10_000]
-        pub fn unregister_operator(origin) -> DispatchResult {
-            let who : <T as frame_system::Config>::AccountId = ensure_signed(origin)?;
+		// Unregisters an existing Operator
+		// TODO check weight
+		#[weight = 10_000]
+		pub fn unregister_operator(origin) -> DispatchResult {
+			let who : <T as frame_system::Config>::AccountId = ensure_signed(origin)?;
 
-            if Operators::<T>::take(who.clone()) {
-                Self::deposit_event(RawEvent::OperatorUnregistered(who));
-                Ok(())
-            } else {
-                Err(Error::<T>::UnknownOperator.into())
-            }
-        }
+			if Operators::<T>::take(who.clone()) {
+				Self::deposit_event(RawEvent::OperatorUnregistered(who));
+				Ok(())
+			} else {
+				Err(Error::<T>::UnknownOperator.into())
+			}
+		}
 
         #[weight = 0]
         fn report(origin, _id: AssetId, _price: Balance) {
@@ -77,52 +77,52 @@ decl_module! {
 			Prices::insert(_id, results);
         }
 
-    }
+	}
 }
 
 decl_event! {
-    pub enum Event<T> where
-        <T as frame_system::Config>::AccountId,
-        Balance = Balance,
-    {
-        // A request has been accepted. Corresponding fee paiement is reserved
-        OracleRequest(AccountId, SpecIndex, RequestIdentifier, AccountId, DataVersion, Vec<u8>, Vec<u8>, Balance),
+	pub enum Event<T> where
+		<T as frame_system::Config>::AccountId,
+		Balance = Balance,
+	{
+		// A request has been accepted. Corresponding fee paiement is reserved
+		OracleRequest(AccountId, SpecIndex, RequestIdentifier, AccountId, DataVersion, Vec<u8>, Vec<u8>, Balance),
 
-        // A request has been answered. Corresponding fee paiement is transfered
-        OracleAnswer(AccountId, RequestIdentifier, AccountId, Vec<u8>, Balance),
+		// A request has been answered. Corresponding fee paiement is transfered
+		OracleAnswer(AccountId, RequestIdentifier, AccountId, Vec<u8>, Balance),
 
-        // A new operator has been registered
-        OperatorRegistered(AccountId),
+		// A new operator has been registered
+		OperatorRegistered(AccountId),
 
-        // An existing operator has been unregistered
-        OperatorUnregistered(AccountId),
+		// An existing operator has been unregistered
+		OperatorUnregistered(AccountId),
 
-        // A request didn't receive any result in time
-        KillRequest(RequestIdentifier),
-    }
+		// A request didn't receive any result in time
+		KillRequest(RequestIdentifier),
+	}
 }
 
 decl_error! {
-    pub enum Error for Module<T: Config>  {
-        /// Error names should be descriptive.
-        NoneValue,
-        /// Errors should have helpful documentation associated with them.
-        StorageOverflow,
-        // Manipulating an unknown operator
-        UnknownOperator,
-        // Manipulating an unknown request
-        UnknownRequest,
-        // Not the expected operator
-        WrongOperator,
-        // An operator is already registered.
-        OperatorAlreadyRegistered,
-        // Callback cannot be deserialized
-        UnknownCallback,
-        // Fee provided does not match minimum required fee
-        InsufficientFee,
-        // Price does not exist
-        PriceDoesNotExist,
-    }
+	pub enum Error for Module<T: Config>  {
+		/// Error names should be descriptive.
+		NoneValue,
+		/// Errors should have helpful documentation associated with them.
+		StorageOverflow,
+		// Manipulating an unknown operator
+		UnknownOperator,
+		// Manipulating an unknown request
+		UnknownRequest,
+		// Not the expected operator
+		WrongOperator,
+		// An operator is already registered.
+		OperatorAlreadyRegistered,
+		// Callback cannot be deserialized
+		UnknownCallback,
+		// Fee provided does not match minimum required fee
+		InsufficientFee,
+		// Price does not exist
+		PriceDoesNotExist,
+	}
 }
 
 decl_storage! {
