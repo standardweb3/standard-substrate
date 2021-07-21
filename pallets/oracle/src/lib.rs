@@ -1,10 +1,11 @@
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{decl_module, decl_event, decl_storage, decl_error, ensure};
-use frame_system::{ensure_signed, ensure_root };
-use sp_runtime::{ DispatchResult, DispatchError};
+use frame_support::{decl_error, decl_event, decl_module, decl_storage, ensure};
+use frame_system::{ensure_root, ensure_signed};
+use sp_runtime::{DispatchError, DispatchResult};
 use sp_std::prelude::*;
+use primitives::{Balance, AssetId};
 
 #[cfg(test)]
 mod mock;
@@ -61,9 +62,9 @@ decl_module! {
 			}
 		}
 
-        #[weight = 0]
-        fn report(origin, _id: AssetId, _price: Balance) {
-            let who : <T as frame_system::Config>::AccountId = ensure_signed(origin)?;
+		#[weight = 0]
+		fn report(origin, _id: AssetId, _price: Balance) {
+			let who : <T as frame_system::Config>::AccountId = ensure_signed(origin)?;
 			ensure!(Operators::<T>::contains_key(who), Error::<T>::WrongOperator);
 			let results = match Self::asset_price(_id) {
 				Some(mut x) => {
@@ -75,7 +76,7 @@ decl_module! {
 				}
 			  };
 			Prices::insert(_id, results);
-        }
+		}
 
 	}
 }
@@ -126,24 +127,24 @@ decl_error! {
 }
 
 decl_storage! {
-    trait Store for Module<T: Config> as Oracle {
-        // the result of the oracle call
-        pub Result get(fn get_result): i128;
+	trait Store for Module<T: Config> as Oracle {
+		// the result of the oracle call
+		pub Result get(fn get_result): i128;
 
-        // A set of all registered Operator
-        pub Operators get(fn operator): map hasher(blake2_128_concat) <T as frame_system::Config>::AccountId => bool;
-        
-        pub Prices get(fn asset_price): map hasher(blake2_128_concat) AssetId =>  Option<Vec<Balance>>;
+		// A set of all registered Operator
+		pub Operators get(fn operator): map hasher(blake2_128_concat) <T as frame_system::Config>::AccountId => bool;
 
-    } add_extra_genesis {
-        config(oracles):
-            Vec<<T as frame_system::Config>::AccountId>;
-        build(|config: &GenesisConfig<T>| {
-            for oracle in &config.oracles {
-                Operators::<T>::insert(oracle, true);
-            }
-        });
-    }
+		pub Prices get(fn asset_price): map hasher(blake2_128_concat) AssetId =>  Option<Vec<Balance>>;
+
+	} add_extra_genesis {
+		config(oracles):
+			Vec<<T as frame_system::Config>::AccountId>;
+		build(|config: &GenesisConfig<T>| {
+			for oracle in &config.oracles {
+				Operators::<T>::insert(oracle, true);
+			}
+		});
+	}
 }
 
 // The main implementation block for the module.
@@ -155,8 +156,8 @@ impl<T: Config> Module<T> {
 				reports.sort();
 				let mid = reports.len() / 2;
 				let median = reports[mid];
-				return Ok(median)
-			},
+				return Ok(median);
+			}
 			None => {
 				return Err(DispatchError::from(crate::Error::<T>::PriceDoesNotExist).into());
 			}

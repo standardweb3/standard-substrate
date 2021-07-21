@@ -1,3 +1,4 @@
+use hex_literal::hex;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use pallet_staking::Forcing;
 use sc_service::ChainType;
@@ -6,11 +7,11 @@ use sp_consensus_babe::AuthorityId as BabeId;
 use sp_core::{sr25519, Pair, Public};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
-use hex_literal::hex;
 
 use opportunity_runtime::{
-    AssetRegistryConfig, BabeConfig, GrandpaConfig, ImOnlineConfig, OracleConfig, Perbill, DemocracyConfig, TechnicalCommitteeConfig,
-    SessionConfig, StakerStatus, StakingConfig, TokensConfig, CouncilConfig, ElectionsConfig, TreasuryConfig
+	AssetRegistryConfig, BabeConfig, CouncilConfig, DemocracyConfig, ElectionsConfig, GrandpaConfig, ImOnlineConfig,
+	OracleConfig, Perbill, SessionConfig, StakerStatus, StakingConfig, TechnicalCommitteeConfig, TokensConfig,
+	TreasuryConfig,
 };
 
 pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
@@ -204,92 +205,89 @@ fn testnet_genesis(
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
 ) -> opportunity_runtime::GenesisConfig {
-    opportunity_runtime::GenesisConfig {
-        system: opportunity_runtime::SystemConfig {
-            code: opportunity_runtime::WASM_BINARY
-                .expect("WASM binary was not build, please build it!")
-                .to_vec(),
-            changes_trie_config: Default::default(),
-        },
-        balances: opportunity_runtime::BalancesConfig {
-            balances: endowed_accounts
-                .iter()
-                .cloned()
-                .map(|k| (k, 1 << 60))
-                .collect(),
-        },
-				aura: AuraConfig {
-					authorities: initial_authorities.iter().map(|x| (x.2.clone())).collect(),
-				},
-        grandpa: GrandpaConfig {
-            authorities: initial_authorities.iter().map(|x| (x.3.clone(), 1)).collect(),
-        },
-        // pallet_sudo: opportunity_runtime::SudoConfig { key: root_key },
-        // pallet_babe: BabeConfig {
-        //     authorities: vec![],
-        //     epoch_config: Some(BABE_GENESIS_EPOCH_CONFIG),
-        // },
-        // pallet_im_online: ImOnlineConfig { keys: vec![] },
-        // pallet_session: SessionConfig {
-        //     keys: initial_authorities
-        //         .iter()
-        //         .map(|x| {
-        //             (
-        //                 x.0.clone(),
-        //                 x.0.clone(),
-        //                 session_keys(x.2.clone(), x.3.clone(), x.4.clone(), x.5.clone(), x.6.clone()),
-        //             )
-        //         })
-        //         .collect::<Vec<_>>(),
-        // },
-        // pallet_staking: StakingConfig {
-        //     validator_count: initial_authorities.len() as u32 * 2,
-        //     minimum_validator_count: initial_authorities.len() as u32,
-        //     stakers: initial_authorities
-        //         .iter()
-        //         .map(|x| {
-        //             (
-        //                 x.0.clone(),
-        //                 x.1.clone(),
-        //                 100_000_000_000_000_000_u128,
-        //                 StakerStatus::Validator,
-        //             )
-        //         })
-        //         .collect(),
-        //     invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
-        //     force_era: Forcing::ForceNone,
-        //     slash_reward_fraction: Perbill::from_percent(10),
-        //     ..Default::default()
-        // },
-        // orml_tokens: TokensConfig {
-				sudo: opportunity_runtime::SudoConfig { key: root_key },
-				tokens: TokensConfig {
-            endowed_accounts: endowed_accounts.iter().flat_map(|_x| vec![]).collect(),
-        },
-        asset_registry: AssetRegistryConfig {
-            core_asset_id: CORE_ASSET_ID,
-            asset_ids: vec![
-                (b"STD".to_vec(), 1),
-                (b"MTR".to_vec(), 2),
-                (b"DOT".to_vec(), 3),
-                (b"KSM".to_vec(), 4),
-            ],
-            next_asset_id: 5,
-        },
-        oracle: OracleConfig {
-            oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec(),
-        },
-        pallet_democracy: DemocracyConfig::default(),
-        pallet_elections_phragmen: ElectionsConfig::default(),
-        pallet_collective_Instance1: CouncilConfig::default(),
-        pallet_collective_Instance2: TechnicalCommitteeConfig {
-			members: endowed_accounts.iter()
-						.take((endowed_accounts.len() + 1) / 2)
-						.cloned()
-						.collect(),
+	opportunity_runtime::GenesisConfig {
+		system: opportunity_runtime::SystemConfig {
+			code: opportunity_runtime::WASM_BINARY
+				.expect("WASM binary was not build, please build it!")
+				.to_vec(),
+			changes_trie_config: Default::default(),
+		},
+		balances: opportunity_runtime::BalancesConfig {
+			balances: endowed_accounts.iter().cloned().map(|k| (k, 1 << 60)).collect(),
+		},
+		aura: AuraConfig {
+			authorities: initial_authorities.iter().map(|x| (x.2.clone())).collect(),
+		},
+		grandpa: GrandpaConfig {
+			authorities: initial_authorities.iter().map(|x| (x.3.clone(), 1)).collect(),
+		},
+		// pallet_sudo: opportunity_runtime::SudoConfig { key: root_key },
+		// pallet_babe: BabeConfig {
+		//     authorities: vec![],
+		//     epoch_config: Some(BABE_GENESIS_EPOCH_CONFIG),
+		// },
+		// pallet_im_online: ImOnlineConfig { keys: vec![] },
+		// pallet_session: SessionConfig {
+		//     keys: initial_authorities
+		//         .iter()
+		//         .map(|x| {
+		//             (
+		//                 x.0.clone(),
+		//                 x.0.clone(),
+		//                 session_keys(x.2.clone(), x.3.clone(), x.4.clone(), x.5.clone(), x.6.clone()),
+		//             )
+		//         })
+		//         .collect::<Vec<_>>(),
+		// },
+		// pallet_staking: StakingConfig {
+		//     validator_count: initial_authorities.len() as u32 * 2,
+		//     minimum_validator_count: initial_authorities.len() as u32,
+		//     stakers: initial_authorities
+		//         .iter()
+		//         .map(|x| {
+		//             (
+		//                 x.0.clone(),
+		//                 x.1.clone(),
+		//                 100_000_000_000_000_000_u128,
+		//                 StakerStatus::Validator,
+		//             )
+		//         })
+		//         .collect(),
+		//     invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
+		//     force_era: Forcing::ForceNone,
+		//     slash_reward_fraction: Perbill::from_percent(10),
+		//     ..Default::default()
+		// },
+		// orml_tokens: TokensConfig {
+		sudo: opportunity_runtime::SudoConfig { key: root_key },
+		tokens: TokensConfig {
+			endowed_accounts: endowed_accounts.iter().flat_map(|_x| vec![]).collect(),
+		},
+		asset_registry: AssetRegistryConfig {
+			core_asset_id: CORE_ASSET_ID,
+			asset_ids: vec![
+				(b"STD".to_vec(), 1),
+				(b"MTR".to_vec(), 2),
+				(b"DOT".to_vec(), 3),
+				(b"KSM".to_vec(), 4),
+			],
+			next_asset_id: 5,
+		},
+		oracle: OracleConfig {
+			oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec(),
+		},
+		pallet_democracy: DemocracyConfig::default(),
+		pallet_elections_phragmen: ElectionsConfig::default(),
+		pallet_collective_Instance1: CouncilConfig::default(),
+		pallet_collective_Instance2: TechnicalCommitteeConfig {
+			members: endowed_accounts
+				.iter()
+				.take((endowed_accounts.len() + 1) / 2)
+				.cloned()
+				.collect(),
 			phantom: Default::default(),
 		},
-        pallet_membership_Instance1: Default::default(),
-        pallet_treasury: Default::default()
-    }
+		pallet_membership_Instance1: Default::default(),
+		pallet_treasury: Default::default(),
+	}
 }
