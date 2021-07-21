@@ -60,15 +60,15 @@ run-collator2:
 
 .PHONY: docker-build
 docker-build:
-	DOCKER_BUILDKIT=1 docker build -f Docker/Dockerfile -t standard-opportunity:local .
+	DOCKER_BUILDKIT=1 docker build -f Docker/Dockerfile -t opportunity-standalone:local .
 
 # example reference: 
 # VOLUME_PATH='./data' DATA_DIR='/data' NODE_NAME='Standard Validator' make docker-run
 .PHONY: docker-run
 docker-run:
 	docker run --rm -it -v "$(VOLUME_PATH)":"$(DATA_DIR)" \
-		--name standard-opportunity \
-		standard-opportunity:local \
+		--name opportunity-standalone \
+		opportunity-standalone:latest \
 		--base-path "$(DATA_DIR)" \
 		--chain opportunity \
 		--port 30333 \
