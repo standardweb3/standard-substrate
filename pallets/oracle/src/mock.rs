@@ -1,7 +1,6 @@
 #![cfg(test)]
 
-use crate::sp_api_hidden_includes_decl_storage::hidden_include::StorageValue;
-use crate::*;
+use crate::{sp_api_hidden_includes_decl_storage::hidden_include::StorageValue, *};
 use frame_support::{impl_outer_event, impl_outer_origin, parameter_types, weights::Weight};
 use frame_system as system;
 use pallet_balances as balances;
@@ -164,13 +163,7 @@ pub fn last_event() -> RawEvent<u128, u64> {
 	System::events()
 		.into_iter()
 		.map(|r| r.event)
-		.filter_map(|e| {
-			if let TestEvent::chainlink(inner) = e {
-				Some(inner)
-			} else {
-				None
-			}
-		})
+		.filter_map(|e| if let TestEvent::chainlink(inner) = e { Some(inner) } else { None })
 		.last()
 		.unwrap()
 }

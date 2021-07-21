@@ -88,16 +88,16 @@
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{decl_error, decl_event, decl_module, decl_storage, dispatch, ensure, traits::Get, PalletId};
+use frame_support::{
+	decl_error, decl_event, decl_module, decl_storage, dispatch, ensure, traits::Get, PalletId,
+};
 use frame_system::ensure_signed;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
 use pallet_asset_registry;
 use primitives::{Amount, AssetId, Balance};
 use sp_core::U256;
-use sp_runtime::traits::AccountIdConversion;
-use sp_runtime::traits::Zero;
 use sp_runtime::{
-	traits::{UniqueSaturatedFrom, UniqueSaturatedInto},
+	traits::{AccountIdConversion, UniqueSaturatedFrom, UniqueSaturatedInto, Zero},
 	FixedU128,
 };
 //use crate::sp_api_hidden_includes_decl_storage::hidden_include::traits::Get;
@@ -110,8 +110,12 @@ pub trait Config: frame_system::Config + pallet_asset_registry::Config {
 	type SystemPalletId: Get<PalletId>;
 	//   type AssetId: Parameter + Member + Into<u32> + AtLeast32Bit + Default + Copy + MaybeSerializeDeserialize;
 
-	type Currency: MultiCurrencyExtended<Self::AccountId, CurrencyId = AssetId, Balance = Balance, Amount = Amount>
-		+ MultiReservableCurrency<Self::AccountId>;
+	type Currency: MultiCurrencyExtended<
+			Self::AccountId,
+			CurrencyId = AssetId,
+			Balance = Balance,
+			Amount = Amount,
+		> + MultiReservableCurrency<Self::AccountId>;
 }
 
 decl_module! {
@@ -320,14 +324,20 @@ impl<T: Config> Module<T> {
 	}
 
 	// Market methods
-	pub fn _set_reserves(token0: AssetId, token1: AssetId, amount0: Balance, amount1: Balance, lptoken: AssetId) {
+	pub fn _set_reserves(
+		token0: AssetId,
+		token1: AssetId,
+		amount0: Balance,
+		amount1: Balance,
+		lptoken: AssetId,
+	) {
 		match token0 > token1 {
 			true => {
 				Reserves::insert(lptoken, (amount1, amount0));
-			}
+			},
 			_ => {
 				Reserves::insert(lptoken, (amount0, amount1));
-			}
+			},
 		}
 	}
 
@@ -340,10 +350,10 @@ impl<T: Config> Module<T> {
 		match token0 > token1 {
 			true => {
 				Rewards::insert(lptoken, (token1, token0));
-			}
+			},
 			_ => {
 				Rewards::insert(lptoken, (token0, token1));
-			}
+			},
 		}
 	}
 
@@ -351,22 +361,26 @@ impl<T: Config> Module<T> {
 		U256::from(UniqueSaturatedInto::<u128>::unique_saturated_into(value))
 	}
 
-	pub fn _get_amount_out(amount_in: Balance, reserve_in: Balance, reserve_out: Balance) -> Balance {
+	pub fn _get_amount_out(
+		amount_in: Balance,
+		reserve_in: Balance,
+		reserve_out: Balance,
+	) -> Balance {
 		let amount_in_256 = Self::to_u256(amount_in);
 		let reserve_in_256 = Self::to_u256(reserve_in);
 		let reserve_out_256 = Self::to_u256(reserve_out);
-		let amount_in_with_fee = amount_in_256
-			.checked_mul(U256::from(997))
-			.expect("Multiplication overflow");
-		let numerator = amount_in_with_fee
-			.checked_mul(reserve_out_256)
-			.expect("Multiplication overflow");
+		let amount_in_with_fee =
+			amount_in_256.checked_mul(U256::from(997)).expect("Multiplication overflow");
+		let numerator =
+			amount_in_with_fee.checked_mul(reserve_out_256).expect("Multiplication overflow");
 		let denominator = reserve_in_256
 			.checked_mul(U256::from(1000))
 			.expect("Multiplication overflow")
 			.checked_add(amount_in_with_fee)
 			.expect("Overflow");
-		Balance::unique_saturated_from(numerator.checked_div(denominator).expect("divided by zero").as_u128())
+		Balance::unique_saturated_from(
+			numerator.checked_div(denominator).expect("divided by zero").as_u128(),
+		)
 	}
 	/*
 

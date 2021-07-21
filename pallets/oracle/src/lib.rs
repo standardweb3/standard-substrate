@@ -3,9 +3,9 @@
 
 use frame_support::{decl_error, decl_event, decl_module, decl_storage, ensure};
 use frame_system::{ensure_root, ensure_signed};
+use primitives::{AssetId, Balance};
 use sp_runtime::{DispatchError, DispatchResult};
 use sp_std::prelude::*;
-use primitives::{Balance, AssetId};
 
 #[cfg(test)]
 mod mock;
@@ -156,11 +156,11 @@ impl<T: Config> Module<T> {
 				reports.sort();
 				let mid = reports.len() / 2;
 				let median = reports[mid];
-				return Ok(median);
-			}
+				return Ok(median)
+			},
 			None => {
-				return Err(DispatchError::from(crate::Error::<T>::PriceDoesNotExist).into());
-			}
+				return Err(DispatchError::from(crate::Error::<T>::PriceDoesNotExist).into())
+			},
 		}
 	}
 }

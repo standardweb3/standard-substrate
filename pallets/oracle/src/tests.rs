@@ -89,7 +89,16 @@ fn initiate_requests() {
 		.is_ok());
 		assert_eq!(
 			last_event(),
-			RawEvent::OracleRequest(1, vec![], 0, 2, 1, data.clone(), "Chainlink.callback".into(), 2)
+			RawEvent::OracleRequest(
+				1,
+				vec![],
+				0,
+				2,
+				1,
+				data.clone(),
+				"Chainlink.callback".into(),
+				2
+			)
 		);
 
 		let r = <(Vec<u8>, Vec<u8>)>::decode(&mut &data[..]).unwrap().0;

@@ -16,9 +16,9 @@ mod benchmarking;
 
 #[frame_support::pallet]
 pub mod pallet {
-	use frame_support::traits::Get;
-	use frame_support::PalletId;
-	use frame_support::{dispatch::DispatchResultWithPostInfo, pallet_prelude::*};
+	use frame_support::{
+		dispatch::DispatchResultWithPostInfo, pallet_prelude::*, traits::Get, PalletId,
+	};
 	use frame_system::pallet_prelude::*;
 
 	/// Configure the pallet by specifying the parameters and types on which it depends.
@@ -102,7 +102,7 @@ pub mod pallet {
 					// Update the value in storage with the incremented result.
 					<Something<T>>::put(new);
 					Ok(().into())
-				}
+				},
 			}
 		}
 	}

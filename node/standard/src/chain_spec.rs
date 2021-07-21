@@ -4,9 +4,10 @@ use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
 use sp_core::{sr25519, Pair, Public};
 use standard_runtime::{
-	wasm_binary_unwrap, AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig, GenesisConfig,
-	ImOnlineConfig, ImOnlineId, OracleConfig, ParachainInfoConfig, SessionConfig, SessionKeys, Signature, StakerStatus,
-	StakingConfig, SudoConfig, SystemConfig, TokensConfig, VestingConfig, STD,
+	wasm_binary_unwrap, AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig,
+	GenesisConfig, ImOnlineConfig, ImOnlineId, OracleConfig, ParachainInfoConfig, SessionConfig,
+	SessionKeys, Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig, TokensConfig,
+	VestingConfig, STD,
 };
 
 use sp_runtime::{
@@ -79,14 +80,15 @@ pub fn get_chain_spec(id: ParaId) -> ChainSpec {
 		None,
 		None,
 		None,
-		Extensions {
-			relay_chain: "westend-dev".into(),
-			para_id: id.into(),
-		},
+		Extensions { relay_chain: "westend-dev".into(), para_id: id.into() },
 	)
 }
 
-fn testnet_genesis(sudo_key: AccountId, endowed_accounts: Option<Vec<AccountId>>, para_id: ParaId) -> GenesisConfig {
+fn testnet_genesis(
+	sudo_key: AccountId,
+	endowed_accounts: Option<Vec<AccountId>>,
+	para_id: ParaId,
+) -> GenesisConfig {
 	const ENDOWMENT: Balance = 1_000_000_000 * STD;
 
 	let balances: Vec<(AccountId, Balance)> = endowed_accounts

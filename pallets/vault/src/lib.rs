@@ -136,8 +136,7 @@
 use crate::sp_api_hidden_includes_decl_storage::hidden_include::traits::Get;
 use codec::{Decode, Encode};
 use frame_support::{decl_error, decl_event, decl_module, decl_storage, ensure, PalletId};
-use frame_system::ensure_root;
-use frame_system::ensure_signed;
+use frame_system::{ensure_root, ensure_signed};
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
 use pallet_standard_market as market;
 use pallet_standard_oracle as oracle;
@@ -170,8 +169,12 @@ pub trait Config: frame_system::Config + market::Config + oracle::Config {
 
 	type VaultPalletId: Get<PalletId>;
 
-	type Currency: MultiCurrencyExtended<Self::AccountId, CurrencyId = AssetId, Balance = Balance, Amount = Amount>
-		+ MultiReservableCurrency<Self::AccountId>;
+	type Currency: MultiCurrencyExtended<
+			Self::AccountId,
+			CurrencyId = AssetId,
+			Balance = Balance,
+			Amount = Amount,
+		> + MultiReservableCurrency<Self::AccountId>;
 }
 
 decl_module! {
@@ -400,9 +403,8 @@ impl<T: Config> Module<T> {
 			.checked_mul(total_collateral_256)
 			.expect("Multiplication overflow");
 		let total_request_256 = Self::to_u256(request_amount);
-		let request = mtr_price_256
-			.checked_mul(total_request_256)
-			.expect("Multiplication overflow");
+		let request =
+			mtr_price_256.checked_mul(total_request_256).expect("Multiplication overflow");
 		let determinant = collateral
 			.checked_div(position.max_collateraization_rate.1)
 			.expect("divided by zero")

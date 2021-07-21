@@ -1,4 +1,3 @@
-use hex_literal::hex;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use pallet_staking::Forcing;
 use sc_service::ChainType;
@@ -9,8 +8,9 @@ use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
 use opportunity_runtime::{
-	AssetRegistryConfig, BabeConfig, CouncilConfig, DemocracyConfig, ElectionsConfig, GrandpaConfig, ImOnlineConfig,
-	OracleConfig, Perbill, SessionConfig, StakerStatus, StakingConfig, TechnicalCommitteeConfig, TokensConfig,
+	AccountId, AssetRegistryConfig, BabeConfig, CouncilConfig, DemocracyConfig, ElectionsConfig,
+	GrandpaConfig, ImOnlineConfig, OracleConfig, Perbill, SessionConfig, SessionKeys, Signature,
+	StakerStatus, StakingConfig, TechnicalCommitteeConfig, TechnicalMembershipConfig, TokensConfig,
 	TreasuryConfig,
 };
 
@@ -41,12 +41,7 @@ fn session_keys(
 	im_online: ImOnlineId,
 	authority_discovery: AuthorityDiscoveryId,
 ) -> SessionKeys {
-	SessionKeys {
-		babe,
-		grandpa,
-		im_online,
-		authority_discovery,
-	}
+	SessionKeys { babe, grandpa, im_online, authority_discovery }
 }
 
 /// Helper function to generate a crypto pair from seed
@@ -60,14 +55,7 @@ type AccountPublic = <Signature as Verify>::Signer;
 
 pub fn authority_keys_from_seed(
 	seed: &str,
-) -> (
-	AccountId,
-	AccountId,
-	BabeId,
-	GrandpaId,
-	ImOnlineId,
-	AuthorityDiscoveryId,
-) {
+) -> (AccountId, AccountId, BabeId, GrandpaId, ImOnlineId, AuthorityDiscoveryId) {
 	(
 		get_account_id_from_seed::<sr25519::Public>(&format!("{}//stash", seed)),
 		get_account_id_from_seed::<sr25519::Public>(seed),
@@ -215,51 +203,43 @@ fn testnet_genesis(
 		balances: opportunity_runtime::BalancesConfig {
 			balances: endowed_accounts.iter().cloned().map(|k| (k, 1 << 60)).collect(),
 		},
-		aura: AuraConfig {
-			authorities: initial_authorities.iter().map(|x| (x.2.clone())).collect(),
-		},
 		grandpa: GrandpaConfig {
 			authorities: initial_authorities.iter().map(|x| (x.3.clone(), 1)).collect(),
 		},
-		// pallet_sudo: opportunity_runtime::SudoConfig { key: root_key },
-		// pallet_babe: BabeConfig {
-		//     authorities: vec![],
-		//     epoch_config: Some(BABE_GENESIS_EPOCH_CONFIG),
-		// },
-		// pallet_im_online: ImOnlineConfig { keys: vec![] },
-		// pallet_session: SessionConfig {
-		//     keys: initial_authorities
-		//         .iter()
-		//         .map(|x| {
-		//             (
-		//                 x.0.clone(),
-		//                 x.0.clone(),
-		//                 session_keys(x.2.clone(), x.3.clone(), x.4.clone(), x.5.clone(), x.6.clone()),
-		//             )
-		//         })
-		//         .collect::<Vec<_>>(),
-		// },
-		// pallet_staking: StakingConfig {
-		//     validator_count: initial_authorities.len() as u32 * 2,
-		//     minimum_validator_count: initial_authorities.len() as u32,
-		//     stakers: initial_authorities
-		//         .iter()
-		//         .map(|x| {
-		//             (
-		//                 x.0.clone(),
-		//                 x.1.clone(),
-		//                 100_000_000_000_000_000_u128,
-		//                 StakerStatus::Validator,
-		//             )
-		//         })
-		//         .collect(),
-		//     invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
-		//     force_era: Forcing::ForceNone,
-		//     slash_reward_fraction: Perbill::from_percent(10),
-		//     ..Default::default()
-		// },
-		// orml_tokens: TokensConfig {
 		sudo: opportunity_runtime::SudoConfig { key: root_key },
+		babe: BabeConfig { authorities: vec![], epoch_config: Some(BABE_GENESIS_EPOCH_CONFIG) },
+		im_online: ImOnlineConfig { keys: vec![] },
+		session: SessionConfig {
+			keys: initial_authorities
+				.iter()
+				.map(|x| {
+					(
+						x.0.clone(),
+						x.0.clone(),
+						session_keys(x.2.clone(), x.3.clone(), x.4.clone(), x.5.clone()),
+					)
+				})
+				.collect::<Vec<_>>(),
+		},
+		staking: StakingConfig {
+			validator_count: initial_authorities.len() as u32 * 2,
+			minimum_validator_count: initial_authorities.len() as u32,
+			stakers: initial_authorities
+				.iter()
+				.map(|x| {
+					(
+						x.0.clone(),
+						x.1.clone(),
+						100_000_000_000_000_000_u128,
+						StakerStatus::Validator,
+					)
+				})
+				.collect(),
+			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
+			force_era: Forcing::ForceNone,
+			slash_reward_fraction: Perbill::from_percent(10),
+			..Default::default()
+		},
 		tokens: TokensConfig {
 			endowed_accounts: endowed_accounts.iter().flat_map(|_x| vec![]).collect(),
 		},
@@ -276,10 +256,10 @@ fn testnet_genesis(
 		oracle: OracleConfig {
 			oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec(),
 		},
-		pallet_democracy: DemocracyConfig::default(),
-		pallet_elections_phragmen: ElectionsConfig::default(),
-		pallet_collective_Instance1: CouncilConfig::default(),
-		pallet_collective_Instance2: TechnicalCommitteeConfig {
+		democracy: DemocracyConfig::default(),
+		elections: ElectionsConfig::default(),
+		council: CouncilConfig::default(),
+		technical_committee: TechnicalCommitteeConfig {
 			members: endowed_accounts
 				.iter()
 				.take((endowed_accounts.len() + 1) / 2)
@@ -287,7 +267,8 @@ fn testnet_genesis(
 				.collect(),
 			phantom: Default::default(),
 		},
-		pallet_membership_Instance1: Default::default(),
-		pallet_treasury: Default::default(),
+		technical_membership: TechnicalMembershipConfig::default(),
+		// technical_membership: Default::default(),
+		treasury: TreasuryConfig::default(),
 	}
 }
