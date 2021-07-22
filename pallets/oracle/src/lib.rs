@@ -158,9 +158,7 @@ impl<T: Config> Module<T> {
 				let median = reports[mid];
 				return Ok(median)
 			},
-			None => {
-				return Err(DispatchError::from(crate::Error::<T>::PriceDoesNotExist).into())
-			},
+			None => return Err(DispatchError::from(crate::Error::<T>::PriceDoesNotExist).into()),
 		}
 	}
 }

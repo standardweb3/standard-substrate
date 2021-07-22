@@ -8,7 +8,6 @@ reorder_imports = true
 # Consistency
 newline_style = "Unix"
 # Misc
-chain_width = 80
 spaces_around_ranges = false
 binop_separator = "Back"
 reorder_impl_items = false

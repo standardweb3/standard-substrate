@@ -8,10 +8,10 @@ use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
 use opportunity_runtime::{
-	AccountId, AssetRegistryConfig, BabeConfig, CouncilConfig, DemocracyConfig, ElectionsConfig,
-	GrandpaConfig, ImOnlineConfig, OracleConfig, Perbill, SessionConfig, SessionKeys, Signature,
-	StakerStatus, StakingConfig, TechnicalCommitteeConfig, TechnicalMembershipConfig, TokensConfig,
-	TreasuryConfig,
+	AccountId, AssetRegistryConfig, BabeConfig, BalancesConfig, CouncilConfig, DemocracyConfig,
+	ElectionsConfig, GrandpaConfig, ImOnlineConfig, OracleConfig, Perbill, SessionConfig,
+	SessionKeys, Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig,
+	TechnicalCommitteeConfig, TechnicalMembershipConfig, TokensConfig, TreasuryConfig,
 };
 
 pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
@@ -194,20 +194,21 @@ fn testnet_genesis(
 	endowed_accounts: Vec<AccountId>,
 ) -> opportunity_runtime::GenesisConfig {
 	opportunity_runtime::GenesisConfig {
-		system: opportunity_runtime::SystemConfig {
+		system: SystemConfig {
 			code: opportunity_runtime::WASM_BINARY
 				.expect("WASM binary was not build, please build it!")
 				.to_vec(),
 			changes_trie_config: Default::default(),
 		},
-		balances: opportunity_runtime::BalancesConfig {
+		balances: BalancesConfig {
 			balances: endowed_accounts.iter().cloned().map(|k| (k, 1 << 60)).collect(),
 		},
-		grandpa: GrandpaConfig {
-			authorities: initial_authorities.iter().map(|x| (x.3.clone(), 1)).collect(),
+		grandpa: GrandpaConfig::default(),
+		sudo: SudoConfig { key: root_key },
+		babe: BabeConfig {
+			authorities: Default::default(),
+			epoch_config: Some(BABE_GENESIS_EPOCH_CONFIG),
 		},
-		sudo: opportunity_runtime::SudoConfig { key: root_key },
-		babe: BabeConfig { authorities: vec![], epoch_config: Some(BABE_GENESIS_EPOCH_CONFIG) },
 		im_online: ImOnlineConfig { keys: vec![] },
 		session: SessionConfig {
 			keys: initial_authorities
@@ -268,7 +269,6 @@ fn testnet_genesis(
 			phantom: Default::default(),
 		},
 		technical_membership: TechnicalMembershipConfig::default(),
-		// technical_membership: Default::default(),
 		treasury: TreasuryConfig::default(),
 	}
 }
