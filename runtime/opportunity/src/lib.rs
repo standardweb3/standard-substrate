@@ -17,7 +17,6 @@ use pallet_grandpa::{
 	fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList,
 };
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
-use sp_api::impl_runtime_apis;
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 pub use sp_runtime::Perbill;
 use sp_runtime::{
@@ -134,10 +133,13 @@ pub fn wasm_binary_unwrap() -> &'static [u8] {
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("opportunity"),
 	impl_name: create_runtime_str!("opportunity10"),
-	authoring_version: 20,
+	authoring_version: 1,
 	spec_version: 20,
 	impl_version: 1,
+	#[cfg(not(feature = "disable-runtime-api"))]
 	apis: RUNTIME_API_VERSIONS,
+	#[cfg(feature = "disable-runtime-api")]
+	apis: version::create_apis_vec![[]],
 	transaction_version: 1,
 };
 
@@ -963,7 +965,8 @@ pub type Executive = frame_executive::Executive<
 	AllPallets,
 >;
 
-impl_runtime_apis! {
+#[cfg(not(feature = "disable-runtime-api"))]
+sp_api::impl_runtime_apis! {
 	impl sp_api::Core<Block> for Runtime {
 		fn version() -> RuntimeVersion {
 			VERSION
@@ -1073,8 +1076,6 @@ impl_runtime_apis! {
 			)
 		}
 	}
-
-
 
 	impl sp_authority_discovery::AuthorityDiscoveryApi<Block> for Runtime {
 		fn authorities() -> Vec<AuthorityDiscoveryId> {
