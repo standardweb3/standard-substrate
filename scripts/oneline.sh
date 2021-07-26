@@ -2,8 +2,8 @@
 set -e
 
 # if no arguments are provided, return usage function
-if [ $# -ne 2 ]; then
-  echo 1>&2 "Usage: $0 <data-dir> <name>"
+if [ $# -lt 2 ]; then
+  echo 1>&2 "Usage: $0 <data-dir> <name> [version]"
   exit 3
 fi
 
@@ -50,8 +50,23 @@ else
 	exit 1
 fi
 
+if [ ! -z "$3" ]; then
+	# echo "Choose your version, available versions:"
+	# standardVer=`curl --silent "https://api.github.com/repos/digitalnativeinc/standard-substrate/releases" | grep '"tag_name":'`
+	# while IFS=',' read -ra ADDR; do
+	  # for i in "${ADDR[@]}"; do
+		# # process "$i"
+		# echo $i | cut -d " " -f2- | sed 's/"//g'
+	  # done
+	# done <<< "$standardVer"
+	# read -p "Version: " LATEST_RELEASE
+	LATEST_RELEASE=$3
+else
+	LATEST_RELEASE=`curl --silent "https://api.github.com/repos/digitalnativeinc/standard-substrate/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`
+fi
+
 # pulls latest release tag and sets it as var
-LATEST_RELEASE=`curl --silent "https://api.github.com/repos/digitalnativeinc/standard-substrate/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`
+# LATEST_RELEASE=`curl --silent "https://api.github.com/repos/digitalnativeinc/standard-substrate/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`
 
 wget -O opportunity-standalone https://github.com/digitalnativeinc/standard-substrate/releases/download/$LATEST_RELEASE/opportunity-standalone-linux-x86_64
 
