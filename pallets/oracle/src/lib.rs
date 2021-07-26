@@ -67,6 +67,12 @@ decl_module! {
 				  x[_slot as usize] = _price;
 				  x
 				},
+				Some(x) if x.len() != Self::provider_count() as usize => {
+				  let oracles = Self::provider_count();
+			      let mut batch = vec!{0; oracles as usize};
+				  batch[_slot as usize] = _price;
+				  batch	  
+				}
 				_ => {
 				  let oracles = Self::provider_count();
 				  let mut batch = vec!{0; oracles as usize};

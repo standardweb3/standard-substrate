@@ -131,7 +131,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("cumulus-test-parachain"),
 	impl_name: create_runtime_str!("cumulus-test-parachain"),
 	authoring_version: 1,
-    spec_version: 1,
+    spec_version: 2,
     impl_version: 1,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 1,
@@ -400,10 +400,10 @@ pallet_staking_reward_curve::build! {
 }
 
 parameter_types! {
-    pub const SessionsPerEra: sp_staking::SessionIndex = 6;
-    pub const BondingDuration: pallet_staking::EraIndex = 24 * 28;
+    pub const SessionsPerEra: sp_staking::SessionIndex = 24;
+    pub const BondingDuration: pallet_staking::EraIndex = 12;
 	pub const RewardCurve: &'static PiecewiseLinear<'static> = &REWARD_CURVE;
-    pub const SlashDeferDuration: pallet_staking::EraIndex = 24 * 7; // 1/4 the bonding duration.
+    pub const SlashDeferDuration: pallet_staking::EraIndex = 3; // 1/4 the bonding duration.
     pub const MaxNominatorRewardedPerValidator: u32 = 256;
 	pub const ElectionLookahead: BlockNumber = EPOCH_DURATION_IN_BLOCKS / 4;
 	pub const MaxIterations: u32 = 10;
