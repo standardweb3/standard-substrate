@@ -36,7 +36,7 @@ jobs:
       matrix:
         # macos-11 not yet available, currently is in private preview
         os: [ubuntu-20.04]
-        release: [opportunity-standalone, standard-collator]
+        # release: [opportunity-standalone, standard-collator]
     runs-on: ${{ matrix.os }}
     # runs-on: ubuntu-20.04
     steps:
@@ -47,6 +47,7 @@ jobs:
       - name: Rust Dependencies - ${{ matrix.os }}
         if: ${{ matrix.os == 'ubuntu-20.04' }}
         run: |
+          sudo apt update
           sudo apt install -y git clang curl libssl-dev llvm libudev-dev
 
       - name: Rust Dependencies - ${{ matrix.os }}
@@ -55,10 +56,10 @@ jobs:
           brew update
           brew install openssl
 
-      # use once repository is tagged
-      # - uses: actions/install-rust@v1
       - name: Rust Install - ${{ matrix.os }}
         uses: ./.github/actions/install-rust
+        with:
+          toolchain_build: "nightly-2021-04-22"
 
       - name: Run Build - ${{ matrix.os }}
         run: |
@@ -68,22 +69,23 @@ jobs:
       # example: 'linux-amd64'
       # is a bit hacky since we rely output file will have the same arch as
       # a build machine, will need to look into it
-      - name: Retrieve arch
+      - name: Retrieve arch - ${{ matrix.os }}
         id: arch
         run: |
           ARCH="$(uname -s)-$(uname -m)"
           ARCH_L=$(echo "$ARCH" | tr '[:upper:]' '[:lower:]')
           echo "::set-output name=DETAILS::${ARCH_L}"
 
-      - name: Artifact actions - ${{ matrix.os }} - ${{ matrix.release }}
+      - name: Artifact actions - ${{ matrix.os }}
         run: |
-          mv ./target/release/${{ matrix.release }} ./${{ matrix.release }}-${{ steps.arch.outputs.DETAILS }}
-          chmod +x ${{ matrix.release }}-${{ steps.arch.outputs.DETAILS }}
+          mv ./target/release/opportunity-standalone ./opportunity-standalone-${{ steps.arch.outputs.DETAILS }}
+          mv ./target/release/standard-collator ./standard-collator-${{ steps.arch.outputs.DETAILS }}
 
-      - name: Upload Artifacts - ${{ matrix.os }} - ${{ matrix.release }}
+      - name: Upload Artifacts - ${{ matrix.os }}
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.release }}-${{ steps.arch.outputs.DETAILS }}
+          name: standard-substrate-${{ steps.arch.outputs.DETAILS }}
           if-no-files-found: error
           path: |
-            ./${{ matrix.release }}-${{ steps.arch.outputs.DETAILS }}
+            ./opportunity-standalone-${{ steps.arch.outputs.DETAILS }}
+            ./standard-collator-${{ steps.arch.outputs.DETAILS }}
