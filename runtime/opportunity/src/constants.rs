@@ -1,4 +1,3 @@
-
 // This file is part of Substrate.
 
 // Copyright (C) 2019-2021 Parity Technologies (UK) Ltd.
@@ -20,10 +19,10 @@
 
 /// Money matters.
 pub mod currency {
-
-	pub use primitives::{Balance};
+	// Balance type created directly here instead of importing the whole node_primitives module
+	type Balance = u128;
 	pub const MILLICENTS: Balance = 1_000_000_000;
-	pub const CENTS: Balance = 1_000 * MILLICENTS;    // assume this is worth about a cent.
+	pub const CENTS: Balance = 1_000 * MILLICENTS; // assume this is worth about a cent.
 	pub const DOLLARS: Balance = 100 * CENTS;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
@@ -33,21 +32,19 @@ pub mod currency {
 
 /// Time.
 pub mod time {
-	use crate::{Moment, BlockNumber};
+	// Moment/BlockNumber type created directly here instead of importing the whole node_primitives module
+	type Moment = u64;
+	type BlockNumber = u32;
 
-	
 	pub const MILLISECS_PER_BLOCK: Moment = 6000;
 	pub const SECS_PER_BLOCK: Moment = MILLISECS_PER_BLOCK / 1000;
-
 	pub const SLOT_DURATION: Moment = MILLISECS_PER_BLOCK;
 
 	// 1 in 4 blocks (on average, not counting collisions) will be primary BABE blocks.
 	pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
-
 	pub const EPOCH_DURATION_IN_BLOCKS: BlockNumber = 10 * MINUTES;
 	pub const EPOCH_DURATION_IN_SLOTS: u64 = {
 		const SLOT_FILL_RATE: f64 = MILLISECS_PER_BLOCK as f64 / SLOT_DURATION as f64;
-
 		(EPOCH_DURATION_IN_BLOCKS as f64 * SLOT_FILL_RATE) as u64
 	};
 

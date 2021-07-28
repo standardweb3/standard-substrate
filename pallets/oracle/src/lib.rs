@@ -1,11 +1,11 @@
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{decl_module, decl_event, decl_storage, decl_error, ensure};
-use frame_system::{ensure_signed, ensure_root };
-use sp_runtime::{ DispatchResult, DispatchError};
+use frame_support::{decl_error, decl_event, decl_module, decl_storage, ensure};
+use frame_system::{ensure_root, ensure_signed};
+use primitives::{AssetId, Balance};
+use sp_runtime::{DispatchError, DispatchResult};
 use sp_std::prelude::*;
-use primitives::{Balance, AssetId};
 
 #[cfg(test)]
 mod mock;
@@ -15,7 +15,7 @@ mod tests;
 /// The module configuration trait.
 pub trait Config: frame_system::Config {
 	/// The overarching event type.
-    type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
+	type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
 }
 
 // Uniquely identify a request's specification understood by an Operator
@@ -29,10 +29,10 @@ decl_module! {
 	pub struct Module<T: Config> for enum Call where origin: T::Origin {
 		type Error = Error<T>;
 
-        fn deposit_event() = default;
-        
+		fn deposit_event() = default;
 
-        // REVIEW: Use `///` instead of `//` to make these doc comments that are part of the crate documentation.
+
+		// REVIEW: Use `///` instead of `//` to make these doc comments that are part of the crate documentation.
 		// Register a new Operator.
 		// Fails with `OperatorAlreadyRegistered` if this Operator (identified by `origin`) has already been registered.
 		#[weight = 10_000]
@@ -60,11 +60,11 @@ decl_module! {
 			} else {
 				Err(Error::<T>::UnknownOperator.into())
 			}
-        }
-        
-        #[weight = 0]
-        fn report(origin, _id: AssetId, _price: Balance) {
-            let who : <T as frame_system::Config>::AccountId = ensure_signed(origin)?;
+		}
+
+		#[weight = 0]
+		fn report(origin, _id: AssetId, _price: Balance) {
+			let who : <T as frame_system::Config>::AccountId = ensure_signed(origin)?;
 			ensure!(Operators::<T>::contains_key(who), Error::<T>::WrongOperator);
 			let results = match Self::asset_price(_id) {
 				Some(mut x) => {
@@ -76,14 +76,14 @@ decl_module! {
 				}
 			  };
 			Prices::insert(_id, results);
-        }
+		}
 
 	}
 }
 
 decl_event! {
 	pub enum Event<T> where
-	    <T as frame_system::Config>::AccountId,
+		<T as frame_system::Config>::AccountId,
 		Balance = Balance,
 	{
 		// A request has been accepted. Corresponding fee paiement is reserved
@@ -103,14 +103,13 @@ decl_event! {
 	}
 }
 
-
 decl_error! {
 	pub enum Error for Module<T: Config>  {
-        /// Error names should be descriptive.
+		/// Error names should be descriptive.
 		NoneValue,
 		/// Errors should have helpful documentation associated with them.
-        StorageOverflow,
-        // Manipulating an unknown operator
+		StorageOverflow,
+		// Manipulating an unknown operator
 		UnknownOperator,
 		// Manipulating an unknown request
 		UnknownRequest,
@@ -130,12 +129,12 @@ decl_error! {
 decl_storage! {
 	trait Store for Module<T: Config> as Oracle {
 		// the result of the oracle call
-        pub Result get(fn get_result): i128;
-        
-        // A set of all registered Operator
-        pub Operators get(fn operator): map hasher(blake2_128_concat) <T as frame_system::Config>::AccountId => bool;
-        
-        pub Prices get(fn asset_price): map hasher(blake2_128_concat) AssetId =>  Option<Vec<Balance>>;
+		pub Result get(fn get_result): i128;
+
+		// A set of all registered Operator
+		pub Operators get(fn operator): map hasher(blake2_128_concat) <T as frame_system::Config>::AccountId => bool;
+
+		pub Prices get(fn asset_price): map hasher(blake2_128_concat) AssetId =>  Option<Vec<Balance>>;
 
 	} add_extra_genesis {
 		config(oracles):
@@ -159,11 +158,7 @@ impl<T: Config> Module<T> {
 				let median = reports[mid];
 				return Ok(median)
 			},
-			None => {
-				return Err(DispatchError::from(crate::Error::<T>::PriceDoesNotExist).into());
-			}
+			None => return Err(DispatchError::from(crate::Error::<T>::PriceDoesNotExist).into()),
 		}
-		
-    }
+	}
 }
-

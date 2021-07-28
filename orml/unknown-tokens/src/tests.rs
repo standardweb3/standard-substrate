@@ -5,8 +5,6 @@
 use super::*;
 use mock::{Event, *};
 
-use codec::{Decode, Encode};
-
 use frame_support::{assert_err, assert_ok};
 use xcm::v0::Junction;
 
@@ -40,9 +38,7 @@ fn deposit_concrete_fungible_asset_works() {
 			UnknownTokens::concrete_fungible_balances(&MOCK_RECIPIENT, &MOCK_CONCRETE_FUNGIBLE_ID),
 			3
 		);
-
-		let deposited_event = Event::unknown_tokens(crate::Event::Deposited(asset, MOCK_RECIPIENT));
-		assert!(System::events().iter().any(|record| record.event == deposited_event));
+		System::assert_last_event(Event::unknown_tokens(crate::Event::Deposited(asset, MOCK_RECIPIENT)));
 
 		// overflow case
 		let max_asset = concrete_fungible(u128::max_value());
@@ -50,15 +46,6 @@ fn deposit_concrete_fungible_asset_works() {
 			UnknownTokens::deposit(&max_asset, &MOCK_RECIPIENT),
 			Error::<Runtime>::BalanceOverflow
 		);
-
-		let deposit_failed_event = Event::unknown_tokens(crate::Event::DepositFailed(
-			max_asset,
-			MOCK_RECIPIENT,
-			Error::<Runtime>::BalanceOverflow.into(),
-		));
-		assert!(System::events()
-			.iter()
-			.any(|record| record.event == deposit_failed_event));
 	});
 }
 
@@ -71,9 +58,7 @@ fn deposit_abstract_fungible_asset() {
 			UnknownTokens::abstract_fungible_balances(&MOCK_RECIPIENT, &mock_abstract_fungible_id()),
 			3
 		);
-
-		let deposited_event = Event::unknown_tokens(crate::Event::Deposited(asset, MOCK_RECIPIENT));
-		assert!(System::events().iter().any(|record| record.event == deposited_event));
+		System::assert_last_event(Event::unknown_tokens(crate::Event::Deposited(asset, MOCK_RECIPIENT)));
 
 		// overflow case
 		let max_asset = abstract_fungible(u128::max_value());
@@ -85,15 +70,6 @@ fn deposit_abstract_fungible_asset() {
 			UnknownTokens::abstract_fungible_balances(&MOCK_RECIPIENT, &mock_abstract_fungible_id()),
 			3
 		);
-
-		let deposit_failed_event = Event::unknown_tokens(crate::Event::DepositFailed(
-			max_asset,
-			MOCK_RECIPIENT,
-			Error::<Runtime>::BalanceOverflow.into(),
-		));
-		assert!(System::events()
-			.iter()
-			.any(|record| record.event == deposit_failed_event));
 	});
 }
 
@@ -104,15 +80,6 @@ fn deposit_unhandled_asset_should_fail() {
 			UnknownTokens::deposit(&MultiAsset::All, &MOCK_RECIPIENT),
 			Error::<Runtime>::UnhandledAsset
 		);
-
-		let deposit_failed_event = Event::unknown_tokens(crate::Event::DepositFailed(
-			MultiAsset::All,
-			MOCK_RECIPIENT,
-			Error::<Runtime>::UnhandledAsset.into(),
-		));
-		assert!(System::events()
-			.iter()
-			.any(|record| record.event == deposit_failed_event));
 	});
 }
 
@@ -127,24 +94,13 @@ fn withdraw_concrete_fungible_asset_works() {
 			UnknownTokens::concrete_fungible_balances(&MOCK_RECIPIENT, &MOCK_CONCRETE_FUNGIBLE_ID),
 			0
 		);
-
-		let withdrawn_event = Event::unknown_tokens(crate::Event::Withdrawn(asset.clone(), MOCK_RECIPIENT));
-		assert!(System::events().iter().any(|record| record.event == withdrawn_event));
+		System::assert_last_event(Event::unknown_tokens(crate::Event::Withdrawn(asset.clone(), MOCK_RECIPIENT)));
 
 		// balance too low case
 		assert_err!(
 			UnknownTokens::withdraw(&asset, &MOCK_RECIPIENT),
 			Error::<Runtime>::BalanceTooLow
 		);
-
-		let withdraw_failed_event = Event::unknown_tokens(crate::Event::WithdrawFailed(
-			asset,
-			MOCK_RECIPIENT,
-			Error::<Runtime>::BalanceTooLow.into(),
-		));
-		assert!(System::events()
-			.iter()
-			.any(|record| record.event == withdraw_failed_event));
 	});
 }
 
@@ -159,24 +115,13 @@ fn withdraw_abstract_fungible_asset_works() {
 			UnknownTokens::abstract_fungible_balances(&MOCK_RECIPIENT, &mock_abstract_fungible_id()),
 			0
 		);
-
-		let withdrawn_event = Event::unknown_tokens(crate::Event::Withdrawn(asset.clone(), MOCK_RECIPIENT));
-		assert!(System::events().iter().any(|record| record.event == withdrawn_event));
+		System::assert_last_event(Event::unknown_tokens(crate::Event::Withdrawn(asset.clone(), MOCK_RECIPIENT)));
 
 		// balance too low case
 		assert_err!(
 			UnknownTokens::withdraw(&asset, &MOCK_RECIPIENT),
 			Error::<Runtime>::BalanceTooLow
 		);
-
-		let withdraw_failed_event = Event::unknown_tokens(crate::Event::WithdrawFailed(
-			asset,
-			MOCK_RECIPIENT,
-			Error::<Runtime>::BalanceTooLow.into(),
-		));
-		assert!(System::events()
-			.iter()
-			.any(|record| record.event == withdraw_failed_event));
 	});
 }
 
@@ -187,14 +132,5 @@ fn withdraw_unhandled_asset_should_fail() {
 			UnknownTokens::withdraw(&MultiAsset::All, &MOCK_RECIPIENT),
 			Error::<Runtime>::UnhandledAsset
 		);
-
-		let withdraw_failed_event = Event::unknown_tokens(crate::Event::WithdrawFailed(
-			MultiAsset::All,
-			MOCK_RECIPIENT,
-			Error::<Runtime>::UnhandledAsset.into(),
-		));
-		assert!(System::events()
-			.iter()
-			.any(|record| record.event == withdraw_failed_event));
 	});
 }

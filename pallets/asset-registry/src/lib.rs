@@ -1,7 +1,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::dispatch::DispatchError;
-use frame_support::sp_runtime::traits::{AtLeast32Bit, CheckedAdd, One};
+use frame_support::{
+	dispatch::DispatchError,
+	sp_runtime::traits::{AtLeast32Bit, CheckedAdd, One},
+};
 use sp_std::vec::Vec;
 
 #[cfg(test)]
@@ -19,7 +21,13 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		type AssetId: Parameter + Member + Into<u32> + AtLeast32Bit + Default + Copy + MaybeSerializeDeserialize;
+		type AssetId: Parameter
+			+ Member
+			+ Into<u32>
+			+ AtLeast32Bit
+			+ Default
+			+ Copy
+			+ MaybeSerializeDeserialize;
 	}
 
 	#[pallet::pallet]
@@ -46,7 +54,8 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn asset_ids)]
-	pub type AssetIds<T: Config> = StorageMap<_, Twox64Concat, Vec<u8>, Option<T::AssetId>, ValueQuery>;
+	pub type AssetIds<T: Config> =
+		StorageMap<_, Twox64Concat, Vec<u8>, Option<T::AssetId>, ValueQuery>;
 
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
@@ -87,7 +96,7 @@ impl<T: Config> Pallet<T> {
 				<NextAssetId<T>>::put(next_id);
 				<AssetIds<T>>::insert(name, Some(asset_id));
 				Ok(asset_id)
-			}
+			},
 		}
 	}
 }

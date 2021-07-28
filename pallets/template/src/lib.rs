@@ -14,23 +14,19 @@ mod tests;
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
 
-
 #[frame_support::pallet]
 pub mod pallet {
-	use frame_support::{dispatch::DispatchResultWithPostInfo, pallet_prelude::*};
+	use frame_support::{
+		dispatch::DispatchResultWithPostInfo, pallet_prelude::*, traits::Get, PalletId,
+	};
 	use frame_system::pallet_prelude::*;
-	use sp_runtime::{
-		ModuleId,
-   };
-   use frame_support::traits::{Get};
 
 	/// Configure the pallet by specifying the parameters and types on which it depends.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
-		type ModuleId: Get<ModuleId>;
-
+		type PalletId: Get<PalletId>;
 	}
 
 	#[pallet::pallet]
@@ -106,7 +102,7 @@ pub mod pallet {
 					// Update the value in storage with the incremented result.
 					<Something<T>>::put(new);
 					Ok(().into())
-				}
+				},
 			}
 		}
 	}

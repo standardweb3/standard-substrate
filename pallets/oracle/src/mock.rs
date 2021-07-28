@@ -1,16 +1,16 @@
-
 #![cfg(test)]
 
-use crate::*;
-use sp_core::H256;
-use frame_support::{impl_outer_origin, impl_outer_event, parameter_types, weights::Weight};
-use crate::sp_api_hidden_includes_decl_storage::hidden_include::StorageValue;
-use sp_runtime::{
-	traits::{BlakeTwo256, IdentityLookup}, testing::Header, Perbill, ModuleId
-};
-use pallet_chainlink::CallbackWithParameter;
+use crate::{sp_api_hidden_includes_decl_storage::hidden_include::StorageValue, *};
+use frame_support::{impl_outer_event, impl_outer_origin, parameter_types, weights::Weight};
 use frame_system as system;
 use pallet_balances as balances;
+use pallet_chainlink::CallbackWithParameter;
+use sp_core::H256;
+use sp_runtime::{
+	testing::Header,
+	traits::{BlakeTwo256, IdentityLookup},
+	ModuleId, Perbill,
+};
 
 impl_outer_origin! {
 	pub enum Origin for Test {}
@@ -77,13 +77,13 @@ parameter_types! {
 }
 
 impl pallet_balances::Config for Test {
-    type Balance = Balance;
-    type Event = ();
-    type DustRemoval = ();
-    type ExistentialDeposit = ExistentialDeposit;
-    type AccountStore = System;
-    type WeightInfo = ();
-    type MaxLocks = ();
+	type Balance = Balance;
+	type Event = ();
+	type DustRemoval = ();
+	type ExistentialDeposit = ExistentialDeposit;
+	type AccountStore = System;
+	type WeightInfo = ();
+	type MaxLocks = ();
 }
 
 impl pallet_standard_token::Config for Test {
@@ -104,11 +104,10 @@ impl Trait for Test {
 	type Event = ();
 }
 
-impl module2::Trait for Test {
-}
+impl module2::Trait for Test {}
 
-//TODO: make mockup for chainlink integration. 
-//BLOCKER: chainlink overrides existing events for runtime modules. 
+//TODO: make mockup for chainlink integration.
+//BLOCKER: chainlink overrides existing events for runtime modules.
 pub mod module2 {
 	use super::*;
 
@@ -133,38 +132,38 @@ pub mod module2 {
 		}
 	}
 
-	impl <T: Trait> CallbackWithParameter for Call<T> {
+	impl<T: Trait> CallbackWithParameter for Call<T> {
 		fn with_result(&self, result: Vec<u8>) -> Option<Self> {
 			match *self {
 				Call::callback(_) => Some(Call::callback(result)),
-				_ => None
+				_ => None,
 			}
 		}
 	}
-
 }
 
-pub type System  = system::Module<Test>;
+pub type System = system::Module<Test>;
 type Chainlink = pallet_chainlink::Module<Test>;
 pub type Balances = balances::Module<Test>;
 pub type Token = pallet_standard_token::Module<Test>;
 pub type Market = Module<Test>;
 
-
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut t = system::GenesisConfig::default().build_storage::<Test>().unwrap();
-	pallet_balances::GenesisConfig::<Test>{
+	pallet_balances::GenesisConfig::<Test> {
 		// Total issuance will be 200 with treasury account initialized at ED.
 		balances: vec![(0, 100000), (1, 100000), (2, 100000)],
-	}.assimilate_storage(&mut t).unwrap();
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
 	t.into()
 }
 
 pub fn last_event() -> RawEvent<u128, u64> {
-	System::events().into_iter().map(|r| r.event)
-		.filter_map(|e| {
-			if let TestEvent::chainlink(inner) = e { Some(inner) } else { None }
-		})
+	System::events()
+		.into_iter()
+		.map(|r| r.event)
+		.filter_map(|e| if let TestEvent::chainlink(inner) = e { Some(inner) } else { None })
 		.last()
 		.unwrap()
 }

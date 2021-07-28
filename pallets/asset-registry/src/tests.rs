@@ -4,12 +4,11 @@ use frame_support::assert_ok;
 #[test]
 fn create_asset() {
 	new_test_ext().execute_with(|| {
-
-        assert_ok!(AssetRegistryModule::get_or_create_asset(b"STD".to_vec()));
+		assert_ok!(AssetRegistryModule::get_or_create_asset(b"STD".to_vec()));
 
 		let dot_asset = AssetRegistryModule::get_or_create_asset(b"DOT".to_vec());
-        assert_ok!(dot_asset);
-        
+		assert_ok!(dot_asset);
+
 		let dot_asset_id = dot_asset.ok().unwrap();
 		assert_ok!(AssetRegistryModule::get_or_create_asset(b"BTC".to_vec()));
 
