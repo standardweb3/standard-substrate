@@ -26,8 +26,8 @@ runs:
       shell: bash
       run: |
         curl https://sh.rustup.rs -sSf | sh -s -- -y
-        source ~/.cargo/env
+        source $HOME/.cargo/env
         rustup default stable
         rustup update stable
-        rustup update ${{ inputs.toolchain_build }}
+        rustup install ${{ inputs.toolchain_build }}
         rustup target add wasm32-unknown-unknown --toolchain ${{ inputs.toolchain_build }}
