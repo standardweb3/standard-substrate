@@ -79,7 +79,7 @@ sc-service = { git = "https://github.com/paritytech/substrate", branch = "polkad
 polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.6", optional = true }
 substrate-build-script-utils = { version = "3.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 structopt = { version = "0.3.8", optional = true }
-vergen = { version = "5.1.9", optional = true }
+vergen = { version = "5.1.13", optional = true }
 
 [features]
 default = [ "cli" ]
