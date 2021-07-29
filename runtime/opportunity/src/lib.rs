@@ -115,6 +115,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPallets,
+	(),
 >;
 
 /// We assume that ~10% of the block weight is consumed by `on_initalize` handlers.
