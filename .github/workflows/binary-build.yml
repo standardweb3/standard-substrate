@@ -79,7 +79,9 @@ jobs:
       - name: Artifact actions - ${{ matrix.os }}
         run: |
           mv ./target/release/opportunity-standalone ./opportunity-standalone-${{ steps.arch.outputs.DETAILS }}
+          mv ./target/release/wbuild/opportunity-runtime/opportunity_runtime.compact.wasm ./
           mv ./target/release/standard-collator ./standard-collator-${{ steps.arch.outputs.DETAILS }}
+          mv ./target/release/wbuild/standard-runtime/standard_runtime.compact.wasm ./
 
       - name: Upload Artifacts - ${{ matrix.os }}
         uses: actions/upload-artifact@v2
@@ -88,4 +90,6 @@ jobs:
           if-no-files-found: error
           path: |
             ./opportunity-standalone-${{ steps.arch.outputs.DETAILS }}
+            ./opportunity_runtime.compact.wasm
             ./standard-collator-${{ steps.arch.outputs.DETAILS }}
+            ./standard_runtime.compact.wasm

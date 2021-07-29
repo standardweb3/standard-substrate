@@ -6939,6 +6939,7 @@ dependencies = [
 name = "primitives"
 version = "0.1.0"
 dependencies = [
+ "sp-runtime 3.0.0 (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.6)",
  "sp-std 3.0.0 (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.6)",
 ]
 

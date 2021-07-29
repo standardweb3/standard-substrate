@@ -23,7 +23,7 @@
 use std::sync::Arc;
 use sc_consensus_babe;
 use opportunity_runtime::{self, RuntimeApi};
-use node_primitives::Block;
+use primitives::Block;
 use sc_service::{
 	config::Configuration, error::Error as ServiceError, RpcHandlers, TaskManager,
 };

@@ -34,7 +34,7 @@ use std::sync::Arc;
 
 use sp_keystore::SyncCryptoStorePtr;
 use opportunity_runtime::{BlockNumber, AccountId, Index, Hash};
-use node_primitives::{Block};
+use primitives::Block;
 use primitives::{Balance};
 use sc_consensus_babe::{Config, Epoch};
 use sc_consensus_babe_rpc::BabeRpcHandler;
