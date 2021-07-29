@@ -63,7 +63,6 @@ pub const STD: Balance = 1_000 * MILLISTD;
 pub const MILLISECS_PER_BLOCK: Moment = 12000;
 pub const SECS_PER_BLOCK: Moment = MILLISECS_PER_BLOCK / 1000;
 pub const MINUTES: BlockNumber = 60 / (SECS_PER_BLOCK as BlockNumber);
-pub const EPOCH_DURATION_IN_BLOCKS: BlockNumber = 10 * MINUTES;
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]
