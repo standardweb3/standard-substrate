@@ -58,11 +58,8 @@ use primitives::{Amount, AssetId, Balance, CurrencyId};
 pub use template;
 
 /// Constant values used within the runtime.
-pub const MILLISTD: Balance = 1_000_000_000_000_000;
-pub const STD: Balance = 1_000 * MILLISTD;
-pub const MILLISECS_PER_BLOCK: Moment = 12000;
-pub const SECS_PER_BLOCK: Moment = MILLISECS_PER_BLOCK / 1000;
-pub const MINUTES: BlockNumber = 60 / (SECS_PER_BLOCK as BlockNumber);
+pub mod constants;
+use constants::{time::*, currency::*};
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]

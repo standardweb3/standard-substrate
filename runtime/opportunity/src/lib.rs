@@ -63,6 +63,7 @@ use primitives::{AssetId, Balance};
 /// Import the template pallet.
 pub use pallet_template;
 pub mod constants;
+/// Constant values used within the runtime.
 use constants::{currency::*, time::*};
 
 /// Some way of identifying an account on the chain. We intentionally make it equivalent
