@@ -1,6 +1,8 @@
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use pallet_staking::Forcing;
-use sc_service::ChainType;
+use sc_chain_spec::{ChainSpecExtension, ChainType};
+use sc_client_api::{BadBlocks, ForkBlocks};
+use serde::{Deserialize, Serialize};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_babe::AuthorityId as BabeId;
 use sp_core::{sr25519, Pair, Public};
@@ -8,24 +10,34 @@ use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
 use opportunity_runtime::{
-	AccountId, AssetRegistryConfig, BabeConfig, BalancesConfig, CouncilConfig, DemocracyConfig,
-	ElectionsConfig, GrandpaConfig, ImOnlineConfig, OracleConfig, Perbill, SessionConfig,
-	SessionKeys, Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig,
-	TechnicalCommitteeConfig, TechnicalMembershipConfig, TokensConfig, TreasuryConfig,
+	AccountId, AssetRegistryConfig, BabeConfig, BalancesConfig, Block,
+	CouncilConfig, DemocracyConfig, ElectionsConfig, GrandpaConfig, ImOnlineConfig, OracleConfig,
+	Perbill, SessionConfig, SessionKeys, Signature, StakerStatus, StakingConfig, SudoConfig,
+	SystemConfig, TechnicalCommitteeConfig, TechnicalMembershipConfig, TokensConfig,
+	TreasuryConfig
 };
 
-pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
 pub type AssetId = u32;
 pub const CORE_ASSET_ID: AssetId = 1;
 
-pub const BABE_GENESIS_EPOCH_CONFIG: sp_consensus_babe::BabeEpochConfiguration =
-	sp_consensus_babe::BabeEpochConfiguration {
-		c: PRIMARY_PROBABILITY,
-		allowed_slots: sp_consensus_babe::AllowedSlots::PrimaryAndSecondaryPlainSlots,
-	};
+// Node `ChainSpec` extensions.
+// Additional parameters for some Substrate core modules,
+// customizable from the chain spec.
+#[derive(Default, Clone, Serialize, Deserialize, ChainSpecExtension)]
+#[serde(rename_all = "camelCase")]
+pub struct Extensions {
+	/// Block numbers with known hashes.
+	pub fork_blocks: ForkBlocks<Block>,
+	/// Known bad block hashes.
+	pub bad_blocks: BadBlocks<Block>,
+}
 
-/// Specialized `ChainSpec` for the normal parachain runtime.
-pub type ChainSpec = sc_service::GenericChainSpec<opportunity_runtime::GenesisConfig>;
+//  The `ChainSpec` parameterized for the opportunity runtime.
+pub type ChainSpec =
+	sc_service::GenericChainSpec<opportunity_runtime::GenesisConfig, Extensions>;
+
+type AccountPublic = <Signature as Verify>::Signer;
+
 const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
 const OPPORTUNITY_PROPERTIES: &str = r#"
         {
@@ -51,8 +63,6 @@ pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Pu
 		.public()
 }
 
-type AccountPublic = <Signature as Verify>::Signer;
-
 pub fn authority_keys_from_seed(
 	seed: &str,
 ) -> (AccountId, AccountId, BabeId, GrandpaId, ImOnlineId, AuthorityDiscoveryId) {
@@ -77,21 +87,29 @@ where
 /// Opportunity Testnet Chainspec.
 /// Rust compiler is not deterministic. Therefore, compiled chainspec is shared to run the node for shared genesis block.
 /// Reference: https://stackoverflow.com/questions/66554685/substrate-genesis-blocks-not-matching
-pub fn opportunity_config() -> ChainSpec {
-	ChainSpec::from_json_bytes(&include_bytes!("../spec/opportunity_raw.json")[..]).unwrap()
+pub fn opportunity_config() -> Result<ChainSpec, String> {
+	ChainSpec::from_json_bytes(&include_bytes!("../spec/opportunity_raw.json")[..])
 }
 
-pub fn opportunity_standalone_config() -> ChainSpec {
-	ChainSpec::from_genesis(
+pub fn opportunity_standalone_config() -> Result<ChainSpec, String> {
+	let wasm_binary = opportunity_runtime::WASM_BINARY.ok_or("Development wasm not available")?;
+	let boot_nodes = vec![];
+
+	Ok(ChainSpec::from_genesis(
 		// Name
 		"Opportunity Standalone Testnet",
 		// ID
 		"opportunity_standalone",
+		// Chain Type
 		ChainType::Live,
 		move || {
-			testnet_genesis(
+			opportunity_testnet_config_genesis(
+				wasm_binary,
+				// Initial authorities
 				vec![authority_keys_from_seed("Alice")],
+				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				// Pre-funded accounts
 				vec![
 					get_account_id_from_seed::<sr25519::Public>("Alice"),
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
@@ -108,28 +126,41 @@ pub fn opportunity_standalone_config() -> ChainSpec {
 				],
 			)
 		},
-		vec![],
+		// Bootnodes
+		boot_nodes,
+		// Telemetry
 		Some(
 			sc_telemetry::TelemetryEndpoints::new(vec![(STAGING_TELEMETRY_URL.to_string(), 0)])
 				.expect("Telemetry url is valid"),
 		),
+		// Protocol ID
 		Some(OPPORTUNITY_PROTOCOL_ID),
+		// Properties
 		serde_json::from_str(OPPORTUNITY_PROPERTIES).unwrap(),
+		// Extensions
 		Default::default(),
-	)
+	))
 }
 
-pub fn development_config() -> ChainSpec {
-	ChainSpec::from_genesis(
+pub fn development_config() -> Result<ChainSpec, String> {
+	let wasm_binary = opportunity_runtime::WASM_BINARY.ok_or("Development wasm not available")?;
+	let boot_nodes = vec![];
+
+	Ok(ChainSpec::from_genesis(
 		// Name
 		"Development",
 		// ID
 		"dev",
+		// Chain Type
 		ChainType::Local,
 		move || {
-			testnet_genesis(
+			opportunity_testnet_config_genesis(
+				wasm_binary,
+				// Initial authorities
 				vec![authority_keys_from_seed("Alice")],
+				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				// Pre-funded accounts
 				vec![
 					get_account_id_from_seed::<sr25519::Public>("Alice"),
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
@@ -138,25 +169,37 @@ pub fn development_config() -> ChainSpec {
 				],
 			)
 		},
-		vec![],
+		// Bootnodes
+		boot_nodes,
+		// Telemetry
 		None,
+		// Protocol ID
 		None,
+		// Properties
 		None,
-		None,
-	)
+		// Extensions
+		Default::default(),
+	))
 }
 
-pub fn local_testnet_config() -> ChainSpec {
-	ChainSpec::from_genesis(
+pub fn local_testnet_config() -> Result<ChainSpec, String> {
+	let wasm_binary = opportunity_runtime::WASM_BINARY.ok_or("Development wasm not available")?;
+	let boot_nodes = vec![];
+
+	Ok(ChainSpec::from_genesis(
 		// Name
 		"Local Testnet",
 		// ID
 		"local_testnet",
 		ChainType::Local,
 		move || {
-			testnet_genesis(
+			opportunity_testnet_config_genesis(
+				wasm_binary,
+				// Initial authorities
 				vec![authority_keys_from_seed("Alice")],
+				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				// Pre-funded accounts
 				vec![
 					get_account_id_from_seed::<sr25519::Public>("Alice"),
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
@@ -173,15 +216,21 @@ pub fn local_testnet_config() -> ChainSpec {
 				],
 			)
 		},
-		vec![],
+		// Bootnodes
+		boot_nodes,
+		// Telemetry
 		None,
+		// Protocol ID
 		None,
+		// Properties
 		None,
-		None,
-	)
+		// Extensions
+		Default::default(),
+	))
 }
 
-fn testnet_genesis(
+fn opportunity_testnet_config_genesis(
+	wasm_binary: &[u8],
 	initial_authorities: Vec<(
 		AccountId,
 		AccountId,
@@ -195,9 +244,8 @@ fn testnet_genesis(
 ) -> opportunity_runtime::GenesisConfig {
 	opportunity_runtime::GenesisConfig {
 		system: SystemConfig {
-			code: opportunity_runtime::WASM_BINARY
-				.expect("WASM binary was not build, please build it!")
-				.to_vec(),
+			// Add Wasm runtime to storage.
+			code: wasm_binary.to_vec(),
 			changes_trie_config: Default::default(),
 		},
 		balances: BalancesConfig {
@@ -207,7 +255,7 @@ fn testnet_genesis(
 		sudo: SudoConfig { key: root_key },
 		babe: BabeConfig {
 			authorities: Default::default(),
-			epoch_config: Some(BABE_GENESIS_EPOCH_CONFIG),
+			epoch_config: Some(opportunity_runtime::BABE_GENESIS_EPOCH_CONFIG),
 		},
 		im_online: ImOnlineConfig { keys: vec![] },
 		session: SessionConfig {
@@ -223,8 +271,8 @@ fn testnet_genesis(
 				.collect::<Vec<_>>(),
 		},
 		staking: StakingConfig {
-			validator_count: initial_authorities.len() as u32 * 2,
-			minimum_validator_count: initial_authorities.len() as u32,
+			validator_count: initial_authorities.len() as u32,
+			minimum_validator_count: 1,
 			stakers: initial_authorities
 				.iter()
 				.map(|x| {
@@ -237,7 +285,7 @@ fn testnet_genesis(
 				})
 				.collect(),
 			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
-			force_era: Forcing::ForceNone,
+			force_era: Forcing::NotForcing,
 			slash_reward_fraction: Perbill::from_percent(10),
 			..Default::default()
 		},
