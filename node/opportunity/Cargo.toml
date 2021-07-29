@@ -22,13 +22,9 @@ default = [ ]
 frame-benchmarking = { version = "3.1.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 frame-benchmarking-cli = { version = "3.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 frame-rpc-system = { package = "substrate-frame-rpc-system", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
-# These dependencies are used for the node template's RPCs
-futures = '0.3.4'
-# , features = ["wasmtime"]
 grandpa = { version = '0.9.0', package = "sc-finality-grandpa", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 jsonrpc-core = "15.1.0"
 node-primitives = { version = "2.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
-# These dependencies are used for runtime benchmarking
 opportunity-runtime = { path = "../../runtime/opportunity" }
 pallet-im-online = { version = "3.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 pallet-mmr-rpc = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
@@ -57,7 +53,7 @@ sc-service = { version = "0.9.0", git = "https://github.com/paritytech/substrate
 sc-sync-state-rpc = { version = "0.9.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 sc-telemetry = { version = "3.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 sc-transaction-pool = { version = "3.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
-serde_json = { version = "1.0" }
+
 sp-api = { version = "3.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 sp-authority-discovery = { version = "3.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 sp-authorship = { version = '3.0.0', git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
@@ -72,7 +68,12 @@ sp-keystore = { version = "0.9.0", git = "https://github.com/paritytech/substrat
 sp-runtime = { version = "3.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 sp-timestamp = { version = "3.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
+
+# External Crates
+serde = { version = "1.0.123", features = ["derive"] }
 structopt = "0.3.8"
+serde_json = { version = "1.0" }
+futures = '0.3.4'
 
 [build-dependencies]
 substrate-build-script-utils = { version = "3.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
