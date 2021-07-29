@@ -11,6 +11,7 @@ on:
       - "release/**"
       - "feature/**"
       - "bugfix/**"
+      - "!dependabot/**"
     paths:
       - "node/**"
       - "orml/**"

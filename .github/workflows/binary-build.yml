@@ -15,6 +15,9 @@ on:
       - "pallets/**"
       - "primitives/**"
       - "runtime/**"
+  pull_request:
+    branches-ignore:
+      - "dependabot/**"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:

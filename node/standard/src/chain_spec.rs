@@ -7,7 +7,7 @@ use standard_runtime::{
 	wasm_binary_unwrap, AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig,
 	GenesisConfig, ImOnlineConfig, ImOnlineId, OracleConfig, ParachainInfoConfig, SessionConfig,
 	SessionKeys, Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig, TokensConfig,
-	VestingConfig, STD,
+	VestingConfig,
 };
 
 use sp_runtime::{
@@ -17,7 +17,7 @@ use sp_runtime::{
 
 use primitives::{AssetId, Balance};
 
-pub const CORE_ASSET_ID: AssetId = 0;
+pub const CORE_ASSET_ID: AssetId = 1;
 
 type AccountPublic = <Signature as Verify>::Signer;
 
@@ -89,8 +89,6 @@ fn testnet_genesis(
 	endowed_accounts: Option<Vec<AccountId>>,
 	para_id: ParaId,
 ) -> GenesisConfig {
-	const ENDOWMENT: Balance = 1_000_000_000 * STD;
-
 	let balances: Vec<(AccountId, Balance)> = endowed_accounts
 		.clone()
 		.unwrap_or_else(|| {
@@ -107,7 +105,7 @@ fn testnet_genesis(
 		})
 		.iter()
 		.cloned()
-		.map(|acc| (acc, ENDOWMENT))
+		.map(|k| (k, 1 << 60))
 		.collect();
 
 	let endowed_accounts: Vec<(AccountId, Balance)> = endowed_accounts
@@ -126,7 +124,7 @@ fn testnet_genesis(
 		})
 		.iter()
 		.cloned()
-		.map(|acc| (acc, ENDOWMENT))
+		.map(|k| (k, 1 << 60))
 		.collect();
 
 	make_genesis(balances, endowed_accounts, sudo_key, para_id)
@@ -146,7 +144,7 @@ fn make_genesis(
 	let authorities = vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")];
 	let stakers = authorities
 		.iter()
-		.map(|x| (x.0.clone(), x.1.clone(), 1_000 * STD, StakerStatus::Validator))
+		.map(|x| (x.0.clone(), x.1.clone(), 100_000_000_000_000_000_u128, StakerStatus::Validator))
 		.collect::<Vec<_>>();
 	GenesisConfig {
 		system: SystemConfig {
