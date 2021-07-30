@@ -33,12 +33,12 @@ jobs:
       - name: Artifact move - ${{ matrix.platform }} - ${{ matrix.release }}
         if: ${{ matrix.platform == 'linux/amd64' }}
         run: |
-          mv ${{ matrix.release }}-linux-x86_64/${{ matrix.release }}-linux-x86_64 ./${{ matrix.release }}
+          mv standard-substrate-linux-x86_64/${{ matrix.release }}-linux-x86_64 ./${{ matrix.release }}
 
       - name: Artifact move - ${{ matrix.platform }} - ${{ matrix.release }}
         if: ${{ matrix.platform == 'darwin/amd64' }}
         run: |
-          mv ${{ matrix.release }}-darwin-x86_64/${{ matrix.release }}-darwin-x86_64 ./${{ matrix.release }}
+          mv standard-substrate-darwin-x86_64/${{ matrix.release }}-darwin-x86_64 ./${{ matrix.release }}
 
       - name: Make executable - ${{ matrix.platform }} - ${{ matrix.release }}
         run: |
