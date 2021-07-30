@@ -3,7 +3,7 @@
 
 use frame_support::{decl_error, decl_event, decl_module, decl_storage, ensure};
 use frame_system::{ensure_root, ensure_signed};
-use primitives::{AssetId, Balance, EraIndex, SlotIndex};
+use primitives::{AssetId, Balance, EraIndex, SocketIndex};
 use sp_runtime::{DispatchError, DispatchResult, Percent};
 use sp_std::prelude::*;
 mod math;
@@ -34,10 +34,10 @@ decl_module! {
 		// Register a new Operator.
 		// Fails with `OperatorAlreadyRegistered` if this Operator (identified by `origin`) has already been registered.
 		#[weight = 10_000]
-		pub fn register_operator(origin, _slot: SlotIndex, _who: T::AccountId) -> DispatchResult {
+		pub fn register_operator(origin, _socket: SocketIndex, _who: T::AccountId) -> DispatchResult {
 			ensure_root(origin)?;
 			Providers::<T>::insert(&_who, true);
-			Slots::<T>::insert(_slot, _who.clone());
+			Sockets::<T>::insert(_socket, _who.clone());
 			Self::deposit_event(RawEvent::OperatorRegistered(_who));
 
 			Ok(())
@@ -58,30 +58,30 @@ decl_module! {
 		}
 
 		#[weight = 0]
-		fn report(origin, _slot: SlotIndex, _id: AssetId, _price: Balance) -> DispatchResult {
+		fn report(origin, _socket: SocketIndex, _id: AssetId, _price: Balance) -> DispatchResult {
 			let who : <T as frame_system::Config>::AccountId = ensure_signed(origin)?;
 			ensure!(Providers::<T>::contains_key(who.clone()), Error::<T>::WrongOperator);
-			ensure!(Slots::<T>::get(_slot) == who.clone(), Error::<T>::WrongSlot);
+			ensure!(Sockets::<T>::get(_socket) == who.clone(), Error::<T>::WrongSocket);
 			let results = match Self::asset_price(_id) {
 				Some(mut x) => {
-				  x[_slot as usize] = _price;
+				  x[_socket as usize] = _price;
 				  x
 				},
 				Some(x) if x.len() != Self::provider_count() as usize => {
 				  let oracles = Self::provider_count();
 			      let mut batch = vec!{0; oracles as usize};
-				  batch[_slot as usize] = _price;
+				  batch[_socket as usize] = _price;
 				  batch	  
 				}
 				_ => {
 				  let oracles = Self::provider_count();
 				  let mut batch = vec!{0; oracles as usize};
-				  batch[_slot as usize] = _price;
+				  batch[_socket as usize] = _price;
 				  batch
 				}
 			  };
 			Prices::insert(_id, results);
-			Self::deposit_event(RawEvent::PriceSubmitted(_slot, who, _price));
+			Self::deposit_event(RawEvent::PriceSubmitted(_socket, who, _price));
 
 			Ok(())
 		}
@@ -95,20 +95,20 @@ decl_module! {
 		/// ----------
 		/// Weight: O(1)
 		/// DB Weight:
-		/// - Read: Slots, Prices
-		/// - Write:  Slots New Account, Slots Old Account
+		/// - Read: Sockets, Prices
+		/// - Write:  Sockets New Account, Sockets Old Account
 		/// # </weight>
 		#[weight = 10_000]
-		fn slash(origin, _slot: SlotIndex, _id: AssetId) -> DispatchResult {
+		fn slash(origin, _socket: SocketIndex, _id: AssetId) -> DispatchResult {
 			let batch = Prices::get(_id).unwrap();
-			let value = batch[_slot as usize];
+			let value = batch[_socket as usize];
 			let det = Self::determine_outlier(batch, value);
 			ensure!(det, Error::<T>::NotOutlier);
 			// Add provider to the slash list of the current era
-			let provider = Self::provider_at(_slot);
+			let provider = Self::provider_at(_socket);
 			Slashes::<T>::insert(1, vec!{provider});
 			// remove provider from the slot
-			Slots::<T>::remove(_slot);
+			Sockets::<T>::remove(_socket);
 			Ok(())
 		}
 
@@ -174,7 +174,7 @@ decl_event! {
 		OperatorUnregistered(AccountId),
 
 		// Price reported by an oracle provider
-		PriceSubmitted(SlotIndex, AccountId, u128),
+		PriceSubmitted(SocketIndex, AccountId, u128),
 	}
 }
 
@@ -199,7 +199,7 @@ decl_error! {
 		// Price does not exist
 		PriceDoesNotExist,
 		// Wrong slot to submit
-		WrongSlot,
+		WrongSocket,
 		// Outlier not determined
 		NotOutlier
 	}
@@ -214,10 +214,10 @@ decl_storage! {
 		pub Prices get(fn asset_price): map hasher(blake2_128_concat) AssetId =>  Option<Vec<Balance>>;
 
 		// Oracles: key as t
-		pub Oracles get(fn oracle): map hasher(blake2_128_concat)  <T as frame_system::Config>::AccountId  => Option<SlotIndex>;
+		pub Oracles get(fn oracle): map hasher(blake2_128_concat)  <T as frame_system::Config>::AccountId  => Option<SocketIndex>;
 
-		// Slots: key as the oracle slot index, value as the oracle provider
-		pub Slots get(fn provider_at): map hasher(blake2_128_concat) SlotIndex => <T as frame_system::Config>::AccountId;
+		// Sockets: key as the oracle slot index, value as the oracle provider
+		pub Sockets get(fn provider_at): map hasher(blake2_128_concat) SocketIndex => <T as frame_system::Config>::AccountId;
 
 		// Slash: key as the oracle slot index, value as the array of slashed accounts
 		pub Slashes get(fn slashes_at): map hasher(blake2_128_concat) EraIndex => Vec<<T as frame_system::Config>::AccountId>;

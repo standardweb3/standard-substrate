@@ -22,7 +22,7 @@ pub type CurrencyId = u32;
 pub type EraIndex = u64;
 
 /// Index for oracle to provide information
-pub type SlotIndex = u32;
+pub type SocketIndex = u32;
 
 pub const CORE_ASSET_ID: AssetId = 0;
 
