@@ -55,7 +55,6 @@ pub use sp_runtime::BuildStorage;
 use orml_currencies::BasicCurrencyAdapter;
 use orml_traits::parameter_type_with_key;
 use primitives::{Amount, AssetId, Balance, CurrencyId};
-pub use template;
 
 /// Constant values used within the runtime.
 pub mod constants;
@@ -453,7 +452,8 @@ parameter_type_with_key! {
 }
 
 parameter_types! {
-	pub TreasuryModuleAccount: AccountId = TemplatePalletId::get().into_account();
+	pub const TreasuryPalletId: PalletId = PalletId(*b"ty/trsry");
+	pub TreasuryModuleAccount: AccountId = TreasuryPalletId::get().into_account();
 }
 
 impl orml_tokens::Config for Runtime {
@@ -485,6 +485,7 @@ impl pallet_asset_registry::Config for Runtime {
 
 impl pallet_standard_oracle::Config for Runtime {
 	type Event = Event;
+	type WeightInfo =  pallet_standard_oracle::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -514,15 +515,6 @@ parameter_types! {
 	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
 	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(1, 100_000);
 	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000_000u128);
-}
-
-parameter_types! {
-	pub const TemplatePalletId: PalletId = PalletId(*b"template");
-}
-
-impl template::Config for Runtime {
-	type Event = Event;
-	type PalletId = TemplatePalletId;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -582,7 +574,6 @@ construct_runtime!(
 
 		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
 		Currencies: orml_currencies::{Pallet, Call, Event<T>},
-		TemplatePallet: template::{Pallet, Call, Storage, Event<T>},
 		AssetRegistry: pallet_asset_registry::{Pallet, Storage, Config<T>},
 		Market: pallet_standard_market::{Pallet, Call, Storage, Event},
 		Oracle: pallet_standard_oracle::{Pallet, Call, Storage, Event<T>, Config<T>},

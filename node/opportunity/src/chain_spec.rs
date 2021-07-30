@@ -303,8 +303,9 @@ fn opportunity_testnet_config_genesis(
 			next_asset_id: 5,
 		},
 		oracle: OracleConfig {
-			oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec(),
-		},
+            oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec(),
+            provider_count: 5
+        },
 		democracy: DemocracyConfig::default(),
 		elections: ElectionsConfig::default(),
 		council: CouncilConfig::default(),

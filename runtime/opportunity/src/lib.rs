@@ -60,8 +60,6 @@ use orml_traits::parameter_type_with_key;
 
 use primitives::{AssetId, Balance};
 
-/// Import the template pallet.
-pub use pallet_template;
 pub mod constants;
 /// Constant values used within the runtime.
 use constants::{currency::*, time::*};
@@ -776,15 +774,6 @@ impl pallet_sudo::Config for Runtime {
 pub type Amount = i128;
 pub type CurrencyId = u32;
 
-parameter_types! {
-	pub const TemplatePalletId: PalletId = PalletId(*b"template");
-}
-
-impl pallet_template::Config for Runtime {
-	type Event = Event;
-	type PalletId = TemplatePalletId;
-}
-
 parameter_type_with_key! {
 	pub ExistentialDeposits: |_currency_id: CurrencyId| -> Balance {
 		Zero::zero()
@@ -792,6 +781,7 @@ parameter_type_with_key! {
 }
 
 parameter_types! {
+	pub const TemplatePalletId: PalletId = PalletId(*b"template");
 	pub TreasuryModuleAccount: AccountId = TemplatePalletId::get().into_account();
 }
 
@@ -824,6 +814,7 @@ impl pallet_asset_registry::Config for Runtime {
 
 impl pallet_standard_oracle::Config for Runtime {
 	type Event = Event;
+	type WeightInfo = pallet_standard_oracle::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -905,8 +896,6 @@ construct_runtime!(
 		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>},
 		Bounties: pallet_bounties::{Pallet, Call, Storage, Event<T>},
 		Tips: pallet_tips::{Pallet, Call, Storage, Event<T>},
-		// Include the custom logic from the template pallet in the runtime.
-		TemplateModule: pallet_template::{Pallet, Call, Storage, Event<T>},
 		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
 		Currencies: orml_currencies::{Pallet, Storage, Call, Event<T>},
 		AssetRegistry: pallet_asset_registry::{Pallet, Storage, Config<T>},
