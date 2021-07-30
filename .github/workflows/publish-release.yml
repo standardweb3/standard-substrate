@@ -14,9 +14,6 @@ on:
 jobs:
   on-success:
     runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        release: [opportunity-standalone]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -28,13 +25,12 @@ jobs:
         with:
           workflow: binary-build.yml
 
-      - name: Display structure of downloaded files
-        run: |
-          ls -R
-
       - name: Create checksums file
         run: |
-          find . -type f -name "${{ matrix.release }}-*" -exec sha256sum {} \; >> SHA256CHECKSUMS
+          find . -type f -name "opportunity-standalone-*" -exec sha256sum {} \; >> SHA256CHECKSUMS
+          find . -type f -name "opportunity_runtime.compact.wasm" -exec sha256sum {} \; >> SHA256CHECKSUMS
+          find . -type f -name "standard-collator-*" -exec sha256sum {} \; >> SHA256CHECKSUMS
+          find . -type f -name "standard_runtime.compact.wasm" -exec sha256sum {} \; >> SHA256CHECKSUMS
 
       - name: Build Changelog
         id: build-changelog
@@ -51,7 +47,7 @@ jobs:
       - uses: ncipollo/release-action@v1.8.6
         id: release-step
         with:
-          artifacts: "SHA256CHECKSUMS, opportunity-standalone-*/*, standard-collator-*/*"
+          artifacts: "SHA256CHECKSUMS, standard-substrate-*/*"
           allowUpdates: true
           body: ${{ steps.build-changelog.outputs.changelog }}
           token: ${{ secrets.BOT_GITHUB_TOKEN }}
