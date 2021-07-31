@@ -20,7 +20,7 @@ use crate::{
 	cli::{Cli, Subcommand},
 	service,
 };
-use opportunity_runtime::Block;
+use primitives::Block;
 use sc_cli::{ChainSpec, Role, RuntimeVersion, SubstrateCli};
 use sc_service::PartialComponents;
 

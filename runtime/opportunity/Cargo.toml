@@ -1,6 +1,6 @@
 [package]
 name = 'opportunity-runtime'
-version = '0.9.6'
+version = '0.9.7'
 authors = [ 'Digital Native Foundation' ]
 edition = '2018'
 homepage = 'https://standard.tech'
@@ -8,10 +8,12 @@ license = 'Unlicense'
 repository = 'https://github.com/digitalnativeinc/standard-substrate'
 description = 'Opportunity Testnet Runtime.'
 
-[build-dependencies.substrate-wasm-builder]
-git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.7'
-version = '4.0.0'
+[build-dependencies]
+substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.7" }
+# [build-dependencies.substrate-wasm-builder]
+# git = 'https://github.com/paritytech/substrate.git'
+# branch = 'polkadot-v0.9.7'
+# version = '4.0.0'
 
 [dependencies]
 frame-election-provider-support = { default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.7" }

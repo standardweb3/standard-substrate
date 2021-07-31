@@ -290,7 +290,7 @@ fn opportunity_testnet_config_genesis(
 			..Default::default()
 		},
 		tokens: TokensConfig {
-			endowed_accounts: endowed_accounts.iter().flat_map(|_x| vec![]).collect(),
+			balances: endowed_accounts.iter().flat_map(|_x| vec![]).collect(),
 		},
 		asset_registry: AssetRegistryConfig {
 			core_asset_id: CORE_ASSET_ID,
