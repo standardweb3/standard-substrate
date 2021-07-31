@@ -282,9 +282,9 @@ pallet_staking_reward_curve::build! {
 }
 
 parameter_types! {
-	pub const SessionsPerEra: sp_staking::SessionIndex = 6;
-	pub const BondingDuration: pallet_staking::EraIndex = 24 * 28;
-	pub const SlashDeferDuration: pallet_staking::EraIndex = 24 * 7; // 1/4 the bonding duration.
+	pub const SessionsPerEra: sp_staking::SessionIndex = 24;
+	pub const BondingDuration: pallet_staking::EraIndex = 12;
+	pub const SlashDeferDuration: pallet_staking::EraIndex = 3; // 1/4 the bonding duration.
 	pub const RewardCurve: &'static PiecewiseLinear<'static> = &REWARD_CURVE;
 	pub const MaxNominatorRewardedPerValidator: u32 = 256;
 	pub OffchainRepeat: BlockNumber = 5;
@@ -485,6 +485,7 @@ impl pallet_asset_registry::Config for Runtime {
 
 impl pallet_standard_oracle::Config for Runtime {
 	type Event = Event;
+	type WeightInfo = ();
 }
 
 parameter_types! {

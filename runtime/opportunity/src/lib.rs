@@ -824,6 +824,7 @@ impl pallet_asset_registry::Config for Runtime {
 
 impl pallet_standard_oracle::Config for Runtime {
 	type Event = Event;
+	type WeightInfo = ();
 }
 
 parameter_types! {

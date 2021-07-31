@@ -1,4 +1,0 @@
-[toolchain]
-channel = "nightly-2021-04-22"
-components = [ "rustfmt" ]
-targets = [ "wasm32-unknown-unknown" ]

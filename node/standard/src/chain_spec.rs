@@ -187,6 +187,7 @@ fn make_genesis(
 		},
 		oracle: OracleConfig {
 			oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec(),
+			provider_count: 5,
 		},
 	}
 }
