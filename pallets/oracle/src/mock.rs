@@ -88,18 +88,13 @@ frame_support::construct_runtime!(
 );
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
-	let mut storage = frame_system::GenesisConfig::default()
-		.build_storage::<Test>()
-		.unwrap();
+	let mut storage = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
 
 	let oracles: Vec<AccountId> = vec![1];
 	let provider_count = 5;
-	oracle::GenesisConfig::<Test> {
-		oracles,
-		provider_count,
-	}
-	.assimilate_storage(&mut storage)
-	.unwrap();
+	oracle::GenesisConfig::<Test> { oracles, provider_count }
+		.assimilate_storage(&mut storage)
+		.unwrap();
 
 	let mut ext = sp_io::TestExternalities::new(storage);
 	ext.execute_with(|| System::set_block_number(1));

@@ -96,7 +96,7 @@ impl<T: Config> Pallet<T> {
 				<NextAssetId<T>>::put(next_id);
 				<AssetIds<T>>::insert(name, Some(asset_id));
 				Ok(asset_id)
-			},
+			}
 		}
 	}
 }

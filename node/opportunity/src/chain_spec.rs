@@ -10,14 +10,13 @@ use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
 use opportunity_runtime::{
-	AccountId, AssetRegistryConfig, BabeConfig, BalancesConfig, Block,
-	CouncilConfig, DemocracyConfig, ElectionsConfig, GrandpaConfig, ImOnlineConfig, OracleConfig,
-	Perbill, SessionConfig, SessionKeys, Signature, StakerStatus, StakingConfig, SudoConfig,
-	SystemConfig, TechnicalCommitteeConfig, TechnicalMembershipConfig, TokensConfig,
-	TreasuryConfig
+	AccountId, AssetRegistryConfig, BabeConfig, BalancesConfig, Block, CouncilConfig,
+	DemocracyConfig, ElectionsConfig, GrandpaConfig, ImOnlineConfig, OracleConfig, Perbill,
+	SessionConfig, SessionKeys, Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig,
+	TechnicalCommitteeConfig, TechnicalMembershipConfig, TokensConfig, TreasuryConfig,
 };
 
-use primitives::{AssetId};
+use primitives::AssetId;
 pub const CORE_ASSET_ID: AssetId = 1;
 
 // Node `ChainSpec` extensions.
@@ -33,8 +32,7 @@ pub struct Extensions {
 }
 
 //  The `ChainSpec` parameterized for the opportunity runtime.
-pub type ChainSpec =
-	sc_service::GenericChainSpec<opportunity_runtime::GenesisConfig, Extensions>;
+pub type ChainSpec = sc_service::GenericChainSpec<opportunity_runtime::GenesisConfig, Extensions>;
 
 type AccountPublic = <Signature as Verify>::Signer;
 
@@ -289,9 +287,7 @@ fn opportunity_testnet_config_genesis(
 			slash_reward_fraction: Perbill::from_percent(10),
 			..Default::default()
 		},
-		tokens: TokensConfig {
-			balances: endowed_accounts.iter().flat_map(|_x| vec![]).collect(),
-		},
+		tokens: TokensConfig { balances: endowed_accounts.iter().flat_map(|_x| vec![]).collect() },
 		asset_registry: AssetRegistryConfig {
 			core_asset_id: CORE_ASSET_ID,
 			asset_ids: vec![
@@ -304,7 +300,7 @@ fn opportunity_testnet_config_genesis(
 		},
 		oracle: OracleConfig {
 			oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec(),
-			provider_count: 5
+			provider_count: 5,
 		},
 		democracy: DemocracyConfig::default(),
 		elections: ElectionsConfig::default(),

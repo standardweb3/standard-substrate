@@ -69,9 +69,9 @@ decl_module! {
 				},
 				Some(x) if x.len() != Self::provider_count() as usize => {
 				  let oracles = Self::provider_count();
-			      let mut batch = vec!{0; oracles as usize};
+				  let mut batch = vec!{0; oracles as usize};
 				  batch[_slot as usize] = _price;
-				  batch	  
+				  batch
 				}
 				_ => {
 				  let oracles = Self::provider_count();
@@ -255,7 +255,7 @@ impl<T: Config> Module<T> {
 		let processed = Self::preprocess(batch);
 		let len = processed.len();
 		let mid = len / 2;
-		let quartile = mid/2;
+		let quartile = mid / 2;
 		let q3 = mid + quartile;
 		let q1 = mid - quartile;
 		let iqr = 3 * (processed[q3] - processed[q1]) / 2;
@@ -269,7 +269,7 @@ impl<T: Config> Module<T> {
 	}
 
 	pub fn preprocess(mut batch: Vec<Balance>) -> Vec<u128> {
-		batch.retain(|&i|i != 0);
+		batch.retain(|&i| i != 0);
 		batch.sort();
 		batch
 	}

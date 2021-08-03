@@ -9,8 +9,8 @@ use sp_core::{
 	OpaqueMetadata,
 };
 
-use pallet_grandpa::{AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList};
 use pallet_grandpa::fg_primitives;
+use pallet_grandpa::{AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList};
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 pub use sp_runtime::Perbill;
@@ -51,7 +51,7 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureOneOf, EnsureRoot,
 };
-use pallet_session::{historical as pallet_session_historical};
+use pallet_session::historical as pallet_session_historical;
 pub use pallet_staking::StakerStatus;
 use pallet_transaction_payment::CurrencyAdapter;
 
@@ -302,8 +302,11 @@ impl pallet_grandpa::Config for Runtime {
 		GrandpaId,
 	)>>::IdentificationTuple;
 
-	type HandleEquivocation =
-		pallet_grandpa::EquivocationHandler<Self::KeyOwnerIdentification, Offences, ReportLongevity>;
+	type HandleEquivocation = pallet_grandpa::EquivocationHandler<
+		Self::KeyOwnerIdentification,
+		Offences,
+		ReportLongevity,
+	>;
 
 	type WeightInfo = ();
 }

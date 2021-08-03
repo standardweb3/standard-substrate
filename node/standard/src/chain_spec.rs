@@ -172,9 +172,7 @@ fn make_genesis(
 		aura: AuraConfig { authorities: vec![] },
 		im_online: ImOnlineConfig { keys: vec![] },
 		aura_ext: Default::default(),
-		tokens: TokensConfig {
-			balances: endowed_accounts.iter().flat_map(|_x| vec![]).collect(),
-		},
+		tokens: TokensConfig { balances: endowed_accounts.iter().flat_map(|_x| vec![]).collect() },
 		asset_registry: AssetRegistryConfig {
 			core_asset_id: CORE_ASSET_ID,
 			asset_ids: vec![

@@ -1,4 +1,3 @@
-
 // This file is part of Substrate.
 
 // Copyright (C) 2019-2021 Parity Technologies (UK) Ltd.
@@ -21,9 +20,9 @@
 /// Money matters.
 pub mod currency {
 
-	pub use primitives::{Balance};
+	pub use primitives::Balance;
 	pub const MILLICENTS: Balance = 1_000_000_000;
-	pub const CENTS: Balance = 1_000 * MILLICENTS;    // assume this is worth about a cent.
+	pub const CENTS: Balance = 1_000 * MILLICENTS; // assume this is worth about a cent.
 	pub const DOLLARS: Balance = 100 * CENTS;
 	pub const MILLISTD: Balance = 1_000_000_000_000_000;
 	pub const STD: Balance = 1_000 * MILLISTD;
@@ -35,7 +34,7 @@ pub mod currency {
 
 /// Time.
 pub mod time {
-	use crate::{Moment, BlockNumber};
+	use crate::{BlockNumber, Moment};
 
 	pub const MILLISECS_PER_BLOCK: Moment = 12000;
 	pub const SECS_PER_BLOCK: Moment = MILLISECS_PER_BLOCK / 1000;

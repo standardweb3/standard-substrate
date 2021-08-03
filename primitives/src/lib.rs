@@ -1,6 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use sp_runtime::{generic, traits::{BlakeTwo256}, OpaqueExtrinsic};
+use sp_runtime::{generic, traits::BlakeTwo256, OpaqueExtrinsic};
 
 /// An index to a block.
 pub type BlockNumber = u32;

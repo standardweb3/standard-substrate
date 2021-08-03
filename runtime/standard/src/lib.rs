@@ -59,7 +59,7 @@ pub use template;
 
 /// Constant values used within the runtime.
 pub mod constants;
-use constants::{time::*, currency::*};
+use constants::{currency::*, time::*};
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]
