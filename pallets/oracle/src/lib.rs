@@ -3,9 +3,12 @@
 
 use frame_support::{decl_error, decl_event, decl_module, decl_storage, ensure};
 use frame_system::{ensure_root, ensure_signed};
-use primitives::{AssetId, Balance};
-use sp_runtime::{DispatchError, DispatchResult};
+use primitives::{AssetId, Balance, EraIndex, SocketIndex};
+use sp_runtime::{DispatchError, DispatchResult, Percent};
 use sp_std::prelude::*;
+mod math;
+pub mod weights;
+pub use weights::WeightInfo;
 
 #[cfg(test)]
 mod mock;
@@ -16,14 +19,9 @@ mod tests;
 pub trait Config: frame_system::Config {
 	/// The overarching event type.
 	type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
-}
 
-// Uniquely identify a request's specification understood by an Operator
-pub type SpecIndex = Vec<u8>;
-// Uniquely identify a request for a considered Operator
-pub type RequestIdentifier = u64;
-// The version of the serialized data format
-pub type DataVersion = u64;
+	type WeightInfo: WeightInfo;
+}
 
 decl_module! {
 	pub struct Module<T: Config> for enum Call where origin: T::Origin {
@@ -36,14 +34,11 @@ decl_module! {
 		// Register a new Operator.
 		// Fails with `OperatorAlreadyRegistered` if this Operator (identified by `origin`) has already been registered.
 		#[weight = 10_000]
-		pub fn register_operator(origin, who: T::AccountId) -> DispatchResult {
+		pub fn register_operator(origin, _socket: SocketIndex, _who: T::AccountId) -> DispatchResult {
 			ensure_root(origin)?;
-
-			//ensure!(!<Operators<T>>::get(&who), Error::<T>::OperatorAlreadyRegistered);
-
-			Operators::<T>::insert(&who, true);
-
-			Self::deposit_event(RawEvent::OperatorRegistered(who));
+			Providers::<T>::insert(&_who, true);
+			Sockets::<T>::insert(_socket, _who.clone());
+			Self::deposit_event(RawEvent::OperatorRegistered(_who));
 
 			Ok(())
 		}
@@ -51,10 +46,10 @@ decl_module! {
 		// Unregisters an existing Operator
 		// TODO check weight
 		#[weight = 10_000]
-		pub fn unregister_operator(origin) -> DispatchResult {
+		pub fn deregister_operator(origin) -> DispatchResult {
 			let who : <T as frame_system::Config>::AccountId = ensure_signed(origin)?;
 
-			if Operators::<T>::take(who.clone()) {
+			if Providers::<T>::take(who.clone()) {
 				Self::deposit_event(RawEvent::OperatorUnregistered(who));
 				Ok(())
 			} else {
@@ -63,20 +58,107 @@ decl_module! {
 		}
 
 		#[weight = 0]
-		fn report(origin, _id: AssetId, _price: Balance) {
+		fn report(origin, _socket: SocketIndex, _id: AssetId, _price: Balance) -> DispatchResult {
 			let who : <T as frame_system::Config>::AccountId = ensure_signed(origin)?;
-			ensure!(Operators::<T>::contains_key(who), Error::<T>::WrongOperator);
+			ensure!(Providers::<T>::contains_key(who.clone()), Error::<T>::WrongOperator);
+			ensure!(Sockets::<T>::get(_socket) == who.clone(), Error::<T>::WrongSocket);
 			let results = match Self::asset_price(_id) {
 				Some(mut x) => {
-				  x.push(_price);
+				  x[_socket as usize] = _price;
 				  x
 				},
+				Some(x) if x.len() != Self::provider_count() as usize => {
+				  let oracles = Self::provider_count();
+			      let mut batch = vec!{0; oracles as usize};
+				  batch[_socket as usize] = _price;
+				  batch	  
+				}
 				_ => {
-				  vec!{_price}
+				  let oracles = Self::provider_count();
+				  let mut batch = vec!{0; oracles as usize};
+				  batch[_socket as usize] = _price;
+				  batch
 				}
 			  };
 			Prices::insert(_id, results);
+			Self::deposit_event(RawEvent::PriceSubmitted(_socket, who, _price));
+
+			Ok(())
 		}
+
+		/// Slash the validator for a given amount of balance. This can grow the value
+		/// For now, it just checks the value is an outlier and excludes from the provider slot
+		/// Effects will be felt at the beginning of the next era.
+		///
+		///
+		/// # <weight>
+		/// ----------
+		/// Weight: O(1)
+		/// DB Weight:
+		/// - Read: Sockets, Prices
+		/// - Write:  Sockets New Account, Sockets Old Account
+		/// # </weight>
+		#[weight = 10_000]
+		fn slash(origin, _socket: SocketIndex, _id: AssetId) -> DispatchResult {
+			let batch = Prices::get(_id).unwrap();
+			let value = batch[_socket as usize];
+			let det = Self::determine_outlier(batch, value);
+			ensure!(det, Error::<T>::NotOutlier);
+			// Add provider to the slash list of the current era
+			let provider = Self::provider_at(_socket);
+			Slashes::<T>::insert(1, vec!{provider});
+			// remove provider from the slot
+			Sockets::<T>::remove(_socket);
+			Ok(())
+		}
+
+		#[weight = 10_000]
+		fn remove_batch(origin, _id: AssetId) {
+			ensure_root(origin)?;
+
+			Prices::remove(_id);
+		}
+
+		/// Sets the ideal number of validators.
+		///
+		/// The dispatch origin must be Root.
+		///
+		/// # <weight>
+		/// Weight: O(1)
+		/// Write: Validator Count
+		/// # </weight>
+		#[weight = T::WeightInfo::set_validator_count()]
+		fn set_validator_count(origin, #[compact] new: u32) {
+			ensure_root(origin)?;
+			ProviderCount::put(new);
+		}
+
+		/// Increments the ideal number of validators.
+		///
+		/// The dispatch origin must be Root.
+		///
+		/// # <weight>
+		/// Same as [`set_validator_count`].
+		/// # </weight>
+		#[weight = T::WeightInfo::set_validator_count()]
+		fn increase_validator_count(origin, #[compact] additional: u32) {
+			ensure_root(origin)?;
+			ProviderCount::mutate(|n| *n += additional);
+		}
+
+		/// Scale up the ideal number of validators by a factor.
+		///
+		/// The dispatch origin must be Root.
+		///
+		/// # <weight>
+		/// Same as [`set_validator_count`].
+		/// # </weight>
+		#[weight = T::WeightInfo::set_validator_count()]
+		fn scale_validator_count(origin, factor: Percent) {
+			ensure_root(origin)?;
+			ProviderCount::mutate(|n| *n += factor * *n);
+		}
+
 
 	}
 }
@@ -84,22 +166,15 @@ decl_module! {
 decl_event! {
 	pub enum Event<T> where
 		<T as frame_system::Config>::AccountId,
-		Balance = Balance,
 	{
-		// A request has been accepted. Corresponding fee paiement is reserved
-		OracleRequest(AccountId, SpecIndex, RequestIdentifier, AccountId, DataVersion, Vec<u8>, Vec<u8>, Balance),
-
-		// A request has been answered. Corresponding fee paiement is transfered
-		OracleAnswer(AccountId, RequestIdentifier, AccountId, Vec<u8>, Balance),
-
 		// A new operator has been registered
 		OperatorRegistered(AccountId),
 
 		// An existing operator has been unregistered
 		OperatorUnregistered(AccountId),
 
-		// A request didn't receive any result in time
-		KillRequest(RequestIdentifier),
+		// Price reported by an oracle provider
+		PriceSubmitted(SocketIndex, AccountId, u128),
 	}
 }
 
@@ -123,25 +198,39 @@ decl_error! {
 		InsufficientFee,
 		// Price does not exist
 		PriceDoesNotExist,
+		// Wrong slot to submit
+		WrongSocket,
+		// Outlier not determined
+		NotOutlier
 	}
 }
 
 decl_storage! {
 	trait Store for Module<T: Config> as Oracle {
-		// the result of the oracle call
-		pub Result get(fn get_result): i128;
 
 		// A set of all registered Operator
-		pub Operators get(fn operator): map hasher(blake2_128_concat) <T as frame_system::Config>::AccountId => bool;
-
+		pub Providers get(fn operator): map hasher(blake2_128_concat) <T as frame_system::Config>::AccountId => bool;
+		// Price batch from oracle providers
 		pub Prices get(fn asset_price): map hasher(blake2_128_concat) AssetId =>  Option<Vec<Balance>>;
+
+		// Oracles: key as t
+		pub Oracles get(fn oracle): map hasher(blake2_128_concat)  <T as frame_system::Config>::AccountId  => Option<SocketIndex>;
+
+		// Sockets: key as the oracle slot index, value as the oracle provider
+		pub Sockets get(fn provider_at): map hasher(blake2_128_concat) SocketIndex => <T as frame_system::Config>::AccountId;
+
+		// Slash: key as the oracle slot index, value as the array of slashed accounts
+		pub Slashes get(fn slashes_at): map hasher(blake2_128_concat) EraIndex => Vec<<T as frame_system::Config>::AccountId>;
+
+		/// The ideal number of staking participants.
+		pub ProviderCount get(fn provider_count) config(): u32;
 
 	} add_extra_genesis {
 		config(oracles):
 			Vec<<T as frame_system::Config>::AccountId>;
 		build(|config: &GenesisConfig<T>| {
 			for oracle in &config.oracles {
-				Operators::<T>::insert(oracle, true);
+				Providers::<T>::insert(oracle, true);
 			}
 		});
 	}
@@ -151,14 +240,37 @@ decl_storage! {
 impl<T: Config> Module<T> {
 	pub fn price(id: AssetId) -> sp_std::result::Result<Balance, DispatchError> {
 		match Self::asset_price(id) {
-			Some(mut reports) => {
+			Some(reports) => {
 				// get median value
-				reports.sort();
-				let mid = reports.len() / 2;
-				let median = reports[mid];
-				return Ok(median)
-			},
-			None => return Err(DispatchError::from(crate::Error::<T>::PriceDoesNotExist).into()),
+				let median = Self::get_median(reports);
+				return Ok(median);
+			}
+			None => {
+				return Err(DispatchError::from(crate::Error::<T>::PriceDoesNotExist).into());
+			}
 		}
+	}
+
+	pub fn determine_outlier(batch: Vec<Balance>, value: Balance) -> bool {
+		let processed = Self::preprocess(batch);
+		let len = processed.len();
+		let mid = len / 2;
+		let quartile = mid/2;
+		let q3 = mid + quartile;
+		let q1 = mid - quartile;
+		let iqr = 3 * (processed[q3] - processed[q1]) / 2;
+		return processed[q3] + iqr < value || processed[q1] - iqr > value;
+	}
+
+	pub fn get_median(batch: Vec<Balance>) -> Balance {
+		let processed = Self::preprocess(batch);
+		let mid = processed.len() / 2;
+		processed[mid]
+	}
+
+	pub fn preprocess(mut batch: Vec<Balance>) -> Vec<u128> {
+		batch.retain(|&i|i != 0);
+		batch.sort();
+		batch
 	}
 }

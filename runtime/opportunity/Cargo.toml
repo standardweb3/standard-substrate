@@ -40,7 +40,6 @@ pallet-staking-reward-curve = { default-features = false, version = '3.0.0', git
 pallet-standard-market = { path = '../../pallets/market', default_features = false }
 pallet-standard-oracle = { path = "../../pallets/oracle", default-features = false }
 pallet-standard-vault = { path = '../../pallets/vault', default_features = false }
-pallet-template = { path = "../../pallets/template", default-features = false }
 pallet-tips = { version = "3.0.0", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.6" }
 pallet-treasury = { version = "3.0.0", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.6" }
 # consensus pallet
@@ -237,7 +236,6 @@ runtime-benchmarks = [
 	'frame-system/runtime-benchmarks',
 	'pallet-balances/runtime-benchmarks',
 	'pallet-timestamp/runtime-benchmarks',
-	'pallet-template/runtime-benchmarks',
 ]
 std = [
 	'codec/std',

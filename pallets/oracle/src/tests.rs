@@ -1,131 +1,139 @@
 #![cfg(test)]
 
 use crate::{mock::*, Error};
+use frame_support::error::BadOrigin;
 use frame_support::{assert_noop, assert_ok};
 
 #[test]
-fn operators_can_be_registered() {
+fn add_oracle_provider_works() {
 	new_test_ext().execute_with(|| {
-		System::set_block_number(1);
-		assert!(!<Chainlink>::operator(1));
-		assert!(<Chainlink>::register_operator(Origin::signed(1)).is_ok());
-		assert_eq!(last_event(), RawEvent::OperatorRegistered(1));
-		assert!(<Chainlink>::operator(1));
-		assert!(<Chainlink>::unregister_operator(Origin::signed(1)).is_ok());
-		assert!(!<Chainlink>::operator(1));
-		assert_eq!(last_event(), RawEvent::OperatorUnregistered(1));
-	});
-
-	new_test_ext().execute_with(|| {
-		assert!(<Chainlink>::unregister_operator(Origin::signed(1)).is_err());
-		assert!(!<Chainlink>::operator(1));
-	});
-}
-
-#[test]
-fn initiate_requests() {
-	new_test_ext().execute_with(|| {
-		assert!(<Chainlink>::register_operator(Origin::signed(1)).is_ok());
-		assert!(<Chainlink>::initiate_request(
-			Origin::signed(2),
-			1,
-			vec![],
-			1,
-			vec![],
-			0,
-			module2::Call::<Test>::callback(vec![]).into()
-		)
-		.is_err());
-	});
-
-	new_test_ext().execute_with(|| {
-		assert!(<Chainlink>::initiate_request(
-			Origin::signed(2),
-			1,
-			vec![],
-			1,
-			vec![],
-			1,
-			module2::Call::<Test>::callback(vec![]).into()
-		)
-		.is_err());
-	});
-
-	new_test_ext().execute_with(|| {
-		assert!(<Chainlink>::register_operator(Origin::signed(1)).is_ok());
-		assert!(<Chainlink>::initiate_request(
-			Origin::signed(2),
-			1,
-			vec![],
-			1,
-			vec![],
-			2,
-			module2::Call::<Test>::callback(vec![]).into()
-		)
-		.is_ok());
-		assert!(<Chainlink>::callback(Origin::signed(3), 0, 10.encode()).is_err());
-	});
-
-	new_test_ext().execute_with(|| {
-		assert!(<Chainlink>::callback(Origin::signed(1), 0, 10.encode()).is_err());
-	});
-
-	new_test_ext().execute_with(|| {
-		System::set_block_number(1);
-		assert!(<Chainlink>::register_operator(Origin::signed(1)).is_ok());
-		assert_eq!(last_event(), RawEvent::OperatorRegistered(1));
-
-		let parameters = ("a", "b");
-		let data = parameters.encode();
-		assert!(<Chainlink>::initiate_request(
-			Origin::signed(2),
-			1,
-			vec![],
-			1,
-			data.clone(),
-			2,
-			module2::Call::<Test>::callback(vec![]).into()
-		)
-		.is_ok());
-		assert_eq!(
-			last_event(),
-			RawEvent::OracleRequest(
-				1,
-				vec![],
-				0,
-				2,
-				1,
-				data.clone(),
-				"Chainlink.callback".into(),
-				2
-			)
+		// Adding operator requires root.
+		assert_noop!(
+			Oracle::register_operator(Origin::signed(11), 1, 1u64),
+			BadOrigin
 		);
-
-		let r = <(Vec<u8>, Vec<u8>)>::decode(&mut &data[..]).unwrap().0;
-		assert_eq!("a", std::str::from_utf8(&r).unwrap());
-
-		let result = 10;
-		assert!(<Chainlink>::callback(Origin::signed(1), 0, result.encode()).is_ok());
-		assert_eq!(module2::Result::get(), result);
-	});
+		assert_ok!(Oracle::register_operator(Origin::root(), 1, 2));
+	})
 }
 
 #[test]
-pub fn on_finalize() {
+fn oracle_report_works() {
 	new_test_ext().execute_with(|| {
-		assert!(<Chainlink>::register_operator(Origin::signed(1)).is_ok());
-		assert!(<Chainlink>::initiate_request(
-			Origin::signed(2),
-			1,
-			vec![],
-			1,
-			vec![],
-			2,
-			module2::Call::<Test>::callback(vec![]).into()
-		)
-		.is_ok());
-		<Chainlink as OnFinalize<u64>>::on_finalize(20);
-		// Request has been killed, too old
-		assert!(<Chainlink>::callback(Origin::signed(1), 0, 10.encode()).is_err());
-	});
+		let provider = 1u64;
+
+		assert_ok!(Oracle::register_operator(Origin::root(), 1, provider));
+
+		assert_ok!(Oracle::report(Origin::signed(provider.into()), 1, 1, 2));
+
+		// Oracle should only be able to submit data in a given slot
+		assert_noop!(Oracle::report(Origin::signed(provider.into()), 2, 1, 2), Error::<Test>::WrongSlot);
+
+		assert_eq!(Oracle::asset_price(1), Some(vec! {0,2,0,0,0}));
+	})
+}
+
+#[test]
+fn oracle_slash_works() {
+	new_test_ext().execute_with(|| {
+		let provider_1 = 1u64;
+		let provider_2 = 2u64;
+		let provider_3 = 3u64;
+		let provider_4 = 4u64;
+		let provider_5 = 5u64;
+		let slasher = 6u64;
+
+		// setup batch of oracle providers
+		assert_ok!(Oracle::register_operator(Origin::root(), 0, provider_1));
+		assert_ok!(Oracle::register_operator(Origin::root(), 1, provider_2));
+		assert_ok!(Oracle::register_operator(Origin::root(), 2, provider_3));
+		assert_ok!(Oracle::register_operator(Origin::root(), 3, provider_4));
+		assert_ok!(Oracle::register_operator(Origin::root(), 4, provider_5));
+
+		// setup batch of oracle values [1,2,1,2,1]
+		assert_ok!(Oracle::report(Origin::signed(provider_1.into()), 0, 1, 1));
+		assert_ok!(Oracle::report(Origin::signed(provider_2.into()), 1, 1, 2));
+		assert_ok!(Oracle::report(Origin::signed(provider_3.into()), 2, 1, 1));
+		assert_ok!(Oracle::report(Origin::signed(provider_4.into()), 3, 1, 2));
+		assert_ok!(Oracle::report(Origin::signed(provider_5.into()), 4, 1, 1));
+		assert_eq!(Oracle::asset_price(1), Some(vec! {1,2,1,2,1}));
+
+		// and one of providers submit an manipulated value which goes out of acceptable error range
+		assert_ok!(Oracle::report(Origin::signed(provider_1.into()), 0, 1, 4));
+		assert_eq!(Oracle::asset_price(1), Some(vec! {4,2,1,2,1}));
+		// should detect outlier and slash the provider
+		assert_ok!(Oracle::slash(Origin::signed(slasher), 0, 1));
+		// slot for oracle submission is now empty
+		assert_eq!(Oracle::provider_at(0), 0);
+	})
+}
+
+#[test]
+fn oracle_excludes_zeros_and_return_median() {
+	new_test_ext().execute_with(|| {
+		let provider_1 = 1u64;
+		let provider_2 = 2u64;
+		let provider_3 = 3u64;
+		let provider_4 = 4u64;
+		let provider_5 = 5u64;
+		// Adding operator requires root.
+		assert_noop!(
+			Oracle::register_operator(Origin::signed(11), 1, provider_1),
+			BadOrigin
+		);
+		// setup batch of oracle providers
+		assert_ok!(Oracle::register_operator(Origin::root(), 0, provider_1));
+		assert_ok!(Oracle::register_operator(Origin::root(), 1, provider_2));
+		assert_ok!(Oracle::register_operator(Origin::root(), 2, provider_3));
+		assert_ok!(Oracle::register_operator(Origin::root(), 3, provider_4));
+		assert_ok!(Oracle::register_operator(Origin::root(), 4, provider_5));
+
+		// setup batch of oracle values [0,0,1,2,3,4]
+		assert_ok!(Oracle::report(Origin::signed(provider_1.into()), 0, 1, 0));
+		assert_ok!(Oracle::report(Origin::signed(provider_2.into()), 1, 1, 0));
+		assert_ok!(Oracle::report(Origin::signed(provider_3.into()), 2, 1, 1));
+		assert_ok!(Oracle::report(Origin::signed(provider_4.into()), 3, 1, 2));
+		assert_ok!(Oracle::report(Origin::signed(provider_5.into()), 4, 1, 3));
+		assert_eq!(Oracle::asset_price(1), Some(vec! {0,0,1,2,3}));
+
+		// and the median should be 2
+		assert_eq!(Oracle::get_median(Oracle::asset_price(1).unwrap()), 2);
+
+	})
+}
+
+#[test]
+fn oracle_excludes_zeros_and_return_median_even() {
+	new_test_ext().execute_with(|| {
+		let provider_1 = 1u64;
+		let provider_2 = 2u64;
+		let provider_3 = 3u64;
+		let provider_4 = 4u64;
+		let provider_5 = 5u64;
+		let provider_6 = 6u64;
+		// Setting provider count requires root.
+		assert_ok!(
+			Oracle::set_validator_count(Origin::root(), 6)
+		);
+		// setup batch of oracle providers
+		assert_ok!(Oracle::register_operator(Origin::root(), 0, provider_1));
+		assert_ok!(Oracle::register_operator(Origin::root(), 1, provider_2));
+		assert_ok!(Oracle::register_operator(Origin::root(), 2, provider_3));
+		assert_ok!(Oracle::register_operator(Origin::root(), 3, provider_4));
+		assert_ok!(Oracle::register_operator(Origin::root(), 4, provider_5));
+		assert_ok!(Oracle::register_operator(Origin::root(), 5, provider_6));
+
+
+		// setup batch of oracle values [0,0,1,2,3,4]
+		assert_ok!(Oracle::report(Origin::signed(provider_1.into()), 0, 1, 0));
+		assert_ok!(Oracle::report(Origin::signed(provider_2.into()), 1, 1, 0));
+		assert_ok!(Oracle::report(Origin::signed(provider_3.into()), 2, 1, 1));
+		assert_ok!(Oracle::report(Origin::signed(provider_4.into()), 3, 1, 2));
+		assert_ok!(Oracle::report(Origin::signed(provider_5.into()), 4, 1, 3));
+		assert_ok!(Oracle::report(Origin::signed(provider_6.into()), 5, 1, 4));		
+		assert_eq!(Oracle::asset_price(1), Some(vec! {0,0,1,2,3,4}));
+
+		// and the median should be 3
+		assert_eq!(Oracle::get_median(Oracle::asset_price(1).unwrap()), 3);
+
+	})
 }
