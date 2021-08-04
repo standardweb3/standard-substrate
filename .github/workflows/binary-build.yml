@@ -43,6 +43,8 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout - ${{ matrix.os }}
         uses: actions/checkout@v2
+        with:
+          submodules: true
 
       - name: Rust Dependencies - ${{ matrix.os }}
         if: ${{ matrix.os == 'ubuntu-20.04' }}
