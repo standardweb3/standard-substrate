@@ -56,10 +56,10 @@ jobs:
           brew update
           brew install openssl
 
-      - name: Rust Install - ${{ matrix.os }}
-        uses: ./.github/actions/install-rust
+      - name: Install Rust for Substrate - ${{ matrix.os }}
+        uses: digitalnativeinc/install-rust-substrate-action@master
         with:
-          toolchain_build: "nightly-2021-04-22"
+          nightly_toolchain_build: "nightly-2021-04-22"
 
       - name: Run Build - ${{ matrix.os }}
         run: |

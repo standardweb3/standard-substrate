@@ -60,8 +60,6 @@ use orml_traits::parameter_type_with_key;
 
 use primitives::{AssetId, Balance};
 
-/// Import the template pallet.
-pub use pallet_template;
 pub mod constants;
 /// Constant values used within the runtime.
 use constants::{currency::*, time::*};
@@ -134,7 +132,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_version: 21,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 2,
+	transaction_version: 3,
 };
 
 // Make the WASM binary available.
@@ -334,6 +332,11 @@ impl pallet_indices::Config for Runtime {
 	type WeightInfo = pallet_indices::weights::SubstrateWeight<Runtime>;
 }
 
+// parameter_types! {
+// 	pub const TreasuryPalletId: PalletId = PalletId(*b"ty/trsry");
+// 	pub TreasuryModuleAccount: AccountId = TreasuryPalletId::get().into_account();
+// }
+
 parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
 	pub const ProposalBondMinimum: Balance = 1 * DOLLARS;
@@ -345,7 +348,7 @@ parameter_types! {
 	pub const DataDepositPerByte: Balance = 1 * CENTS;
 	pub const BountyDepositBase: Balance = 1 * DOLLARS;
 	pub const BountyDepositPayoutDelay: BlockNumber = 1 * DAYS;
-	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
+	pub const TreasuryPalletId: PalletId = PalletId(*b"ty/trsry");
 	pub const BountyUpdatePeriod: BlockNumber = 14 * DAYS;
 	pub const MaximumReasonLength: u32 = 16384;
 	pub const BountyCuratorDeposit: Permill = Permill::from_percent(50);
@@ -779,15 +782,6 @@ impl pallet_sudo::Config for Runtime {
 pub type Amount = i128;
 pub type CurrencyId = u32;
 
-parameter_types! {
-	pub const TemplatePalletId: PalletId = PalletId(*b"template");
-}
-
-impl pallet_template::Config for Runtime {
-	type Event = Event;
-	type PalletId = TemplatePalletId;
-}
-
 parameter_type_with_key! {
 	pub ExistentialDeposits: |_currency_id: CurrencyId| -> Balance {
 		Zero::zero()
@@ -795,7 +789,7 @@ parameter_type_with_key! {
 }
 
 parameter_types! {
-	pub TreasuryModuleAccount: AccountId = TemplatePalletId::get().into_account();
+	pub TreasuryModuleAccount: AccountId = TreasuryPalletId::get().into_account();
 }
 
 impl orml_tokens::Config for Runtime {
@@ -827,7 +821,7 @@ impl pallet_asset_registry::Config for Runtime {
 
 impl pallet_standard_oracle::Config for Runtime {
 	type Event = Event;
-	type WeightInfo = ();
+	type WeightInfo = pallet_standard_oracle::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -910,8 +904,6 @@ construct_runtime!(
 		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>},
 		Bounties: pallet_bounties::{Pallet, Call, Storage, Event<T>},
 		Tips: pallet_tips::{Pallet, Call, Storage, Event<T>},
-		// Include the custom logic from the template pallet in the runtime.
-		TemplateModule: pallet_template::{Pallet, Call, Storage, Event<T>},
 		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
 		Currencies: orml_currencies::{Pallet, Storage, Call, Event<T>},
 		AssetRegistry: pallet_asset_registry::{Pallet, Storage, Config<T>},
