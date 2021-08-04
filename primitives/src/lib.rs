@@ -19,6 +19,6 @@ pub type Block = generic::Block<Header, OpaqueExtrinsic>;
 /// Counter for the number of eras that have passed.
 pub type EraIndex = u64;
 /// Index for oracle to provide information
-pub type SlotIndex = u32;
+pub type SocketIndex = u32;
 /// Primary asset ID to use
 pub const CORE_ASSET_ID: AssetId = 0;
