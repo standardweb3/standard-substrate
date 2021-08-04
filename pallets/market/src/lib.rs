@@ -334,10 +334,10 @@ impl<T: Config> Module<T> {
 		match token0 > token1 {
 			true => {
 				Reserves::insert(lptoken, (amount1, amount0));
-			},
+			}
 			_ => {
 				Reserves::insert(lptoken, (amount0, amount1));
-			},
+			}
 		}
 	}
 
@@ -350,10 +350,10 @@ impl<T: Config> Module<T> {
 		match token0 > token1 {
 			true => {
 				Rewards::insert(lptoken, (token1, token0));
-			},
+			}
 			_ => {
 				Rewards::insert(lptoken, (token0, token1));
-			},
+			}
 		}
 	}
 

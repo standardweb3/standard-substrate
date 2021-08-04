@@ -3,16 +3,13 @@ use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
+use primitives::Block;
 use sc_client_api::call_executor::ExecutorProvider;
 use sc_service::{Configuration, PartialComponents, Role, TFullBackend, TFullClient, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryWorker, TelemetryWorkerHandle};
 use sp_consensus::SlotData;
 use standard_runtime::RuntimeApi;
 use std::sync::Arc;
-
-type BlockNumber = u32;
-type Header = sp_runtime::generic::Header<BlockNumber, sp_runtime::traits::BlakeTwo256>;
-pub type Block = sp_runtime::generic::Block<Header, sp_runtime::OpaqueExtrinsic>;
 
 // Native executor instance.
 sc_executor::native_executor_instance!(
@@ -132,7 +129,7 @@ where
 		+ 'static,
 {
 	if matches!(parachain_config.role, Role::Light) {
-		return Err("Light client not supported!".into())
+		return Err("Light client not supported!".into());
 	}
 
 	let parachain_config = prepare_node_config(parachain_config);

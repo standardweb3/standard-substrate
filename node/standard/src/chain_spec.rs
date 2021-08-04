@@ -80,7 +80,7 @@ pub fn get_chain_spec(id: ParaId) -> ChainSpec {
 		None,
 		None,
 		None,
-		Extensions { relay_chain: "westend-dev".into(), para_id: id.into() },
+		Extensions { relay_chain: "opportunity-rococo".into(), para_id: id.into() },
 	)
 }
 
@@ -172,9 +172,7 @@ fn make_genesis(
 		aura: AuraConfig { authorities: vec![] },
 		im_online: ImOnlineConfig { keys: vec![] },
 		aura_ext: Default::default(),
-		tokens: TokensConfig {
-			endowed_accounts: endowed_accounts.iter().flat_map(|_x| vec![]).collect(),
-		},
+		tokens: TokensConfig { balances: endowed_accounts.iter().flat_map(|_x| vec![]).collect() },
 		asset_registry: AssetRegistryConfig {
 			core_asset_id: CORE_ASSET_ID,
 			asset_ids: vec![
@@ -187,6 +185,7 @@ fn make_genesis(
 		},
 		oracle: OracleConfig {
 			oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec(),
+			provider_count: 5,
 		},
 	}
 }

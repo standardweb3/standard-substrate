@@ -1,13 +1,13 @@
 use crate::{
 	chain_spec,
 	cli::{Cli, RelayChainCli, Subcommand},
-	service::Block,
 };
 use codec::Encode;
 use cumulus_client_service::genesis::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
 use log::info;
 use polkadot_parachain::primitives::AccountIdConversion;
+use primitives::Block;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
 	NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
@@ -126,7 +126,7 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::BuildSpec(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.sync_run(|config| cmd.run(config.chain_spec, config.network))
-		},
+		}
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|config| {
@@ -134,7 +134,7 @@ pub fn run() -> Result<()> {
 					crate::service::new_partial(&config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
-		},
+		}
 		Some(Subcommand::ExportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|config| {
@@ -142,7 +142,7 @@ pub fn run() -> Result<()> {
 					crate::service::new_partial(&config)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
-		},
+		}
 		Some(Subcommand::ExportState(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|config| {
@@ -150,7 +150,7 @@ pub fn run() -> Result<()> {
 					crate::service::new_partial(&config)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
-		},
+		}
 		Some(Subcommand::ImportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|config| {
@@ -158,7 +158,7 @@ pub fn run() -> Result<()> {
 					crate::service::new_partial(&config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
-		},
+		}
 		Some(Subcommand::PurgeChain(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.sync_run(|config| {
@@ -177,7 +177,7 @@ pub fn run() -> Result<()> {
 
 				cmd.run(config, polkadot_config)
 			})
-		},
+		}
 		Some(Subcommand::Revert(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|config| {
@@ -185,7 +185,7 @@ pub fn run() -> Result<()> {
 					crate::service::new_partial(&config)?;
 				Ok((cmd.run(client, backend), task_manager))
 			})
-		},
+		}
 		Some(Subcommand::ExportGenesisState(params)) => {
 			let mut builder = sc_cli::LoggerBuilder::new("");
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
@@ -209,7 +209,7 @@ pub fn run() -> Result<()> {
 			}
 
 			Ok(())
-		},
+		}
 		Some(Subcommand::ExportGenesisWasm(params)) => {
 			let mut builder = sc_cli::LoggerBuilder::new("");
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
@@ -230,7 +230,7 @@ pub fn run() -> Result<()> {
 			}
 
 			Ok(())
-		},
+		}
 		Some(Subcommand::Key(cmd)) => cmd.run(&cli),
 		Some(Subcommand::Sign(cmd)) => cmd.run(),
 		Some(Subcommand::Verify(cmd)) => cmd.run(),
@@ -275,7 +275,7 @@ pub fn run() -> Result<()> {
 				.map(|r| r.0)
 				.map_err(Into::into)
 			})
-		},
+		}
 	}
 }
 
