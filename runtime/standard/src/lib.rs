@@ -274,15 +274,15 @@ impl pallet_session::historical::Config for Runtime {
 
 pallet_staking_reward_curve::build! {
 	const REWARD_CURVE: PiecewiseLinear<'static> = curve!(
-		min_inflation: 0_010_000,
-		max_inflation: 0_020_000,
-		ideal_stake: 0_150_000,
-		falloff: 0_020_000,
-		max_piece_count: 45,
-		test_precision: 0_005_000,
+	  min_inflation: 0_025_000,
+	  max_inflation: 0_100_000,
+	  ideal_stake: 0_500_000,
+	  falloff: 0_050_000,
+	  max_piece_count: 45,
+	  test_precision: 0_005_000,
 	);
-}
-
+  }
+  
 parameter_types! {
 	pub const SessionsPerEra: sp_staking::SessionIndex = 24;
 	pub const BondingDuration: pallet_staking::EraIndex = 12;

@@ -6,7 +6,7 @@ const TWO: Balance = 2;
 const THREE: Balance = 3;
 const ZERO: Balance = 0;
 
-pub fn sqrt<T: Config>(y: Balance) -> Balance {
+pub fn sqrt(y: Balance) -> Balance {
 	if y > Balance::from(THREE) {
 		let mut z = y;
 		let mut x: Balance = y / Balance::from(TWO);
@@ -24,7 +24,7 @@ pub fn sqrt<T: Config>(y: Balance) -> Balance {
 	}
 }
 
-pub fn min<T: Config>(x: Balance, y: Balance) -> Balance {
+pub fn min(x: Balance, y: Balance) -> Balance {
 	let z = match x < y {
 		true => x,
 		_ => y,
@@ -32,13 +32,14 @@ pub fn min<T: Config>(x: Balance, y: Balance) -> Balance {
 	z
 }
 
-pub fn absdiff<T: Config>(x: Balance, y: Balance) -> Balance {
+pub fn absdiff(x: Balance, y: Balance) -> Balance {
 	let z = match x < y {
 		true => y - x,
 		_ => x - y,
 	};
 	z
 }
+
 
 #[cfg(test)]
 mod tests {
@@ -53,3 +54,4 @@ mod tests {
 		assert_eq!(1_u128, min(1_u128, 3_u128));
 	}
 }
+

@@ -100,7 +100,7 @@ use sp_runtime::{
 	traits::{AccountIdConversion, UniqueSaturatedFrom, UniqueSaturatedInto, Zero},
 	FixedU128,
 };
-// use crate::sp_api_hidden_includes_decl_storage::hidden_include::traits::Get;
+//use crate::sp_api_hidden_includes_decl_storage::hidden_include::traits::Get;
 mod math;
 
 /// The module configuration trait.
@@ -139,7 +139,7 @@ decl_module! {
 			match Pairs::get((token0.clone(), token1.clone())) {
 				// create pair if lpt does not exist
 				None => {
-					let mut lptoken_amount: Balance = math::sqrt::<T>(amount0 * amount1);
+					let mut lptoken_amount: Balance = math::sqrt(amount0 * amount1);
 					lptoken_amount = lptoken_amount.checked_sub(minimum_liquidity).expect("Integer overflow");
 					// Issue LPtoken
 					let lptoken_id: AssetId = <pallet_asset_registry::Pallet<T>>::get_or_create_asset((*b"lptoken").to_vec())?.into();
@@ -159,13 +159,13 @@ decl_module! {
 					let mut reserves = Self::reserves(lpt);
 					let thousand: Balance = 1000;
 					if token0 > token1 {
-						ensure!(math::absdiff::<T>(reserves.0/reserves.1 * amount0, amount1) < amount0.checked_div(thousand).expect("Divide by zero error"), Error::<T>::K);
+						ensure!(math::absdiff(reserves.0/reserves.1 * amount0, amount1) < amount0.checked_div(thousand).expect("Divide by zero error"), Error::<T>::K);
 					} else {
-						ensure!(math::absdiff::<T>(reserves.0/reserves.1 * amount1, amount0) < amount0.checked_div(thousand).expect("Divide by zero error"), Error::<T>::K);
+						ensure!(math::absdiff(reserves.0/reserves.1 * amount1, amount0) < amount0.checked_div(thousand).expect("Divide by zero error"), Error::<T>::K);
 					}
 					let left = amount0.checked_mul(total_supply).expect("Multiplicaiton overflow").checked_div(reserves.0).expect("Divide by zero error");
 					let right = amount1.checked_mul(total_supply).expect("Multiplicaiton overflow").checked_div(reserves.1).expect("Divide by zero error");
-					let lptoken_amount = math::min::<T>(left, right);
+					let lptoken_amount = math::min(left, right);
 					// Deposit assets to the reserve
 					reserves.0 += amount0;
 					reserves.1 += amount1;
@@ -334,10 +334,10 @@ impl<T: Config> Module<T> {
 		match token0 > token1 {
 			true => {
 				Reserves::insert(lptoken, (amount1, amount0));
-			},
+			}
 			_ => {
 				Reserves::insert(lptoken, (amount0, amount1));
-			},
+			}
 		}
 	}
 
@@ -350,10 +350,10 @@ impl<T: Config> Module<T> {
 		match token0 > token1 {
 			true => {
 				Rewards::insert(lptoken, (token1, token0));
-			},
+			}
 			_ => {
 				Rewards::insert(lptoken, (token0, token1));
-			},
+			}
 		}
 	}
 
@@ -371,9 +371,8 @@ impl<T: Config> Module<T> {
 		let reserve_out_256 = Self::to_u256(reserve_out);
 		let amount_in_with_fee =
 			amount_in_256.checked_mul(U256::from(997)).expect("Multiplication overflow");
-		let numerator = amount_in_with_fee
-			.checked_mul(reserve_out_256)
-			.expect("Multiplication overflow");
+		let numerator =
+			amount_in_with_fee.checked_mul(reserve_out_256).expect("Multiplication overflow");
 		let denominator = reserve_in_256
 			.checked_mul(U256::from(1000))
 			.expect("Multiplication overflow")
@@ -383,28 +382,31 @@ impl<T: Config> Module<T> {
 			numerator.checked_div(denominator).expect("divided by zero").as_u128(),
 		)
 	}
+	/*
+
 	// TODO: Reimplement TWAP so that checked calculation does not lose values
-	// fn _update(pair: &T::AssetId) -> dispatch::DispatchResult {
-	// let block_timestamp = <timestamp::Module<T>>::get() % T::Moment::from(2u32.pow(32));
-	// let time_elapsed = block_timestamp - Self::last_block_timestamp();
-	// let reserves = Self::reserves(pair);
-	// if time_elapsed > Zero::zero() && reserves.0 != Zero::zero() && reserves.1 != Zero::zero() {
-	// let reserve0 = FixedU128::saturating_from_integer(reserves.0.saturated_into());
-	// let reserve1 = FixedU128::saturating_from_integer(reserves.1.saturated_into());
-	// let price0_cumulative_last = reserve1.checked_div(&reserve0).unwrap()
-	// FixedU128::saturating_from_integer(time_elapsed.saturated_into());
-	// let price1_cumulative_last = reserve0.checked_div(&reserve1).unwrap()
-	// FixedU128::saturating_from_integer(time_elapsed.saturated_into());
-	// <LastAccumulativePrice<T>>::insert(
-	// &pair,
-	// (price0_cumulative_last.clone(), price1_cumulative_last.clone()),
-	// );
-	// <LastBlockTimestamp<T>>::put(block_timestamp);
-	// Self::deposit_event(RawEvent::SyncOracle(
-	// price0_cumulative_last,
-	// price1_cumulative_last,
-	// ));
-	// }
-	// Ok(())
-	// }
+	fn _update(pair: &T::AssetId) -> dispatch::DispatchResult {
+		let block_timestamp = <timestamp::Module<T>>::get() % T::Moment::from(2u32.pow(32));
+		let time_elapsed = block_timestamp - Self::last_block_timestamp();
+		let reserves = Self::reserves(pair);
+		if time_elapsed > Zero::zero() && reserves.0 != Zero::zero() && reserves.1 != Zero::zero() {
+			let reserve0 = FixedU128::saturating_from_integer(reserves.0.saturated_into());
+			let reserve1 = FixedU128::saturating_from_integer(reserves.1.saturated_into());
+			let price0_cumulative_last = reserve1.checked_div(&reserve0).unwrap()
+				* FixedU128::saturating_from_integer(time_elapsed.saturated_into());
+			let price1_cumulative_last = reserve0.checked_div(&reserve1).unwrap()
+				* FixedU128::saturating_from_integer(time_elapsed.saturated_into());
+			<LastAccumulativePrice<T>>::insert(
+				&pair,
+				(price0_cumulative_last.clone(), price1_cumulative_last.clone()),
+			);
+			<LastBlockTimestamp<T>>::put(block_timestamp);
+			Self::deposit_event(RawEvent::SyncOracle(
+				price0_cumulative_last,
+				price1_cumulative_last,
+			));
+		}
+		Ok(())
+	}
+	*/
 }
