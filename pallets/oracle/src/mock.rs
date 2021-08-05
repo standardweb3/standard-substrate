@@ -37,6 +37,7 @@ parameter_types! {
 }
 
 impl frame_system::Config for Test {
+	type OnSetCode = ();
 	type BaseCallFilter = ();
 	type BlockWeights = ();
 	type BlockLength = ();
@@ -61,6 +62,8 @@ impl frame_system::Config for Test {
 	type SS58Prefix = ();
 }
 impl pallet_balances::Config for Test {
+	type MaxReserves = ();
+	type ReserveIdentifier = ();
 	type MaxLocks = ();
 	type Balance = u128;
 	type Event = Event;

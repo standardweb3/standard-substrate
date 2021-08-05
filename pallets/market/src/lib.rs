@@ -139,7 +139,7 @@ decl_module! {
 			match Pairs::get((token0.clone(), token1.clone())) {
 				// create pair if lpt does not exist
 				None => {
-					let mut lptoken_amount: Balance = math::sqrt::<T>(amount0 * amount1);
+					let mut lptoken_amount: Balance = math::sqrt(amount0 * amount1);
 					lptoken_amount = lptoken_amount.checked_sub(minimum_liquidity).expect("Integer overflow");
 					// Issue LPtoken
 					let lptoken_id: AssetId = <pallet_asset_registry::Pallet<T>>::get_or_create_asset((*b"lptoken").to_vec())?.into();
@@ -159,13 +159,13 @@ decl_module! {
 					let mut reserves = Self::reserves(lpt);
 					let thousand: Balance = 1000;
 					if token0 > token1 {
-						ensure!(math::absdiff::<T>(reserves.0/reserves.1 * amount0, amount1) < amount0.checked_div(thousand).expect("Divide by zero error"), Error::<T>::K);
+						ensure!(math::absdiff(reserves.0/reserves.1 * amount0, amount1) < amount0.checked_div(thousand).expect("Divide by zero error"), Error::<T>::K);
 					} else {
-						ensure!(math::absdiff::<T>(reserves.0/reserves.1 * amount1, amount0) < amount0.checked_div(thousand).expect("Divide by zero error"), Error::<T>::K);
+						ensure!(math::absdiff(reserves.0/reserves.1 * amount1, amount0) < amount0.checked_div(thousand).expect("Divide by zero error"), Error::<T>::K);
 					}
 					let left = amount0.checked_mul(total_supply).expect("Multiplicaiton overflow").checked_div(reserves.0).expect("Divide by zero error");
 					let right = amount1.checked_mul(total_supply).expect("Multiplicaiton overflow").checked_div(reserves.1).expect("Divide by zero error");
-					let lptoken_amount = math::min::<T>(left, right);
+					let lptoken_amount = math::min(left, right);
 					// Deposit assets to the reserve
 					reserves.0 += amount0;
 					reserves.1 += amount1;

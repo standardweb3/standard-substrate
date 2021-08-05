@@ -129,7 +129,7 @@ where
 		+ 'static,
 {
 	if matches!(parachain_config.role, Role::Light) {
-		return Err("Light client not supported!".into());
+		return Err("Light client not supported!".into())
 	}
 
 	let parachain_config = prepare_node_config(parachain_config);
@@ -170,9 +170,9 @@ where
 			block_announce_validator_builder: Some(Box::new(|_| block_announce_validator)),
 		})?;
 
-	//	let rpc_client = client.clone();
+	// 	let rpc_client = client.clone();
 
-	//	let rpc_extensions_builder = Box::new(move |_, _| rpc_ext_builder(rpc_client.clone()));
+	// 	let rpc_extensions_builder = Box::new(move |_, _| rpc_ext_builder(rpc_client.clone()));
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
@@ -269,6 +269,8 @@ where
 			slot_duration,
 			// We got around 500ms for proposing
 			block_proposal_slot_portion: SlotProportion::new(1f32 / 24f32),
+			// And a maximum of 750ms if slots are skipped
+			max_block_proposal_slot_portion: Some(SlotProportion::new(1f32 / 16f32)),
 			telemetry: telemetry.as_ref().map(|telemetry| telemetry.handle()),
 		});
 

@@ -24,7 +24,7 @@ fn oracle_report_works() {
 		// Oracle should only be able to submit data in a given slot
 		assert_noop!(
 			Oracle::report(Origin::signed(provider.into()), 2, 1, 2),
-			Error::<Test>::WrongSlot
+			Error::<Test>::WrongSocket
 		);
 
 		assert_eq!(Oracle::asset_price(1), Some(vec! {0,2,0,0,0}));

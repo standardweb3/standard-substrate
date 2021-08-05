@@ -11,6 +11,16 @@ on:
     tags:
       - "*.*.*"
 
+  workflow_dispatch:
+    inputs:
+      release-tag:
+        description: "Release to create"
+        required: true
+      priority:
+        description: "Priority of the release"
+        required: true
+        default: "HIGH"
+
 jobs:
   on-success:
     runs-on: ubuntu-20.04
@@ -34,7 +44,7 @@ jobs:
 
       - name: Build Changelog
         id: build-changelog
-        uses: mikepenz/release-changelog-builder-action@v2.1.0
+        uses: mikepenz/release-changelog-builder-action@v2.1.1
         with:
           configuration: ".github/release_notes_config.json"
         env:
@@ -49,6 +59,7 @@ jobs:
         with:
           artifacts: "SHA256CHECKSUMS, standard-substrate-*/*"
           allowUpdates: true
+          # toTag: "0.5.0"
           body: ${{ steps.build-changelog.outputs.changelog }}
           token: ${{ secrets.BOT_GITHUB_TOKEN }}
 

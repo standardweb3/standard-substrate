@@ -30,6 +30,7 @@ parameter_types! {
 }
 
 impl system::Config for Test {
+	type OnSetCode = ();
 	type BaseCallFilter = ();
 	type BlockWeights = ();
 	type BlockLength = ();
