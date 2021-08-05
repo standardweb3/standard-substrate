@@ -42,13 +42,15 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+        with:
+          submodules: true
 
-      # use once repository is tagged
-      # - uses: actions/install-rust@v1
-      - uses: ./.github/actions/install-rust
+      - name: Install Rust for Substrate
+        uses: digitalnativeinc/install-rust-substrate-action@master
+        with:
+          nightly_toolchain_build: "nightly-2021-04-22"
 
-      # Check codebase style, will output error 1 if
-      # there is formatting to be done
+      # Check codebase style, will output error 1 if there is formatting to be done
       # Continues on error for now, need to format code fully first,
       # then remove `continue-on-error` to enforce it
       - name: Run Fmt
