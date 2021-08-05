@@ -33,8 +33,7 @@
 use std::sync::Arc;
 
 use opportunity_runtime::{AccountId, BlockNumber, Hash, Index};
-use primitives::Balance;
-use primitives::Block;
+use primitives::{Balance, Block};
 use sc_client_api::AuxStore;
 use sc_consensus_babe::{Config, Epoch};
 use sc_consensus_babe_rpc::BabeRpcHandler;

@@ -152,6 +152,7 @@ fn make_genesis(
 			changes_trie_config: Default::default(),
 		},
 		sudo: SudoConfig { key: root_key },
+		parachain_system: Default::default(),
 		parachain_info: ParachainInfoConfig { parachain_id },
 		balances: BalancesConfig { balances },
 		vesting: VestingConfig { vesting: vec![] },

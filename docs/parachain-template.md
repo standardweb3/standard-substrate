@@ -30,7 +30,7 @@ cargo build --release
 
 #### Relay Chain Network(Validators)
 
-We need to clone and install the Polkadot (polkadot-v0.9.7 branch):
+We need to clone and install the Polkadot (polkadot-v0.9.8 branch):
 
 ```bash
 # Get a fresh clone, or `cd` to where you have polkadot already:

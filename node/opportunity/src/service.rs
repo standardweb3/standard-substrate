@@ -24,8 +24,7 @@ use futures::prelude::*;
 use opportunity_runtime::{self, RuntimeApi};
 use primitives::Block;
 use sc_client_api::{ExecutorProvider, RemoteBackend};
-use sc_consensus_babe;
-use sc_consensus_babe::SlotProportion;
+use sc_consensus_babe::{self, SlotProportion};
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
 use sc_network::{Event, NetworkService};
@@ -345,6 +344,7 @@ pub fn new_full_base(
 			babe_link,
 			can_author_with,
 			block_proposal_slot_portion: SlotProportion::new(0.5),
+			max_block_proposal_slot_portion: None,
 			telemetry: telemetry.as_ref().map(|x| x.handle()),
 		};
 
@@ -603,14 +603,13 @@ mod tests {
 	use crate::service::{new_full_base, new_light_base, NewFullBase};
 	use codec::Encode;
 	use node_primitives::{Block, DigestItem, Signature};
-	use opportunity_runtime::constants::{currency::CENTS, time::SLOT_DURATION};
 	use opportunity_runtime::{
+		constants::{currency::CENTS, time::SLOT_DURATION},
 		generic::{BlockId, Digest, Era, SignedPayload},
-		traits::Verify,
-		traits::{Block as BlockT, Header as HeaderT},
+		key_types::BABE,
+		traits::{Block as BlockT, Header as HeaderT, IdentifyAccount, Verify},
+		Address, BalancesCall, Call, RuntimeAppPublic, UncheckedExtrinsic,
 	};
-	use opportunity_runtime::{key_types::BABE, traits::IdentifyAccount, RuntimeAppPublic};
-	use opportunity_runtime::{Address, BalancesCall, Call, UncheckedExtrinsic};
 	use sc_client_api::BlockBackend;
 	use sc_consensus_babe::{BabeIntermediate, CompatibleDigestItem, INTERMEDIATE_KEY};
 	use sc_consensus_epochs::descendent_query;
@@ -729,7 +728,7 @@ mod tests {
 						sc_consensus_babe::authorship::claim_slot(slot.into(), &epoch, &keystore)
 							.map(|(digest, _)| digest)
 					{
-						break (babe_pre_digest, epoch_descriptor);
+						break (babe_pre_digest, epoch_descriptor)
 					}
 
 					slot += 1;

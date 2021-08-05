@@ -245,9 +245,7 @@ impl<T: Config> Module<T> {
 				let median = Self::get_median(reports);
 				return Ok(median)
 			},
-			None => {
-				return Err(DispatchError::from(crate::Error::<T>::PriceDoesNotExist).into())
-			},
+			None => return Err(DispatchError::from(crate::Error::<T>::PriceDoesNotExist).into()),
 		}
 	}
 

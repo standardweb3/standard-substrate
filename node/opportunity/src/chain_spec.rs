@@ -256,6 +256,7 @@ fn opportunity_testnet_config_genesis(
 			epoch_config: Some(opportunity_runtime::BABE_GENESIS_EPOCH_CONFIG),
 		},
 		im_online: ImOnlineConfig { keys: vec![] },
+		authority_discovery: opportunity_runtime::AuthorityDiscoveryConfig { keys: vec![] },
 		session: SessionConfig {
 			keys: initial_authorities
 				.iter()

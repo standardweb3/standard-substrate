@@ -75,7 +75,6 @@ pub struct ExportGenesisStateCommand {
 	pub raw: bool,
 
 	/// Id of the parachain this state is for.
-	///
 	#[structopt(long, default_value = "200")]
 	pub parachain_id: u32,
 
