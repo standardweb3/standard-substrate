@@ -96,7 +96,6 @@ pub fn standard_parachain_config(id: ParaId) -> Result<ChainSpec, String> {
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
 				// Initial authorities
-				// vec![get_from_seed::<AuraId>("Alice"), get_from_seed::<AuraId>("Bob")],
 				vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
 				// Pre-funded accounts
 				vec![
@@ -136,7 +135,6 @@ pub fn development_config(id: ParaId) -> Result<ChainSpec, String> {
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
 				// Initial authorities
-				// vec![get_from_seed::<AuraId>("Alice"), get_from_seed::<AuraId>("Bob")],
 				vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
 				// Pre-funded accounts
 				vec![
@@ -171,7 +169,6 @@ pub fn local_config(id: ParaId) -> Result<ChainSpec, String> {
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
 				// Initial authorities
-				// vec![get_from_seed::<AuraId>("Alice"), get_from_seed::<AuraId>("Bob")],
 				vec![authority_keys_from_seed("Alice")],
 				// Pre-funded accounts
 				vec![
@@ -252,8 +249,7 @@ fn testnet_genesis(
 			slash_reward_fraction: Perbill::from_percent(10),
 			..Default::default()
 		},
-		// aura: AuraConfig { authorities: initial_authorities },
-		aura: AuraConfig { authorities: initial_authorities.iter().map(|x| x.2.clone()).collect() },
+		aura: AuraConfig { authorities: vec![] },
 		im_online: ImOnlineConfig { keys: vec![] },
 		aura_ext: Default::default(),
 		tokens: TokensConfig { balances: endowed_accounts.iter().flat_map(|_x| vec![]).collect() },
