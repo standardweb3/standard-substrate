@@ -102,6 +102,7 @@ pub fn opportunity_standalone_config() -> Result<ChainSpec, String> {
 		ChainType::Live,
 		move || {
 			opportunity_testnet_config_genesis(
+				// Opportunity Runtime WASM binary
 				wasm_binary,
 				// Initial authorities
 				vec![authority_keys_from_seed("Alice")],

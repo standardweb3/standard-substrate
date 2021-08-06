@@ -67,6 +67,7 @@ pallet-timestamp = { git = "https://github.com/paritytech/substrate", branch = "
 pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
 pallet-vesting = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
+pallet-scheduler = { version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.8", default-features = false }
 
 # Cumulus Dependencies
 cumulus-pallet-aura-ext = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.8", default-features = false }
@@ -118,6 +119,7 @@ std = [
     "pallet-balances/std",
     "pallet-im-online/std",
     "pallet-offences/std",
+    "pallet-scheduler/std",
     "frame-election-provider-support/std",
     "pallet-election-provider-multi-phase/std",
     "pallet-vesting/std",

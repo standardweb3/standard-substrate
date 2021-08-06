@@ -201,6 +201,24 @@ impl pallet_timestamp::Config for Runtime {
 	type WeightInfo = ();
 }
 
+// Define the types required by the Scheduler pallet.
+parameter_types! {
+  pub MaximumSchedulerWeight: Weight = 10_000_000;
+  pub const MaxScheduledPerBlock: u32 = 50;
+}
+
+// Configure the runtime's implementation of the Scheduler pallet.
+impl pallet_scheduler::Config for Runtime {
+	type Event = Event;
+	type Origin = Origin;
+	type PalletsOrigin = OriginCaller;
+	type Call = Call;
+	type MaximumWeight = MaximumSchedulerWeight;
+	type ScheduleOrigin = EnsureRoot<AccountId>;
+	type MaxScheduledPerBlock = MaxScheduledPerBlock;
+	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
+}
+
 parameter_types! {
 	// We do anything the parent chain tells us in this runtime.
 	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 2;
@@ -571,6 +589,7 @@ construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
+		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
 		Sudo: pallet_sudo::{Pallet, Call, Storage, Event<T>, Config<T>},
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Config, Storage, Inherent, Event<T>} = 20,
