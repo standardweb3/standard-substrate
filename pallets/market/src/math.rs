@@ -39,7 +39,6 @@ pub fn absdiff(x: Balance, y: Balance) -> Balance {
 	z
 }
 
-
 #[cfg(test)]
 mod tests {
 	use super::*;
@@ -53,4 +52,3 @@ mod tests {
 		assert_eq!(1_u128, min(1_u128, 3_u128));
 	}
 }
-

@@ -4,10 +4,10 @@ use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
 use sp_core::{sr25519, Pair, Public};
 use standard_runtime::{
-	WASM_BINARY, AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig,
-	GenesisConfig, ImOnlineConfig, ImOnlineId, OracleConfig, ParachainInfoConfig, SessionConfig,
-	SessionKeys, Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig, TokensConfig,
-	VestingConfig,
+	AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig, GenesisConfig,
+	ImOnlineConfig, ImOnlineId, OracleConfig, ParachainInfoConfig, SessionConfig, SessionKeys,
+	Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig, TokensConfig, VestingConfig,
+	WASM_BINARY,
 };
 
 use sp_runtime::{
@@ -15,7 +15,7 @@ use sp_runtime::{
 	Perbill,
 };
 
-use primitives::{AssetId};
+use primitives::AssetId;
 
 pub const CORE_ASSET_ID: AssetId = 1;
 
@@ -120,10 +120,7 @@ pub fn standard_parachain_config(id: ParaId) -> Result<ChainSpec, String> {
 		// Properties
 		serde_json::from_str(STANDARD_PROPERTIES).unwrap(),
 		// Extensions
-		Extensions {
-			relay_chain: "rococo".into(),
-			para_id: id.into(),
-		},
+		Extensions { relay_chain: "rococo".into(), para_id: id.into() },
 	))
 }
 
@@ -160,10 +157,7 @@ pub fn development_config(id: ParaId) -> Result<ChainSpec, String> {
 		// Properties
 		None,
 		// Extensions
-		Extensions {
-			relay_chain: "rococo-local".into(),
-			para_id: id.into(),
-		},
+		Extensions { relay_chain: "rococo-local".into(), para_id: id.into() },
 	))
 }
 
@@ -207,10 +201,7 @@ pub fn local_config(id: ParaId) -> Result<ChainSpec, String> {
 		// Properties
 		None,
 		// Extensions
-		Extensions {
-			relay_chain: "rococo-local".into(),
-			para_id: id.into(),
-		},
+		Extensions { relay_chain: "rococo-local".into(), para_id: id.into() },
 	))
 }
 
@@ -221,20 +212,13 @@ fn session_keys(aura: AuraId, im_online: ImOnlineId) -> SessionKeys {
 fn testnet_genesis(
 	root_key: AccountId,
 	// initial_authorities: Vec<AuraId>,
-	initial_authorities: Vec<(
-		AccountId,
-		AccountId,
-		AuraId,
-		ImOnlineId
-	)>,
+	initial_authorities: Vec<(AccountId, AccountId, AuraId, ImOnlineId)>,
 	endowed_accounts: Vec<AccountId>,
 	parachain_id: ParaId,
 ) -> GenesisConfig {
 	GenesisConfig {
 		system: SystemConfig {
-			code: WASM_BINARY
-				.expect("WASM binary was not build, please build it!")
-				.to_vec(),
+			code: WASM_BINARY.expect("WASM binary was not build, please build it!").to_vec(),
 			changes_trie_config: Default::default(),
 		},
 		sudo: SudoConfig { key: root_key },
@@ -269,7 +253,7 @@ fn testnet_genesis(
 			..Default::default()
 		},
 		// aura: AuraConfig { authorities: initial_authorities },
-		aura: AuraConfig {authorities: initial_authorities.iter().map(|x| x.2.clone()).collect()},
+		aura: AuraConfig { authorities: initial_authorities.iter().map(|x| x.2.clone()).collect() },
 		im_online: ImOnlineConfig { keys: vec![] },
 		aura_ext: Default::default(),
 		tokens: TokensConfig { balances: endowed_accounts.iter().flat_map(|_x| vec![]).collect() },

@@ -2,8 +2,8 @@
 use std::sync::Arc;
 
 // Local Runtime Types
-use standard_runtime::RuntimeApi;
 use primitives::Block;
+use standard_runtime::RuntimeApi;
 
 // Cumulus Imports
 use cumulus_client_consensus_aura::{

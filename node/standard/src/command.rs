@@ -9,7 +9,6 @@ use cumulus_primitives_core::ParaId;
 use log::info;
 use polkadot_parachain::primitives::AccountIdConversion;
 use primitives::Block;
-use standard_runtime::{RuntimeApi};
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
 	NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
@@ -17,6 +16,7 @@ use sc_cli::{
 use sc_service::config::{BasePath, PrometheusConfig};
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::Block as BlockT;
+use standard_runtime::RuntimeApi;
 use std::{io::Write, net::SocketAddr};
 
 fn load_spec(

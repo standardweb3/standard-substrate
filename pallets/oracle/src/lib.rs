@@ -70,8 +70,8 @@ decl_module! {
 						batch[_socket as usize] = _price;
 						batch
 					} else {
-				  		x[_socket as usize] = _price;
-				  		x
+						  x[_socket as usize] = _price;
+						  x
 					}
 				},
 				_ => {
