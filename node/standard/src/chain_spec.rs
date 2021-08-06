@@ -250,12 +250,6 @@ fn testnet_genesis(
 				.map(|x| (x.0.clone(), x.0.clone(), session_keys(x.2.clone(), x.3.clone())))
 				.collect::<Vec<_>>(),
 		},
-		// session: SessionConfig {
-		// 	keys: initial_authorities
-		// 		.iter()
-		// 		.map(|x| (x.0.clone(), x.0.clone(), session_keys(x.1.clone(), x.2.clone())))
-		// 		.collect::<Vec<_>>(),
-		// },
 		staking: StakingConfig {
 			validator_count: initial_authorities.len() as u32,
 			minimum_validator_count: 1,

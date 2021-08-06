@@ -65,10 +65,6 @@ impl SubstrateCli for Cli {
 		2020
 	}
 
-	// fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-	// 	load_spec(id, self.run.parachain_id.into())
-	// }
-
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		load_spec(id, self.run.parachain_id.unwrap_or(2000).into())
 	}

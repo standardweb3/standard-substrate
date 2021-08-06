@@ -78,17 +78,8 @@ pub struct ExportGenesisStateCommand {
 	pub raw: bool,
 
 	/// Id of the parachain this state is for.
-	///
-	/// Default: 100
 	#[structopt(long, conflicts_with = "chain")]
 	pub parachain_id: Option<u32>,
-	// /// Id of the parachain this state is for.
-	// #[structopt(long, default_value = "200")]
-	// pub parachain_id: u32,
-
-	// /// The name of the chain for that the genesis state should be exported.
-	// #[structopt(long)]
-	// pub chain: Option<String>,
 
 	/// The name of the chain for that the genesis state should be exported.
 	#[structopt(long, conflicts_with = "parachain-id")]
@@ -110,28 +101,6 @@ pub struct ExportGenesisWasmCommand {
 	#[structopt(long)]
 	pub chain: Option<String>,
 }
-
-// #[allow(missing_docs)]
-// #[derive(Debug, StructOpt)]
-// pub struct RunCmd {
-// 	#[allow(missing_docs)]
-// 	#[structopt(flatten)]
-// 	pub base: sc_cli::RunCmd,
-
-// 	/// Id of the parachain this collator collates for.
-// 	///
-// 	/// Default: 200 (Standard)
-// 	#[structopt(long, default_value = "200")]
-// 	pub parachain_id: u32,
-// }
-
-// impl std::ops::Deref for RunCmd {
-// 	type Target = sc_cli::RunCmd;
-
-// 	fn deref(&self) -> &Self::Target {
-// 		&self.base
-// 	}
-// }
 
 #[derive(Debug)]
 #[allow(missing_docs)]
