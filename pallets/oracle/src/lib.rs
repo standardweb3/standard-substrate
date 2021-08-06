@@ -64,15 +64,16 @@ decl_module! {
 			ensure!(Sockets::<T>::get(_socket) == who.clone(), Error::<T>::WrongSocket);
 			let results = match Self::asset_price(_id) {
 				Some(mut x) => {
-				  x[_socket as usize] = _price;
-				  x
+					if x.len() != Self::provider_count() as usize {
+						let oracles = Self::provider_count();
+						let mut batch = vec!{0; oracles as usize};
+						batch[_socket as usize] = _price;
+						batch
+					} else {
+				  		x[_socket as usize] = _price;
+				  		x
+					}
 				},
-				Some(x) if x.len() != Self::provider_count() as usize => {
-				  let oracles = Self::provider_count();
-				  let mut batch = vec!{0; oracles as usize};
-				  batch[_socket as usize] = _price;
-				  batch
-				}
 				_ => {
 				  let oracles = Self::provider_count();
 				  let mut batch = vec!{0; oracles as usize};
@@ -245,9 +246,7 @@ impl<T: Config> Module<T> {
 				let median = Self::get_median(reports);
 				return Ok(median)
 			},
-			None => {
-				return Err(DispatchError::from(crate::Error::<T>::PriceDoesNotExist).into())
-			},
+			None => return Err(DispatchError::from(crate::Error::<T>::PriceDoesNotExist).into()),
 		}
 	}
 

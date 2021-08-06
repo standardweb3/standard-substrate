@@ -1,4 +1,3 @@
-use crate::Config;
 use primitives::Balance;
 
 const ONE: Balance = 1;
