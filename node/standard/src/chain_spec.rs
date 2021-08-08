@@ -84,6 +84,9 @@ pub fn authority_keys_from_seed(seed: &str) -> (AccountId, AccountId, AuraId, Im
 // }
 
 pub fn standard_parachain_config(id: ParaId) -> Result<ChainSpec, String> {
+	use hex_literal::hex;
+	use sp_core::crypto::UncheckedInto;
+
 	Ok(ChainSpec::from_genesis(
 		// Name
 		"Standard Parachain",

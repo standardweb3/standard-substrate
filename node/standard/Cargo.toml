@@ -33,6 +33,7 @@ codec = { package = "parity-scale-codec", version = "2.0" }
 serde = { version = '1.0.119', features = ['derive'] }
 serde_json = { version = "1.0" }
 structopt = { version = "0.3.8" }
+hex-literal = "0.3.3"
 hex = "0.4"
 lazy_static = "1.4"
 log = "0.4.14"

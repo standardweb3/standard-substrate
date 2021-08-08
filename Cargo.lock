@@ -10084,6 +10084,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-benchmarking-cli",
  "hex",
+ "hex-literal",
  "jsonrpc-core",
  "lazy_static",
  "log",
