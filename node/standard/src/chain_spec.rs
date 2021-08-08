@@ -85,7 +85,6 @@ pub fn authority_keys_from_seed(seed: &str) -> (AccountId, AccountId, AuraId, Im
 
 pub fn standard_parachain_config(id: ParaId) -> Result<ChainSpec, String> {
 	use hex_literal::hex;
-	use sp_core::crypto::UncheckedInto;
 
 	Ok(ChainSpec::from_genesis(
 		// Name
@@ -98,12 +97,12 @@ pub fn standard_parachain_config(id: ParaId) -> Result<ChainSpec, String> {
 			testnet_genesis(
 				// Sudo account
 				// ZHd7drSUrpJfkkYYjMoKfCwtyN5SU6qSiQrA4BoESiuCTTa
-				hex!["0x9434f808bdb12725c67d7dca1f2584970c0c702215508fbd148e0262f2a15e00"].into(),
+				hex!["9434f808bdb12725c67d7dca1f2584970c0c702215508fbd148e0262f2a15e00"].into(),
 				// Initial authorities
 				vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
 				// Pre-funded accounts
 				vec![
-					hex!["0x9434f808bdb12725c67d7dca1f2584970c0c702215508fbd148e0262f2a15e00"].into(),
+					hex!["9434f808bdb12725c67d7dca1f2584970c0c702215508fbd148e0262f2a15e00"].into(),
 					get_account_id_from_seed::<sr25519::Public>("Alice"),
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
 					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
