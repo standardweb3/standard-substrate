@@ -344,7 +344,7 @@ parameter_types! {
 	// This formula is currently adjusted such that a typical solution will spend an amount equal
 	// to the base deposit for every 50 kb.
 	pub const SignedDepositByte: Balance = deposit(1, 0) / (50 * 1024);
-	// Each good submission will get 10 OPT as reward
+	// Each good submission will get 10 STD as reward
 	pub SignedRewardBase: Balance = 10 * STD;
 	// fallback: no need to do on-chain phragmen initially.
 	pub const Fallback: pallet_election_provider_multi_phase::FallbackStrategy =
@@ -469,7 +469,7 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = [u8; 8];
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = frame_system::Pallet<Runtime>;
-	type WeightInfo = ();
+	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {

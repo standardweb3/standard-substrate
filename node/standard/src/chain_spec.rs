@@ -26,7 +26,7 @@ const STANDARD_PROPERTIES: &str = r#"
         {
             "ss58Format": 42,
             "tokenDecimals": 15,
-            "tokenSymbol": "STND"
+            "tokenSymbol": "STD"
         }"#;
 const STANDARD_PROTOCOL_ID: &str = "standard";
 
@@ -212,7 +212,6 @@ fn session_keys(aura: AuraId, im_online: ImOnlineId) -> SessionKeys {
 
 fn testnet_genesis(
 	root_key: AccountId,
-	// initial_authorities: Vec<AuraId>,
 	initial_authorities: Vec<(AccountId, AccountId, AuraId, ImOnlineId)>,
 	endowed_accounts: Vec<AccountId>,
 	parachain_id: ParaId,
@@ -264,8 +263,9 @@ fn testnet_genesis(
 				(b"MTR".to_vec(), 2),
 				(b"DOT".to_vec(), 3),
 				(b"KSM".to_vec(), 4),
+				(b"ROC".to_vec(), 5),
 			],
-			next_asset_id: 5,
+			next_asset_id: 6,
 		},
 		oracle: OracleConfig {
 			oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec(),
