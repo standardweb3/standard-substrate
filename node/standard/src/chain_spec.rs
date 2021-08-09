@@ -75,13 +75,13 @@ pub fn authority_keys_from_seed(seed: &str) -> (AccountId, AccountId, AuraId, Im
 	)
 }
 
-// pub fn standard_rococo_config() -> Result<ChainSpec, String> {
-// 	ChainSpec::from_json_bytes(&include_bytes!("../spec/standard_rococo_raw.json")[..])
-// }
+pub fn standard_rococo_config() -> Result<ChainSpec, String> {
+	ChainSpec::from_json_bytes(&include_bytes!("../spec/standard_rococo_raw.json")[..])
+}
 
-// pub fn standard_barocco_config() -> Result<ChainSpec, String> {
-// 	ChainSpec::from_json_bytes(&include_bytes!("../spec/standard_barocco_raw.json")[..])
-// }
+pub fn standard_barocco_config() -> Result<ChainSpec, String> {
+	ChainSpec::from_json_bytes(&include_bytes!("../spec/standard_barocco_raw.json")[..])
+}
 
 pub fn standard_parachain_config(id: ParaId) -> Result<ChainSpec, String> {
 	use hex_literal::hex;

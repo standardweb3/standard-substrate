@@ -24,9 +24,9 @@ fn load_spec(
 	para_id: ParaId,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	Ok(match id {
-		// "standard-rococo" => Box::new(chain_spec::standard_rococo_config()?),
-		// "standard-barocco" => Box::new(chain_spec::standard_barocco_config()?),
 		"" | "standard-parachain" => Box::new(chain_spec::standard_parachain_config(para_id)?),
+		"standard-rococo" => Box::new(chain_spec::standard_rococo_config()?),
+		"standard-barocco" => Box::new(chain_spec::standard_barocco_config()?),
 		"dev" => Box::new(chain_spec::development_config(para_id)?),
 		"local" => Box::new(chain_spec::local_config(para_id)?),
 		path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
