@@ -5,7 +5,7 @@
 use frame_election_provider_support::onchain::OnChainSequentialPhragmen;
 use frame_support::{
 	construct_runtime, match_type, parameter_types,
-	traits::{All, Filter, U128CurrencyToVote},
+	traits::{All, U128CurrencyToVote},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, WEIGHT_PER_SECOND},
 		DispatchClass, IdentityFee, Weight,
@@ -17,7 +17,6 @@ use frame_system::{
 	EnsureRoot,
 };
 use pallet_session::historical as pallet_session_historical;
-use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_inherents::InherentData;
@@ -30,7 +29,7 @@ use sp_runtime::{
 		OpaqueKeys, Verify, Zero,
 	},
 	transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, FixedPointNumber, Perbill, Perquintill,
+	ApplyExtrinsicResult, Perbill,
 };
 use sp_std::prelude::*;
 #[cfg(any(feature = "std", test))]
@@ -189,19 +188,7 @@ parameter_types! {
 		})
 		.avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
 		.build_or_panic();
-	pub SS58Prefix: u8 = 5;
-}
-
-pub struct BaseFilter;
-impl Filter<Call> for BaseFilter {
-	fn filter(call: &Call) -> bool {
-		match call {
-			// These modules are not allowed to be called by transactions:
-			Call::Balances(_) => false,
-			// Other modules should works:
-			_ => true,
-		}
-	}
+	pub const SS58Prefix: u8 = 42;
 }
 
 impl frame_system::Config for Runtime {
@@ -232,19 +219,28 @@ impl frame_system::Config for Runtime {
 	/// Converts a module to an index of this module in the runtime.
 	type PalletInfo = PalletInfo;
 	type AccountData = pallet_balances::AccountData<Balance>;
+	/// What to do if a new account is created.
 	type OnNewAccount = ();
+	/// What to do if an account is fully reaped from the system.
 	type OnKilledAccount = ();
+	/// The weight of database operations that the runtime can invoke.
 	type DbWeight = ();
-	type BaseCallFilter = BaseFilter;
+	/// The basic call filter to use in dispatchable.
+	type BaseCallFilter = ();
+	/// Weight information for the extrinsics of this pallet.
 	type SystemWeightInfo = ();
+	/// Block & extrinsics weights: base values and limits.
 	type BlockWeights = RuntimeBlockWeights;
+	/// The maximum length of a block (in bytes).
 	type BlockLength = RuntimeBlockLength;
+	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
 	type SS58Prefix = SS58Prefix;
+	/// The action to take on a Runtime Upgrade
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 }
 
 parameter_types! {
-	pub const MinimumPeriod: u64 = MILLISECS_PER_BLOCK / 2;
+	pub const MinimumPeriod: u64 = SLOT_DURATION / 2;
 }
 
 impl pallet_timestamp::Config for Runtime {
@@ -274,19 +270,19 @@ impl pallet_scheduler::Config for Runtime {
 }
 
 parameter_types! {
-	// We do anything the parent chain tells us in this runtime.
-	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 2;
+	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
+	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
 }
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
 	type SelfParaId = parachain_info::Pallet<Runtime>;
-	type OutboundXcmpMessageSource = ();
-	type DmpMessageHandler = cumulus_pallet_xcm::UnlimitedDmpExecution<Runtime>;
+	type OutboundXcmpMessageSource = XcmpQueue;
+	type DmpMessageHandler = DmpQueue;
 	type ReservedDmpWeight = ReservedDmpWeight;
-	type XcmpMessageHandler = ();
-	type ReservedXcmpWeight = ();
+	type XcmpMessageHandler = XcmpQueue;
+	type ReservedXcmpWeight = ReservedXcmpWeight;
 }
 
 impl parachain_info::Config for Runtime {}
@@ -607,15 +603,17 @@ parameter_types! {
 }
 
 impl pallet_balances::Config for Runtime {
+	/// The type for recording an account's balance.
 	type Balance = Balance;
-	type DustRemoval = ();
+	/// The ubiquitous event type.
 	type Event = Event;
+	type DustRemoval = ();
+	type ExistentialDeposit = ExistentialDeposit;
+	type AccountStore = System;
+	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
 	type MaxLocks = MaxLocks;
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = [u8; 8];
-	type ExistentialDeposit = ExistentialDeposit;
-	type AccountStore = frame_system::Pallet<Runtime>;
-	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -695,18 +693,14 @@ impl pallet_standard_vault::Config for Runtime {
 }
 
 parameter_types! {
-	pub const TransactionByteFee: Balance = 1;
-	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
-	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(1, 100_000);
-	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000_000u128);
+	pub const TransactionByteFee: u128 = 1 * MICROSTD;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
 	type OnChargeTransaction = pallet_transaction_payment::CurrencyAdapter<Balances, ()>;
 	type TransactionByteFee = TransactionByteFee;
 	type WeightToFee = IdentityFee<Balance>;
-	type FeeMultiplierUpdate =
-		TargetedFeeAdjustment<Self, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
+	type FeeMultiplierUpdate = ();
 }
 
 impl pallet_sudo::Config for Runtime {
@@ -739,10 +733,10 @@ construct_runtime!(
 		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
 		Sudo: pallet_sudo::{Pallet, Call, Storage, Event<T>, Config<T>},
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 30,
 		// Parachain pallets
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Config, Storage, Inherent, Event<T>} = 20,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 21,
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 30,
 		// Staking pallets
 		Vesting: pallet_vesting::{Pallet, Call, Storage, Config<T>, Event<T>} = 31,
 		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>} = 40,
