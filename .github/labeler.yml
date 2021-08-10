@@ -12,5 +12,11 @@ primitives:
 pallets:
   - pallets/**/*
 
+test:
+  - ./**/tests.rs
+
+mock:
+  - ./**/mock.rs
+
 github-actions:
   - .github/**/*
