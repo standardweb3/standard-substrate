@@ -6,6 +6,9 @@ on:
       release-name:
         description: "Release to create"
         required: true
+      tag:
+        description: "Tag to create"
+        required: true
       priority:
         description: "Priority of the release"
         required: false
@@ -60,6 +63,8 @@ jobs:
           allowUpdates: true
           artifactErrorsFailBuild: true
           name: ${{ github.event.inputs.release-name }}
+          tag: ${{ github.event.inputs.tag }}
+          commit: ${{ github.sha }}
           body: ${{ steps.build-changelog.outputs.changelog }}
           token: ${{ secrets.BOT_GITHUB_TOKEN }}
           prerelease: ${{ github.event.inputs.pre-release == 'true' && 'true' || 'false' }}
