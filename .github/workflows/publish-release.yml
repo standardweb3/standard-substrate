@@ -70,13 +70,30 @@ jobs:
           prerelease: ${{ github.event.inputs.pre-release == 'true' && 'true' || 'false' }}
 
       - name: Public Discord notification
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@0.3.2
         if: ${{ github.event.inputs.pre-release == 'false' && github.ref == 'refs/heads/master' }}
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          # DISCORD_EMBEDS: {
+          #   "embeds": [
+          #   {
+          #   "title": "Priority: **${{ github.event.inputs.priority }}**",
+          #   "color": ""
+          #   },
+          #   {
+          #   "title": "Information: ${{ github.event.inputs.message }},
+          #   "color": ""
+          #   },
+          #   {
+          #   "title": "Release URL",
+          #   "url": "${{ steps.release-step.outputs.html_url }}",
+          #   "color": ""
+          #   },
+          #   ]
+          # }
         with:
           args: |
-            "@Network Validator - New release in ${{ github.repository }} - **${{ github.event.inputs.release-name }}**.
+            "<@&808602414138654752> - New release in ${{ github.repository }} - **${{ github.event.inputs.release-name }}**.
             Priority: **${{ github.event.inputs.priority }}**
             Information: ${{ github.event.inputs.message }}
             Link: ${{ steps.release-step.outputs.html_url }}"
