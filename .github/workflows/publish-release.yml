@@ -1,25 +1,23 @@
 name: Publish release
 
-# permissions:
-#   contents: write
-#   actions: read
-#   metadata: read
-
-# Controls when the action will run.
 on:
-  push:
-    tags:
-      - "*.*.*"
-
   workflow_dispatch:
     inputs:
-      release-tag:
+      release-name:
         description: "Release to create"
         required: true
       priority:
         description: "Priority of the release"
-        required: true
+        required: false
         default: "HIGH"
+      message:
+        description: "Additional message for the release"
+        required: true
+        default: "New release - upgrade as soon as possible."
+      pre-release:
+        description: "Whether to publish pre-release"
+        required: true
+        default: true
 
 jobs:
   on-success:
@@ -33,7 +31,9 @@ jobs:
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v2
         with:
+          branch: master
           workflow: binary-build.yml
+          workflow_conclusion: success
 
       - name: Create checksums file
         run: |
@@ -45,34 +45,36 @@ jobs:
       - name: Build Changelog
         id: build-changelog
         uses: mikepenz/release-changelog-builder-action@v2.1.1
+        if: github.ref == 'refs/heads/master'
         with:
           configuration: ".github/release_notes_config.json"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set release tag
-        run: |
-          echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-
-      - uses: ncipollo/release-action@v1.8.6
+      - name: Create release
+        uses: ncipollo/release-action@v1.8.7
         id: release-step
+        if: github.ref == 'refs/heads/master'
         with:
           artifacts: "SHA256CHECKSUMS, standard-substrate-*/*"
           allowUpdates: true
-          # toTag: "0.5.0"
+          artifactErrorsFailBuild: true
+          name: ${{ github.event.inputs.release-name }}
           body: ${{ steps.build-changelog.outputs.changelog }}
           token: ${{ secrets.BOT_GITHUB_TOKEN }}
+          prerelease: ${{ github.event.inputs.pre-release == 'true' && 'true' || 'false' }}
 
       - name: Public Discord notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_USERNAME: "Standard Tech Bot"
-          DISCORD_AVATAR: https://avatars.githubusercontent.com/u/85697462?v=4
         uses: Ilshidur/action-discord@0.3.2
+        if: ${{ github.event.inputs.pre-release == 'false' && github.ref == 'refs/heads/master' }}
         with:
           args: |
-            "New release in ${{ github.repository }} - ${{ env.RELEASE_VERSION }}.
-            Details: ${{ steps.release-step.outputs.html_url }}"
+            "@Network Validator - New release in ${{ github.repository }} - **${{ github.event.inputs.release-name }}**.
+            Priority: **${{ github.event.inputs.priority }}**
+            Information: ${{ github.event.inputs.message }}
+            Link: ${{ steps.release-step.outputs.html_url }}"
 
       # - name: Public Telegram notification
       #   uses: appleboy/telegram-action@0.1.1
@@ -80,15 +82,16 @@ jobs:
       #     to: ${{ secrets.TELEGRAM_TOKEN }}
       #     token: ${{ secrets.TELEGRAM_TOKEN }}
       #     message: |
-      #       "New release in ${{ github.repository }} - ${{ env.RELEASE_VERSION }}.
+      #       "New release in ${{ github.repository }} - ${{ github.event.inputs.release-name }}".
       #       Details: ${{ steps.release-step.outputs.html_url }}"
 
       - name: Internal Slack Notification
         uses: bryannice/gitactions-slack-notification@2.0.0
+        if: github.ref == 'refs/heads/master'
         env:
           SLACK_INCOMING_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_MESSAGE: "Details: ${{ steps.release-step.outputs.html_url }}"
-          SLACK_TITLE: "New release in ${{ github.repository }} - ${{ env.RELEASE_VERSION }}"
+          SLACK_TITLE: "New release in ${{ github.repository }} - ${{ github.event.inputs.release-name }}"
           SLACK_COLOR: "#008000"
           SLACK_CHANNEL: "github-releases"
-          SLACK_USERNAME: "release-bot"
+          SLACK_USERNAME: "Standard Tech Bot"
