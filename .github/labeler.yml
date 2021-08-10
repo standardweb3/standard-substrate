@@ -1,0 +1,16 @@
+opportunity:
+  - node/opportunity/**/*
+  - runtime/opportunity/**/*
+
+standard:
+  - node/standard/**/*
+  - runtime/standard/**/*
+
+primitives:
+  - primitives/**/*
+
+pallets:
+  - pallets/**/*
+
+github-actions:
+  - .github/**/*
