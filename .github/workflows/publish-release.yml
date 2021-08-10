@@ -52,7 +52,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create release
-        uses: ncipollo/release-action@v1.8.7
+        uses: ncipollo/release-action@v1.8.8
         id: release-step
         if: github.ref == 'refs/heads/master'
         with:
