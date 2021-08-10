@@ -4,7 +4,7 @@ permissions:
   contents: read
 
 env:
-  NIGHTLY_TOOLCHAIN_BUILD: 'nightly-2021-04-22'
+  NIGHTLY_TOOLCHAIN_BUILD: "nightly-2021-04-22"
 
 # Controls when the action will run.
 on:
@@ -22,12 +22,9 @@ on:
   workflow_dispatch:
     inputs:
       nightly-toolchain-build:
-        description: 'Nightly Rust toolchain to use'
+        description: "Nightly Rust toolchain to use"
         default: ${NIGHTLY_TOOLCHAIN_BUILD}
         required: false
-
-env:
-  DEPLOYMENT_PREFIX: ${{ github.event.inputs.deployment_prefix || mainy }}
 
 defaults:
   run:
