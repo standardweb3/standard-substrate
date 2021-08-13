@@ -25,6 +25,9 @@ pallet-standard-market = { path = '../../pallets/market', default_features = fal
 pallet-standard-oracle = { path = "../../pallets/oracle", default-features = false }
 pallet-standard-vault = { path = '../../pallets/vault', default_features = false }
 
+# Chainbridge Dependencies
+chainbridge = { git = "https://github.com/ChainSafe/chainbridge-substrate", commit = "39990274866fd3b759aa9aa9d883da499ff3d6ea", default-features = false }
+
 # Substrate Dependencies
 ## Substrate Primitive Dependencies
 sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
@@ -56,6 +59,7 @@ frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate"
 pallet-asset-registry = { path = "../../pallets/asset-registry", default-features = false }
 pallet-aura = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
 pallet-authorship = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
+pallet-assets = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
 pallet-election-provider-multi-phase = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
 pallet-im-online = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
@@ -149,11 +153,10 @@ std = [
     "cumulus-pallet-parachain-system/std",
 	"cumulus-pallet-xcmp-queue/std",
 	"cumulus-pallet-xcm/std",
-    'orml-tokens/std',
-    'orml-currencies/std',
-    'orml-traits/std',
+	"pallet-assets/std",
     'pallet-asset-registry/std',
     'pallet-standard-oracle/std',
     'pallet-standard-market/std',
-    'pallet-standard-vault/std'
+    'pallet-standard-vault/std',
+    'chainbridge/std',
 ]

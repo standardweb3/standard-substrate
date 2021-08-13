@@ -1,0 +1,15 @@
+ARG RUNTIME_IMAGE=ubuntu:focal
+
+FROM $RUNTIME_IMAGE as runtime
+
+LABEL maintainer="Standard Tech <tech@standard.tech>"
+LABEL description="Standard Tech Collator Node"
+
+COPY ./standard-collator /usr/local/bin
+COPY ./Docker/entrypoint.sh /
+
+EXPOSE 30333 9933 9944
+VOLUME ["/data"]
+
+ENTRYPOINT ["/entrypoint.sh", "/usr/local/bin/standard-collator"]
+CMD ["--help"]

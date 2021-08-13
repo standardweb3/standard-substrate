@@ -1,21 +1,22 @@
 name: Publish release
 
-# permissions:
-#   contents: write
-#   actions: read
-#   metadata: read
-
-# Controls when the action will run.
 on:
   workflow_dispatch:
     inputs:
       release-name:
         description: "Release to create"
         required: true
+      tag:
+        description: "Tag to create"
+        required: true
       priority:
         description: "Priority of the release"
         required: false
         default: "HIGH"
+      message:
+        description: "Additional message for the release"
+        required: true
+        default: "New release - upgrade as soon as possible."
       pre-release:
         description: "Whether to publish pre-release"
         required: true
@@ -33,7 +34,9 @@ jobs:
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v2
         with:
+          branch: master
           workflow: binary-build.yml
+          workflow_conclusion: success
 
       - name: Create checksums file
         run: |
@@ -45,49 +48,55 @@ jobs:
       - name: Build Changelog
         id: build-changelog
         uses: mikepenz/release-changelog-builder-action@v2.1.1
-        if: ${{ github.event.inputs.pre-release == 'false' && github.ref == 'refs/heads/master' }}
+        if: github.ref == 'refs/heads/master'
         with:
           configuration: ".github/release_notes_config.json"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create release
-        uses: ncipollo/release-action@v1.8.7
+        uses: ncipollo/release-action@v1.8.8
         id: release-step
-        if: ${{ github.event.inputs.pre-release == 'false' && github.ref == 'refs/heads/master' }}
+        if: github.ref == 'refs/heads/master'
         with:
           artifacts: "SHA256CHECKSUMS, standard-substrate-*/*"
           allowUpdates: true
           artifactErrorsFailBuild: true
-          name: ${{ github.event.inputs.release-name }}"
+          name: ${{ github.event.inputs.release-name }}
+          tag: ${{ github.event.inputs.tag }}
+          commit: ${{ github.sha }}
           body: ${{ steps.build-changelog.outputs.changelog }}
           token: ${{ secrets.BOT_GITHUB_TOKEN }}
-          prerelease: false
-
-      - name: Create pre-release
-        uses: ncipollo/release-action@v1.8.7
-        id: pre-release-step
-        if: ${{ github.event.inputs.pre-release == 'true' && github.ref != 'refs/heads/master' }}
-        with:
-          artifacts: "SHA256CHECKSUMS, standard-substrate-*/*"
-          allowUpdates: true
-          artifactErrorsFailBuild: true
-          name: ${{ github.event.inputs.release-name }}"
-          token: ${{ secrets.BOT_GITHUB_TOKEN }}
-          prerelease: true
+          prerelease: ${{ github.event.inputs.pre-release == 'true' && 'true' || 'false' }}
 
       - name: Public Discord notification
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_USERNAME: "Standard Tech Bot"
-          DISCORD_AVATAR: https://avatars.githubusercontent.com/u/85697462?v=4
         uses: Ilshidur/action-discord@0.3.2
         if: ${{ github.event.inputs.pre-release == 'false' && github.ref == 'refs/heads/master' }}
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          # DISCORD_EMBEDS: {
+          #   "embeds": [
+          #   {
+          #   "title": "Priority: **${{ github.event.inputs.priority }}**",
+          #   "color": ""
+          #   },
+          #   {
+          #   "title": "Information: ${{ github.event.inputs.message }},
+          #   "color": ""
+          #   },
+          #   {
+          #   "title": "Release URL",
+          #   "url": "${{ steps.release-step.outputs.html_url }}",
+          #   "color": ""
+          #   },
+          #   ]
+          # }
         with:
           args: |
-            "#opportunity - New release in ${{ github.repository }} - **${{ github.event.inputs.release-name }}"**.
-            Priority: **${{ github.event.inputs.priority }}**"
-            Details: ${{ steps.release-step.outputs.html_url }}"
+            "<@&808602414138654752> - New release in ${{ github.repository }} - **${{ github.event.inputs.release-name }}**.
+            Priority: **${{ github.event.inputs.priority }}**
+            Information: ${{ github.event.inputs.message }}
+            Link: ${{ steps.release-step.outputs.html_url }}"
 
       # - name: Public Telegram notification
       #   uses: appleboy/telegram-action@0.1.1
@@ -100,7 +109,7 @@ jobs:
 
       - name: Internal Slack Notification
         uses: bryannice/gitactions-slack-notification@2.0.0
-        if: ${{ github.event.inputs.pre-release == 'false' && github.ref == 'refs/heads/master' }}
+        if: github.ref == 'refs/heads/master'
         env:
           SLACK_INCOMING_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_MESSAGE: "Details: ${{ steps.release-step.outputs.html_url }}"

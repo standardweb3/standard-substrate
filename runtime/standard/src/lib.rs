@@ -24,10 +24,7 @@ use sp_runtime::{
 	create_runtime_str,
 	curve::PiecewiseLinear,
 	generic, impl_opaque_keys,
-	traits::{
-		AccountIdConversion, AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto,
-		OpaqueKeys, Verify, Zero,
-	},
+	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto, OpaqueKeys, Verify},
 	transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, Perbill,
 };
@@ -57,8 +54,6 @@ pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
-use orml_currencies::BasicCurrencyAdapter;
-use orml_traits::parameter_type_with_key;
 use primitives::{Amount, AssetId, Balance, CurrencyId};
 
 /// Constant values used within the runtime.
@@ -617,6 +612,30 @@ impl pallet_balances::Config for Runtime {
 }
 
 parameter_types! {
+	pub const AssetDeposit: Balance = 100 * STD;
+	pub const ApprovalDeposit: Balance = 1 * STD;
+	pub const StringLimit: u32 = 50;
+	pub const MetadataDepositBase: Balance = 10 * STD;
+	pub const MetadataDepositPerByte: Balance = 1 * STD;
+}
+
+impl pallet_assets::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type AssetId = AssetId;
+	type Currency = Balances;
+	type ForceOrigin = EnsureRoot<AccountId>;
+	type AssetDeposit = AssetDeposit;
+	type MetadataDepositBase = MetadataDepositBase;
+	type MetadataDepositPerByte = MetadataDepositPerByte;
+	type ApprovalDeposit = ApprovalDeposit;
+	type StringLimit = StringLimit;
+	type Freezer = ();
+	type Extra = ();
+	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
+}
+
+parameter_types! {
 	pub const MinVestedTransfer: Balance = 1 * STD;
 }
 
@@ -625,40 +644,6 @@ impl pallet_vesting::Config for Runtime {
 	type Currency = Balances;
 	type BlockNumberToBalance = ConvertInto;
 	type MinVestedTransfer = MinVestedTransfer;
-	type WeightInfo = ();
-}
-
-parameter_type_with_key! {
-	pub ExistentialDeposits: |_currency_id: CurrencyId| -> Balance {
-		Zero::zero()
-	};
-}
-
-parameter_types! {
-	pub const TreasuryPalletId: PalletId = PalletId(*b"ty/trsry");
-	pub TreasuryModuleAccount: AccountId = TreasuryPalletId::get().into_account();
-}
-
-impl orml_tokens::Config for Runtime {
-	type Event = Event;
-	type Balance = Balance;
-	type Amount = Amount;
-	type CurrencyId = CurrencyId;
-	type WeightInfo = ();
-	type ExistentialDeposits = ExistentialDeposits;
-	type OnDust = orml_tokens::TransferDust<Runtime, TreasuryModuleAccount>;
-	type MaxLocks = MaxLocks;
-}
-
-parameter_types! {
-	pub const GetNativeCurrencyId: CurrencyId = 0;
-}
-
-impl orml_currencies::Config for Runtime {
-	type Event = Event;
-	type MultiCurrency = Tokens;
-	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
-	type GetNativeCurrencyId = GetNativeCurrencyId;
 	type WeightInfo = ();
 }
 
@@ -677,7 +662,7 @@ parameter_types! {
 
 impl pallet_standard_market::Config for Runtime {
 	type Event = Event;
-	type Currency = Currencies;
+	type Currency = Assets;
 	type SystemPalletId = SysPalletId;
 }
 
@@ -688,7 +673,7 @@ parameter_types! {
 impl pallet_standard_vault::Config for Runtime {
 	type Event = Event;
 	type VaultPalletId = VltPalletId;
-	type Currency = Currencies;
+	type Currency = Assets;
 	type SystemPalletId = SysPalletId;
 }
 
@@ -733,30 +718,29 @@ construct_runtime!(
 		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
 		Sudo: pallet_sudo::{Pallet, Call, Storage, Event<T>, Config<T>},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 30,
 		// Parachain pallets
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Config, Storage, Inherent, Event<T>} = 20,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 21,
+		// Assets pallets
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 30,
+		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 31,
+		Vesting: pallet_vesting::{Pallet, Call, Storage, Config<T>, Event<T>} = 32,
 		// Staking pallets
-		Vesting: pallet_vesting::{Pallet, Call, Storage, Config<T>, Event<T>} = 31,
 		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>} = 40,
 		Staking: pallet_staking::{Pallet, Call, Config<T>, Storage, Event<T>} = 41,
-		ElectionProviderMultiPhase: pallet_election_provider_multi_phase::{Pallet, Call, Storage, Event<T>, ValidateUnsigned} = 42,
+		// Consensus pallets
+		Aura: pallet_aura::{Pallet, Config<T>} = 42,
+		AuraExt: cumulus_pallet_aura_ext::{Pallet, Config} = 43,
+		Authorship: pallet_authorship::{Pallet, Call, Storage, Inherent} = 44,
+		ImOnline: pallet_im_online::{Pallet, Call, Storage, Event<T>, ValidateUnsigned, Config<T>} = 45,
+		ElectionProviderMultiPhase: pallet_election_provider_multi_phase::{Pallet, Call, Storage, Event<T>, ValidateUnsigned} = 46,
 		Offences: pallet_offences::{Pallet, Storage, Event} = 47,
 		Historical: pallet_session_historical::{Pallet} = 48,
-		// Consensus pallets
-		Aura: pallet_aura::{Pallet, Config<T>} = 43,
-		AuraExt: cumulus_pallet_aura_ext::{Pallet, Config} = 44,
-		Authorship: pallet_authorship::{Pallet, Call, Storage, Inherent} = 45,
-		ImOnline: pallet_im_online::{Pallet, Call, Storage, Event<T>, ValidateUnsigned, Config<T>} = 46,
 		// XCM pallets
 		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>} = 50,
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin} = 51,
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Call, Event<T>, Origin} = 52,
 		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 53,
-		// ORML pallets
-		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
-		Currencies: orml_currencies::{Pallet, Call, Event<T>},
 		// Standard pallets
 		AssetRegistry: pallet_asset_registry::{Pallet, Storage, Config<T>},
 		Market: pallet_standard_market::{Pallet, Call, Storage, Event},

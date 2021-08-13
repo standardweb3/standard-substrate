@@ -242,7 +242,6 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::Verify(cmd)) => cmd.run(),
 		Some(Subcommand::Vanity(cmd)) => cmd.run(),
 		None => {
-			// let runner = cli.create_runner(&*cli.run)?;
 			let runner = cli.create_runner(&cli.run.normalize())?;
 
 			runner.run_node_until_exit(|config| async move {
