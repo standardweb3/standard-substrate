@@ -102,6 +102,24 @@ pub struct ExportGenesisWasmCommand {
 	pub chain: Option<String>,
 }
 
+#[derive(Debug, StructOpt)]
+#[structopt(settings = &[
+	structopt::clap::AppSettings::GlobalVersion,
+	structopt::clap::AppSettings::ArgsNegateSubcommands,
+	structopt::clap::AppSettings::SubcommandsNegateReqs,
+])]
+pub struct Cli {
+	#[structopt(subcommand)]
+	pub subcommand: Option<Subcommand>,
+
+	#[structopt(flatten)]
+	pub run: cumulus_client_cli::RunCmd,
+
+	/// Relaychain arguments
+	#[structopt(raw = true)]
+	pub relaychain_args: Vec<String>,
+}
+
 #[derive(Debug)]
 #[allow(missing_docs)]
 pub struct RelayChainCli {
