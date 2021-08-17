@@ -721,7 +721,7 @@ construct_runtime!(
 		// Parachain pallets
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Config, Storage, Inherent, Event<T>} = 20,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 21,
-		// Assets pallets
+		// Balance pallets
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 30,
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 31,
 		Vesting: pallet_vesting::{Pallet, Call, Storage, Config<T>, Event<T>} = 32,

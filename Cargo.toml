@@ -13,8 +13,5 @@ members = [
     'pallets/vault',
     'runtime/standard',
     'runtime/opportunity',
-    'orml/traits',
-    'orml/currencies',
-    'orml/tokens',
     'primitives'
 ]

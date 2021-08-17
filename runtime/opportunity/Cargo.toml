@@ -13,12 +13,18 @@ substrate-wasm-builder = { version = '4.0.0', git = "https://github.com/parityte
 
 [dependencies]
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
+
+# Local Dependencies
+primitives = { default-features = false, path = "../../primitives" }
+pallet-asset-registry = { path = "../../pallets/asset-registry", default-features = false }
+pallet-standard-market = { path = '../../pallets/market', default_features = false }
+pallet-standard-oracle = { path = "../../pallets/oracle", default-features = false }
+pallet-standard-vault = { path = '../../pallets/vault', default_features = false }
+
+# Substrate Dependencies
 frame-election-provider-support = { default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.8" }
 frame-try-runtime = { version = "0.9.0", default-features = false, git = 'https://github.com/paritytech/substrate.git', optional = true, branch = "polkadot-v0.9.8" }
-orml-currencies = { path = "../../orml/currencies", default-features = false }
-orml-tokens = { path = "../../orml/tokens", default-features = false }
-orml-traits = { path = "../../orml/traits", default-features = false }
-pallet-asset-registry = { path = "../../pallets/asset-registry", default-features = false }
+pallet-assets = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
 pallet-authority-discovery = { default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.8" }
 pallet-authorship = { default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.8" }
 pallet-babe = { default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.8" }
@@ -38,13 +44,9 @@ pallet-scheduler = { default-features = false, version = '3.0.0', git = 'https:/
 pallet-session = { default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.8" }
 pallet-staking = { default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.8" }
 pallet-staking-reward-curve = { default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.8" }
-pallet-standard-market = { path = '../../pallets/market', default_features = false }
-pallet-standard-oracle = { path = "../../pallets/oracle", default-features = false }
-pallet-standard-vault = { path = '../../pallets/vault', default_features = false }
 pallet-tips = { version = "3.0.0", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.8" }
 pallet-treasury = { version = "3.0.0", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.8" }
 # consensus pallet
-primitives = { default-features = false, path = "../../primitives" }
 smallvec = "1.6.1"
 sp-authority-discovery = { default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.8" }
 sp-consensus-babe = { default-features = false, version = '0.9.0', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.8" }
@@ -252,9 +254,6 @@ std = [
 	'parachain-info/std',
 	'cumulus-pallet-parachain-system/std',
 	'cumulus-primitives-core/std',
-	'orml-tokens/std',
-	'orml-currencies/std',
-	'orml-traits/std',
 	'pallet-asset-registry/std',
 	'pallet-standard-oracle/std',
 	'pallet-standard-market/std',

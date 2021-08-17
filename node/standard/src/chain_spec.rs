@@ -6,8 +6,7 @@ use sp_core::{sr25519, Pair, Public};
 use standard_runtime::{
 	AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig, GenesisConfig,
 	ImOnlineConfig, ImOnlineId, OracleConfig, ParachainInfoConfig, SessionConfig, SessionKeys,
-	Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig, TokensConfig, VestingConfig,
-	WASM_BINARY,
+	Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig, VestingConfig, WASM_BINARY,
 };
 
 use sp_runtime::{
@@ -255,7 +254,6 @@ fn testnet_genesis(
 		aura: AuraConfig { authorities: vec![] },
 		im_online: ImOnlineConfig { keys: vec![] },
 		aura_ext: Default::default(),
-		tokens: TokensConfig { balances: endowed_accounts.iter().flat_map(|_x| vec![]).collect() },
 		asset_registry: AssetRegistryConfig {
 			core_asset_id: CORE_ASSET_ID,
 			asset_ids: vec![

@@ -18,15 +18,12 @@ serde = { version = '1.0.119', optional = true, features = ['derive'] }
 
 # Local Dependencies
 primitives = { default-features = false, path = "../../primitives" }
-orml-currencies = { path = "../../orml/currencies", default-features = false }
-orml-tokens = { path = "../../orml/tokens", default-features = false }
-orml-traits = { path = "../../orml/traits", default-features = false }
 pallet-standard-market = { path = '../../pallets/market', default_features = false }
 pallet-standard-oracle = { path = "../../pallets/oracle", default-features = false }
 pallet-standard-vault = { path = '../../pallets/vault', default_features = false }
 
 # Chainbridge Dependencies
-chainbridge = { git = "https://github.com/ChainSafe/chainbridge-substrate", commit = "39990274866fd3b759aa9aa9d883da499ff3d6ea", default-features = false }
+chainbridge = { git = "https://github.com/ChainSafe/chainbridge-substrate", rev = "39990274866fd3b759aa9aa9d883da499ff3d6ea", default-features = false }
 
 # Substrate Dependencies
 ## Substrate Primitive Dependencies
