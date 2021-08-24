@@ -89,11 +89,15 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{
-	decl_error, decl_event, decl_module, decl_storage, dispatch, ensure, traits::Get, PalletId,
+	decl_error, decl_event, decl_module, decl_storage, dispatch, ensure,
+	traits::{
+		fungibles::{Inspect, Mutate, Transfer},
+		tokens::fungibles,
+		Get,
+	},
+	PalletId,
 };
 use frame_system::ensure_signed;
-use frame_support::traits::fungibles::{Inspect, Mutate, Transfer};
-use frame_support::traits::tokens::fungibles;
 use pallet_asset_registry;
 use primitives::{AssetId, Balance};
 use sp_core::U256;
@@ -112,8 +116,8 @@ pub trait Config: frame_system::Config + pallet_asset_registry::Config {
 	//   type AssetId: Parameter + Member + Into<u32> + AtLeast32Bit + Default + Copy + MaybeSerializeDeserialize;
 
 	type Assets: fungibles::Inspect<Self::AccountId, AssetId = AssetId, Balance = Balance>
-			+ fungibles::Mutate<Self::AccountId, AssetId = AssetId, Balance = Balance>
-			+ fungibles::Transfer<Self::AccountId, AssetId = AssetId, Balance = Balance>;
+		+ fungibles::Mutate<Self::AccountId, AssetId = AssetId, Balance = Balance>
+		+ fungibles::Transfer<Self::AccountId, AssetId = AssetId, Balance = Balance>;
 }
 
 decl_module! {

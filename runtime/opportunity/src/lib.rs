@@ -20,8 +20,8 @@ use sp_runtime::{
 	curve::PiecewiseLinear,
 	generic, impl_opaque_keys,
 	traits::{
-		AccountIdConversion, BlakeTwo256, Block as BlockT, Extrinsic, IdentifyAccount, OpaqueKeys,
-		SaturatedConversion, StaticLookup, Verify, Zero,
+		BlakeTwo256, Block as BlockT, Extrinsic, IdentifyAccount, OpaqueKeys, SaturatedConversion,
+		StaticLookup, Verify,
 	},
 	transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, MultiSignature, Percent, Permill,
@@ -823,7 +823,7 @@ parameter_types! {
 
 impl pallet_standard_market::Config for Runtime {
 	type Event = Event;
-	type Currency = Assets;
+	type Assets = Assets;
 	type SystemPalletId = SysPalletId;
 }
 
@@ -835,7 +835,7 @@ parameter_types! {
 impl pallet_standard_vault::Config for Runtime {
 	type Event = Event;
 	type VaultPalletId = VltPalletId;
-	type Currency = Assets;
+	type Assets = Assets;
 	type SystemPalletId = SysPalletId;
 }
 

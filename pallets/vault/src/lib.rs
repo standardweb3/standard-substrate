@@ -135,12 +135,18 @@
 
 use crate::sp_api_hidden_includes_decl_storage::hidden_include::traits::Get;
 use codec::{Decode, Encode};
-use frame_support::{decl_error, decl_event, decl_module, decl_storage, ensure, PalletId};
+use frame_support::{
+	decl_error, decl_event, decl_module, decl_storage, ensure,
+	traits::{
+		fungibles::{Inspect, Mutate, Transfer},
+		tokens::fungibles,
+	},
+	PalletId,
+};
 use frame_system::{ensure_root, ensure_signed};
-use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
 use pallet_standard_market as market;
 use pallet_standard_oracle as oracle;
-use primitives::{Amount, AssetId, Balance};
+use primitives::{AssetId, Balance};
 use sp_core::U256;
 use sp_runtime::{
 	traits::{AccountIdConversion, UniqueSaturatedInto},
@@ -169,12 +175,9 @@ pub trait Config: frame_system::Config + market::Config + oracle::Config {
 
 	type VaultPalletId: Get<PalletId>;
 
-	type Currency: MultiCurrencyExtended<
-			Self::AccountId,
-			CurrencyId = AssetId,
-			Balance = Balance,
-			Amount = Amount,
-		> + MultiReservableCurrency<Self::AccountId>;
+	type Assets: fungibles::Inspect<Self::AccountId, AssetId = AssetId, Balance = Balance>
+		+ fungibles::Mutate<Self::AccountId, AssetId = AssetId, Balance = Balance>
+		+ fungibles::Transfer<Self::AccountId, AssetId = AssetId, Balance = Balance>;
 }
 
 decl_module! {
@@ -217,7 +220,7 @@ decl_module! {
 			ensure!(result, Error::<T>::InvalidCDP);
 
 			// Send collateral to Standard Protocol
-			<T as Config>::Currency::transfer(collateral_id, &origin, &Self::sys_account_id(), collateral_amount)?;
+			<T as Config>::Assets::transfer(collateral_id, &origin, &Self::sys_account_id(), collateral_amount, true)?;
 
 			// Update CDP
 			<Vault<T>>::mutate((origin.clone(), collateral_id), |vlt|{
@@ -225,7 +228,7 @@ decl_module! {
 			});
 
 			// Send mtr to sender
-			<T as Config>::Currency::transfer(MTR, &origin, &Self::sys_account_id(), request_amount)?;
+			<T as Config>::Assets::transfer(MTR, &origin, &Self::sys_account_id(), request_amount, true)?;
 
 			// deposit event
 			Self::deposit_event(RawEvent::UpdateVault(origin, collateral_id, total_collateral, request_amount))
@@ -254,7 +257,7 @@ decl_module! {
 			// Pay liquidation fee to the liquidator
 			let liquidation_rate = position.unwrap().liquidation_fee;
 			let fee = collateral_amount/liquidation_rate.1*liquidation_rate.0;
-			<T as Config>::Currency::transfer(collateral_id, &origin, &Self::account_id(), fee)?;
+			<T as Config>::Assets::transfer(collateral_id, &origin, &Self::account_id(), fee, true)?;
 
 			let rest = collateral_amount - fee;
 			// Check pairs in the market
@@ -295,12 +298,12 @@ decl_module! {
 			// Pay stability fee with collateral to the Standard treasury
 			let stability_rate = position.unwrap().stability_fee;
 			let fee = collateral_amount/stability_rate.1*stability_rate.0;
-			<T as Config>::Currency::transfer(collateral_id, &Self::account_id(), &Self::sys_account_id(), fee)?;
+			<T as Config>::Assets::transfer(collateral_id, &Self::account_id(), &Self::sys_account_id(), fee, true)?;
 
 			let rest = collateral_amount - fee;
 
 			// Give back the collateral
-			let _ = <T as Config>::Currency::transfer(collateral_id, &Self::sys_account_id(), &origin, rest);
+			let _ = <T as Config>::Assets::transfer(collateral_id, &Self::sys_account_id(), &origin, rest, true);
 
 			// deposit event
 			Self::deposit_event(RawEvent::CloseVault(collateral_id, collateral_amount, request_amount));

@@ -54,7 +54,7 @@ pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
-use primitives::{Amount, AssetId, Balance, CurrencyId};
+use primitives::{AssetId, Balance};
 
 /// Constant values used within the runtime.
 pub mod constants;
@@ -662,7 +662,7 @@ parameter_types! {
 
 impl pallet_standard_market::Config for Runtime {
 	type Event = Event;
-	type Currency = Assets;
+	type Assets = Assets;
 	type SystemPalletId = SysPalletId;
 }
 
@@ -673,7 +673,7 @@ parameter_types! {
 impl pallet_standard_vault::Config for Runtime {
 	type Event = Event;
 	type VaultPalletId = VltPalletId;
-	type Currency = Assets;
+	type Assets = Assets;
 	type SystemPalletId = SysPalletId;
 }
 

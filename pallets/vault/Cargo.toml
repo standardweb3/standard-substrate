@@ -23,9 +23,6 @@ pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "p
 pallet-standard-market = { default-features = false, path='../market' }
 pallet-standard-oracle = { default_features = false, path = '../oracle'}
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default_features = false, version = '3.0.0'}
-orml-currencies = {  path = "../../orml/currencies", default-features = false }
-orml-tokens = {  path = "../../orml/tokens", default-features = false }
-orml-traits = {  path = "../../orml/traits", default-features = false }
 primitives = { path = "../../primitives", default-features = false }
 [dev-dependencies]
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false, version = '3.0.0' }
@@ -42,8 +39,5 @@ std = [
     'pallet-standard-market/std',
     'pallet-standard-oracle/std',
     'pallet-balances/std',
-    'orml-currencies/std',
-    'orml-tokens/std',
-    'orml-traits/std',
     'primitives/std',
 ]
