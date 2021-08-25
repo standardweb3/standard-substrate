@@ -11,6 +11,7 @@ members = [
     'pallets/market',
     'pallets/oracle',
     'pallets/vault',
+    'pallets/chainbridge',
     'runtime/standard',
     'runtime/opportunity',
     'primitives'
