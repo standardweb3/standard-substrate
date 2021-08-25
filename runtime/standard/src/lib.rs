@@ -706,6 +706,19 @@ where
 	type OverarchingCall = Call;
 }
 
+parameter_types! {
+	pub const ChainId: u8 = 101;
+	pub const ProposalLifetime: BlockNumber = 1000;
+}
+
+impl pallet_standard_chainbridge::Config for Runtime {
+	type Event = Event;
+	type AdminOrigin = frame_system::EnsureRoot<Self::AccountId>;
+	type Proposal = Call;
+	type ChainId = ChainId;
+	type ProposalLifetime = ProposalLifetime;
+}
+
 construct_runtime!(
 	pub enum Runtime where
 		Block = Block,
@@ -713,11 +726,11 @@ construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
 		// System pallets
-		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
-		Sudo: pallet_sudo::{Pallet, Call, Storage, Event<T>, Config<T>},
+		System: frame_system::{Pallet, Call, Storage, Config, Event<T>} = 10,
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 11,
+		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>} = 12,
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage} = 13,
+		Sudo: pallet_sudo::{Pallet, Call, Storage, Event<T>, Config<T>} = 14,
 		// Parachain pallets
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Config, Storage, Inherent, Event<T>} = 20,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 21,
@@ -742,10 +755,12 @@ construct_runtime!(
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Call, Event<T>, Origin} = 52,
 		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 53,
 		// Standard pallets
-		AssetRegistry: pallet_asset_registry::{Pallet, Storage, Config<T>},
-		Market: pallet_standard_market::{Pallet, Call, Storage, Event},
-		Oracle: pallet_standard_oracle::{Pallet, Call, Storage, Event<T>, Config<T>},
-		Vault: pallet_standard_vault::{Pallet, Call, Storage, Event<T>},
+		AssetRegistry: pallet_asset_registry::{Pallet, Storage, Config<T>} = 60,
+		Market: pallet_standard_market::{Pallet, Call, Storage, Event} = 61,
+		Oracle: pallet_standard_oracle::{Pallet, Call, Storage, Event<T>, Config<T>} = 62,
+		Vault: pallet_standard_vault::{Pallet, Call, Storage, Event<T>} = 63,
+		// Chainbridge pallets
+		ChainBridge: pallet_standard_chainbridge::{Pallet, Call, Storage, Event<T>}= 70,
 	}
 );
 

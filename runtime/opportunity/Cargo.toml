@@ -20,6 +20,10 @@ pallet-asset-registry = { path = "../../pallets/asset-registry", default-feature
 pallet-standard-market = { path = '../../pallets/market', default_features = false }
 pallet-standard-oracle = { path = "../../pallets/oracle", default-features = false }
 pallet-standard-vault = { path = '../../pallets/vault', default_features = false }
+pallet-standard-chainbridge = { path = '../../pallets/chainbridge', default_features = false }
+
+# Chainbridge Dependencies
+# chainbridge = { package = 'chainbridge', git = "https://github.com/ChainSafe/chainbridge-substrate", rev = "39990274866fd3b759aa9aa9d883da499ff3d6ea", default-features = false }
 
 # Substrate Dependencies
 frame-election-provider-support = { default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.8" }
@@ -262,6 +266,7 @@ std = [
 	'pallet-indices/std',
 	'pallet-babe/std',
 	'pallet-authority-discovery/std',
+	'pallet-standard-chainbridge/std',
 ]
 
 runtime-benchmarks = [
