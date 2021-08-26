@@ -22,7 +22,7 @@ version = '2.0.0'
 
 [dependencies]
 primitive-types = {default-features = false, version = '0.9.0'}
-serde = {features = ['derive'], optional = true, version = '1.0.119'}
+serde = {features = ['derive'], optional = true, version = '1.0.129'}
 primitives = {path = '../../primitives', default-features = false}
 
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false, version = '3.0.0' }
