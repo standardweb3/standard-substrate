@@ -13,7 +13,7 @@ use opportunity_runtime::{
 	AccountId, AssetRegistryConfig, BabeConfig, BalancesConfig, Block, CouncilConfig,
 	DemocracyConfig, ElectionsConfig, GrandpaConfig, ImOnlineConfig, OracleConfig, Perbill,
 	SessionConfig, SessionKeys, Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig,
-	TechnicalCommitteeConfig, TechnicalMembershipConfig, TokensConfig, TreasuryConfig,
+	TechnicalCommitteeConfig, TechnicalMembershipConfig, TreasuryConfig,
 };
 
 use primitives::AssetId;
@@ -102,6 +102,7 @@ pub fn opportunity_standalone_config() -> Result<ChainSpec, String> {
 		ChainType::Live,
 		move || {
 			opportunity_testnet_config_genesis(
+				// Opportunity Runtime WASM binary
 				wasm_binary,
 				// Initial authorities
 				vec![authority_keys_from_seed("Alice")],
@@ -288,7 +289,6 @@ fn opportunity_testnet_config_genesis(
 			slash_reward_fraction: Perbill::from_percent(10),
 			..Default::default()
 		},
-		tokens: TokensConfig { balances: endowed_accounts.iter().flat_map(|_x| vec![]).collect() },
 		asset_registry: AssetRegistryConfig {
 			core_asset_id: CORE_ASSET_ID,
 			asset_ids: vec![

@@ -20,8 +20,8 @@ use sp_runtime::{
 	curve::PiecewiseLinear,
 	generic, impl_opaque_keys,
 	traits::{
-		AccountIdConversion, BlakeTwo256, Block as BlockT, Extrinsic, IdentifyAccount, OpaqueKeys,
-		SaturatedConversion, StaticLookup, Verify, Zero,
+		BlakeTwo256, Block as BlockT, Extrinsic, IdentifyAccount, OpaqueKeys, SaturatedConversion,
+		StaticLookup, Verify,
 	},
 	transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, MultiSignature, Percent, Permill,
@@ -55,9 +55,6 @@ use frame_system::{
 use pallet_session::historical as pallet_session_historical;
 pub use pallet_staking::StakerStatus;
 use pallet_transaction_payment::CurrencyAdapter;
-
-use orml_currencies::BasicCurrencyAdapter;
-use orml_traits::parameter_type_with_key;
 
 use primitives::{AssetId, Balance};
 
@@ -130,10 +127,10 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("opportunity"),
 	impl_name: create_runtime_str!("opportunity10"),
 	authoring_version: 1,
-	spec_version: 21,
+	spec_version: 25,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 3,
+	transaction_version: 4,
 };
 
 // Make the WASM binary available.
@@ -660,15 +657,15 @@ impl pallet_offences::Config for Runtime {
 }
 
 pallet_staking_reward_curve::build! {
-	const REWARD_CURVE: PiecewiseLinear<'static> = curve!(
-	  min_inflation: 0_025_000,
-	  max_inflation: 0_100_000,
-	  ideal_stake: 0_500_000,
-	  falloff: 0_050_000,
-	  max_piece_count: 45,
-	  test_precision: 0_005_000,
-	);
-  }
+  const REWARD_CURVE: PiecewiseLinear<'static> = curve!(
+	min_inflation: 0_025_000,
+	max_inflation: 0_100_000,
+	ideal_stake: 0_500_000,
+	falloff: 0_050_000,
+	max_piece_count: 45,
+	test_precision: 0_005_000,
+  );
+}
 
 parameter_types! {
 	pub const SessionsPerEra: sp_staking::SessionIndex = 24;
@@ -769,6 +766,30 @@ impl pallet_balances::Config for Runtime {
 }
 
 parameter_types! {
+	pub const AssetDeposit: Balance = 100 * DOLLARS;
+	pub const ApprovalDeposit: Balance = 1 * DOLLARS;
+	pub const StringLimit: u32 = 50;
+	pub const MetadataDepositBase: Balance = 10 * DOLLARS;
+	pub const MetadataDepositPerByte: Balance = 10 * MILLICENTS;
+}
+
+impl pallet_assets::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type AssetId = AssetId;
+	type Currency = Balances;
+	type ForceOrigin = EnsureRootOrHalfCouncil;
+	type AssetDeposit = AssetDeposit;
+	type MetadataDepositBase = MetadataDepositBase;
+	type MetadataDepositPerByte = MetadataDepositPerByte;
+	type ApprovalDeposit = ApprovalDeposit;
+	type StringLimit = StringLimit;
+	type Freezer = ();
+	type Extra = ();
+	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
+}
+
+parameter_types! {
 	pub const TransactionByteFee: Balance = 1;
 }
 
@@ -784,41 +805,8 @@ impl pallet_sudo::Config for Runtime {
 	type Call = Call;
 }
 
-pub type Amount = i128;
-pub type CurrencyId = u32;
-
-parameter_type_with_key! {
-	pub ExistentialDeposits: |_currency_id: CurrencyId| -> Balance {
-		Zero::zero()
-	};
-}
-
-parameter_types! {
-	pub TreasuryModuleAccount: AccountId = TreasuryPalletId::get().into_account();
-}
-
-impl orml_tokens::Config for Runtime {
-	type Event = Event;
-	type Balance = Balance;
-	type Amount = Amount;
-	type CurrencyId = CurrencyId;
-	type WeightInfo = ();
-	type ExistentialDeposits = ExistentialDeposits;
-	type OnDust = orml_tokens::TransferDust<Runtime, TreasuryModuleAccount>;
-	type MaxLocks = MaxLocks;
-}
-
-parameter_types! {
-	pub const GetNativeCurrencyId: CurrencyId = 0;
-}
-
-impl orml_currencies::Config for Runtime {
-	type Event = Event;
-	type MultiCurrency = Tokens;
-	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
-	type GetNativeCurrencyId = GetNativeCurrencyId;
-	type WeightInfo = ();
-}
+// pub type Amount = i128;
+// pub type CurrencyId = u32;
 
 impl pallet_asset_registry::Config for Runtime {
 	type AssetId = AssetId;
@@ -835,7 +823,7 @@ parameter_types! {
 
 impl pallet_standard_market::Config for Runtime {
 	type Event = Event;
-	type Currency = Currencies;
+	type Assets = Assets;
 	type SystemPalletId = SysPalletId;
 }
 
@@ -847,7 +835,7 @@ parameter_types! {
 impl pallet_standard_vault::Config for Runtime {
 	type Event = Event;
 	type VaultPalletId = VltPalletId;
-	type Currency = Currencies;
+	type Assets = Assets;
 	type SystemPalletId = SysPalletId;
 }
 
@@ -870,6 +858,19 @@ impl_opaque_keys! {
 	}
 }
 
+parameter_types! {
+	pub const ChainId: u8 = 100;
+	pub const ProposalLifetime: BlockNumber = 1000;
+}
+
+impl pallet_standard_chainbridge::Config for Runtime {
+	type Event = Event;
+	type AdminOrigin = frame_system::EnsureRoot<Self::AccountId>;
+	type Proposal = Call;
+	type ChainId = ChainId;
+	type ProposalLifetime = ProposalLifetime;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -879,9 +880,12 @@ construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
+		// Balance pallets
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
 		// Consensus pallets
 		Babe: pallet_babe::{Pallet, Call, Storage, Config, ValidateUnsigned},
 		Grandpa: pallet_grandpa::{Pallet, Call, Storage, Config, Event, ValidateUnsigned},
@@ -894,8 +898,6 @@ construct_runtime!(
 		Indices: pallet_indices::{Pallet, Call, Storage, Event<T>},
 		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>},
 		Historical: pallet_session_historical::{Pallet},
-		// Upgrade pallets
-		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
 		// Governance pallets
 		Democracy: pallet_democracy::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Council: pallet_collective::<Instance1>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
@@ -908,12 +910,13 @@ construct_runtime!(
 		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>},
 		Bounties: pallet_bounties::{Pallet, Call, Storage, Event<T>},
 		Tips: pallet_tips::{Pallet, Call, Storage, Event<T>},
-		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
-		Currencies: orml_currencies::{Pallet, Storage, Call, Event<T>},
+		// Standard pallets
 		AssetRegistry: pallet_asset_registry::{Pallet, Storage, Config<T>},
 		Market: pallet_standard_market::{Pallet, Call, Storage, Event},
 		Oracle: pallet_standard_oracle::{Pallet, Call, Storage, Event<T>, Config<T>},
 		Vault: pallet_standard_vault::{Pallet, Call, Storage, Event<T>},
+		// Chainbridge pallets
+		ChainBridge: pallet_standard_chainbridge::{Pallet, Call, Storage, Event<T>},
 	}
 );
 

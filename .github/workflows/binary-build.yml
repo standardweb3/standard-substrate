@@ -13,7 +13,6 @@ on:
       - master
     paths:
       - "node/**"
-      - "orml/**"
       - "pallets/**"
       - "primitives/**"
       - "runtime/**"

@@ -89,18 +89,23 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{
-	decl_error, decl_event, decl_module, decl_storage, dispatch, ensure, traits::Get, PalletId,
+	decl_error, decl_event, decl_module, decl_storage, dispatch, ensure,
+	traits::{
+		fungibles::{Inspect, Mutate, Transfer},
+		tokens::fungibles,
+		Get,
+	},
+	PalletId,
 };
 use frame_system::ensure_signed;
-use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
 use pallet_asset_registry;
-use primitives::{Amount, AssetId, Balance};
+use primitives::{AssetId, Balance};
 use sp_core::U256;
 use sp_runtime::{
 	traits::{AccountIdConversion, UniqueSaturatedFrom, UniqueSaturatedInto, Zero},
 	FixedU128,
 };
-//use crate::sp_api_hidden_includes_decl_storage::hidden_include::traits::Get;
+// use crate::sp_api_hidden_includes_decl_storage::hidden_include::traits::Get;
 mod math;
 
 /// The module configuration trait.
@@ -110,12 +115,9 @@ pub trait Config: frame_system::Config + pallet_asset_registry::Config {
 	type SystemPalletId: Get<PalletId>;
 	//   type AssetId: Parameter + Member + Into<u32> + AtLeast32Bit + Default + Copy + MaybeSerializeDeserialize;
 
-	type Currency: MultiCurrencyExtended<
-			Self::AccountId,
-			CurrencyId = AssetId,
-			Balance = Balance,
-			Amount = Amount,
-		> + MultiReservableCurrency<Self::AccountId>;
+	type Assets: fungibles::Inspect<Self::AccountId, AssetId = AssetId, Balance = Balance>
+		+ fungibles::Mutate<Self::AccountId, AssetId = AssetId, Balance = Balance>
+		+ fungibles::Transfer<Self::AccountId, AssetId = AssetId, Balance = Balance>;
 }
 
 decl_module! {
@@ -132,8 +134,8 @@ decl_module! {
 			let sender = ensure_signed(origin)?;
 			ensure!(token0 != token1, Error::<T>::IdenticalIdentifier);
 			// Burn assets from user to deposit to reserves
-			T::Currency::transfer(token0, &sender,  &Self::account_id(), amount0)?;
-			T::Currency::transfer(token1, &sender,  &Self::account_id(), amount1)?;
+			T::Assets::transfer(token0, &sender,  &Self::account_id(), amount0, true)?;
+			T::Assets::transfer(token1, &sender,  &Self::account_id(), amount1, true)?;
 			let zero_bal: Balance = 0;
 
 			match Pairs::get((token0.clone(), token1.clone())) {
@@ -149,13 +151,13 @@ decl_module! {
 					Self::_set_pair(token0, token1, lptoken_id);
 					Self::_set_rewards(token0, token1, lptoken_id);
 					// Mint LPtoken to the sender
-					T::Currency::deposit(lptoken_id, &sender, lptoken_amount)?;
+					T::Assets::mint_into(lptoken_id, &sender, lptoken_amount)?;
 					Self::deposit_event(Event::CreatePair(token0, token1, lptoken_id));
 					Ok(())
 				},
 				// when lpt exists and total supply is bigger than 0
-				Some(lpt) if T::Currency::total_issuance(lpt) > Zero::zero() => {
-					let total_supply = T::Currency::total_issuance(lpt);
+				Some(lpt) if T::Assets::total_issuance(lpt) > Zero::zero() => {
+					let total_supply = T::Assets::total_issuance(lpt);
 					let mut reserves = Self::reserves(lpt);
 					let thousand: Balance = 1000;
 					if token0 > token1 {
@@ -171,13 +173,13 @@ decl_module! {
 					reserves.1 += amount1;
 					Self::_set_reserves(token0, token1, reserves.0, reserves.1, lpt);
 					// Mint LPtoken to the sender
-					T::Currency::deposit(lpt, &sender, lptoken_amount)?;
+					T::Assets::mint_into(lpt, &sender, lptoken_amount)?;
 					Self::deposit_event(Event::MintedLiquidity(token0, token1, lpt));
 					//Self::_update(&lpt)?;
 					Ok(())
 				},
 				// <= ?? or just <
-				Some(lpt) if T::Currency::total_issuance(lpt) < zero_bal => {
+				Some(lpt) if T::Assets::total_issuance(lpt) < zero_bal => {
 					Err(Error::<T>::InsufficientLiquidityMinted)?
 				},
 				Some(_) => Err(Error::<T>::NoneValue)?,
@@ -189,7 +191,7 @@ decl_module! {
 			let sender = ensure_signed(origin)?;
 			let mut reserves = Self::reserves(lpt);
 			let tokens = Self::reward(lpt);
-			let total_supply = T::Currency::total_issuance(lpt);
+			let total_supply = T::Assets::total_issuance(lpt);
 
 			// Calculate rewards for providing liquidity with pro-rata distribution
 			let reward0 = amount.checked_mul(reserves.0).expect("Multiplicaiton overflow").checked_div(total_supply).expect("Divide by zero error");
@@ -199,9 +201,9 @@ decl_module! {
 			ensure!(reward0 > Zero::zero() && reward1 > Zero::zero(), Error::<T>::InsufficientLiquidityBurned);
 
 			// Distribute reward to the sender
-			T::Currency::withdraw(lpt, &sender, amount)?;
-			T::Currency::transfer(tokens.0,  &Self::account_id(), &sender, reward0)?;
-			T::Currency::transfer(tokens.1,  &Self::account_id(), &sender, reward1)?;
+			T::Assets::burn_from(lpt, &sender, amount)?;
+			T::Assets::transfer(tokens.0,  &Self::account_id(), &sender, reward0, true)?;
+			T::Assets::transfer(tokens.1,  &Self::account_id(), &sender, reward1, true)?;
 
 			// Update reserve when the balance is set
 			reserves.0 -= reward0;
@@ -230,9 +232,9 @@ decl_module! {
 			// get amount out
 			let amount_out = Self::_get_amount_out(amount_in, reserve_in, reserve_out);
 			// transfer amount in to system
-			T::Currency::transfer(from, &sender,  &Self::account_id(), amount_in)?;
+			T::Assets::transfer(from, &sender,  &Self::account_id(), amount_in, true)?;
 			// transfer swapped amount
-			T::Currency::transfer(to,  &Self::account_id(), &sender, amount_out)?;
+			T::Assets::transfer(to,  &Self::account_id(), &sender, amount_out, true)?;
 			// update reserves
 			reserve_in += amount_in;
 			reserve_out -= amount_out;
@@ -334,10 +336,10 @@ impl<T: Config> Module<T> {
 		match token0 > token1 {
 			true => {
 				Reserves::insert(lptoken, (amount1, amount0));
-			}
+			},
 			_ => {
 				Reserves::insert(lptoken, (amount0, amount1));
-			}
+			},
 		}
 	}
 
@@ -350,10 +352,10 @@ impl<T: Config> Module<T> {
 		match token0 > token1 {
 			true => {
 				Rewards::insert(lptoken, (token1, token0));
-			}
+			},
 			_ => {
 				Rewards::insert(lptoken, (token0, token1));
-			}
+			},
 		}
 	}
 
@@ -371,8 +373,9 @@ impl<T: Config> Module<T> {
 		let reserve_out_256 = Self::to_u256(reserve_out);
 		let amount_in_with_fee =
 			amount_in_256.checked_mul(U256::from(997)).expect("Multiplication overflow");
-		let numerator =
-			amount_in_with_fee.checked_mul(reserve_out_256).expect("Multiplication overflow");
+		let numerator = amount_in_with_fee
+			.checked_mul(reserve_out_256)
+			.expect("Multiplication overflow");
 		let denominator = reserve_in_256
 			.checked_mul(U256::from(1000))
 			.expect("Multiplication overflow")
@@ -382,31 +385,28 @@ impl<T: Config> Module<T> {
 			numerator.checked_div(denominator).expect("divided by zero").as_u128(),
 		)
 	}
-	/*
-
 	// TODO: Reimplement TWAP so that checked calculation does not lose values
-	fn _update(pair: &T::AssetId) -> dispatch::DispatchResult {
-		let block_timestamp = <timestamp::Module<T>>::get() % T::Moment::from(2u32.pow(32));
-		let time_elapsed = block_timestamp - Self::last_block_timestamp();
-		let reserves = Self::reserves(pair);
-		if time_elapsed > Zero::zero() && reserves.0 != Zero::zero() && reserves.1 != Zero::zero() {
-			let reserve0 = FixedU128::saturating_from_integer(reserves.0.saturated_into());
-			let reserve1 = FixedU128::saturating_from_integer(reserves.1.saturated_into());
-			let price0_cumulative_last = reserve1.checked_div(&reserve0).unwrap()
-				* FixedU128::saturating_from_integer(time_elapsed.saturated_into());
-			let price1_cumulative_last = reserve0.checked_div(&reserve1).unwrap()
-				* FixedU128::saturating_from_integer(time_elapsed.saturated_into());
-			<LastAccumulativePrice<T>>::insert(
-				&pair,
-				(price0_cumulative_last.clone(), price1_cumulative_last.clone()),
-			);
-			<LastBlockTimestamp<T>>::put(block_timestamp);
-			Self::deposit_event(RawEvent::SyncOracle(
-				price0_cumulative_last,
-				price1_cumulative_last,
-			));
-		}
-		Ok(())
-	}
-	*/
+	// fn _update(pair: &T::AssetId) -> dispatch::DispatchResult {
+	// let block_timestamp = <timestamp::Module<T>>::get() % T::Moment::from(2u32.pow(32));
+	// let time_elapsed = block_timestamp - Self::last_block_timestamp();
+	// let reserves = Self::reserves(pair);
+	// if time_elapsed > Zero::zero() && reserves.0 != Zero::zero() && reserves.1 != Zero::zero() {
+	// let reserve0 = FixedU128::saturating_from_integer(reserves.0.saturated_into());
+	// let reserve1 = FixedU128::saturating_from_integer(reserves.1.saturated_into());
+	// let price0_cumulative_last = reserve1.checked_div(&reserve0).unwrap()
+	// FixedU128::saturating_from_integer(time_elapsed.saturated_into());
+	// let price1_cumulative_last = reserve0.checked_div(&reserve1).unwrap()
+	// FixedU128::saturating_from_integer(time_elapsed.saturated_into());
+	// <LastAccumulativePrice<T>>::insert(
+	// &pair,
+	// (price0_cumulative_last.clone(), price1_cumulative_last.clone()),
+	// );
+	// <LastBlockTimestamp<T>>::put(block_timestamp);
+	// Self::deposit_event(RawEvent::SyncOracle(
+	// price0_cumulative_last,
+	// price1_cumulative_last,
+	// ));
+	// }
+	// Ok(())
+	// }
 }

@@ -4,14 +4,17 @@ use structopt::StructOpt;
 
 /// An overarching CLI command definition.
 #[derive(Debug, StructOpt)]
+#[structopt(settings = &[
+	structopt::clap::AppSettings::GlobalVersion,
+	structopt::clap::AppSettings::ArgsNegateSubcommands,
+	structopt::clap::AppSettings::SubcommandsNegateReqs,
+])]
 pub struct Cli {
-	/// Possible subcommand with parameters.
 	#[structopt(subcommand)]
 	pub subcommand: Option<Subcommand>,
 
-	#[allow(missing_docs)]
 	#[structopt(flatten)]
-	pub run: RunCmd,
+	pub run: cumulus_client_cli::RunCmd,
 
 	/// Relaychain arguments
 	#[structopt(raw = true)]
@@ -75,8 +78,8 @@ pub struct ExportGenesisStateCommand {
 	pub raw: bool,
 
 	/// Id of the parachain this state is for.
-	#[structopt(long, default_value = "200")]
-	pub parachain_id: u32,
+	#[structopt(long)]
+	pub parachain_id: Option<u32>,
 
 	/// The name of the chain for that the genesis state should be exported.
 	#[structopt(long)]
@@ -97,28 +100,6 @@ pub struct ExportGenesisWasmCommand {
 	/// The name of the chain for that the genesis wasm file should be exported.
 	#[structopt(long)]
 	pub chain: Option<String>,
-}
-
-#[allow(missing_docs)]
-#[derive(Debug, StructOpt)]
-pub struct RunCmd {
-	#[allow(missing_docs)]
-	#[structopt(flatten)]
-	pub base: sc_cli::RunCmd,
-
-	/// Id of the parachain this collator collates for.
-	///
-	/// Default: 200 (Standard)
-	#[structopt(long, default_value = "200")]
-	pub parachain_id: u32,
-}
-
-impl std::ops::Deref for RunCmd {
-	type Target = sc_cli::RunCmd;
-
-	fn deref(&self) -> &Self::Target {
-		&self.base
-	}
 }
 
 #[derive(Debug)]

@@ -14,7 +14,6 @@ on:
       - "!dependabot/**"
     paths:
       - "node/**"
-      - "orml/**"
       - "pallets/**"
       - "primitives/**"
       - "runtime/**"

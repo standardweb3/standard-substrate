@@ -1,13 +1,12 @@
 use cumulus_primitives_core::ParaId;
-use sc_chain_spec::ChainSpecExtension;
+use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
 use sp_core::{sr25519, Pair, Public};
 use standard_runtime::{
-	wasm_binary_unwrap, AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig,
-	GenesisConfig, ImOnlineConfig, ImOnlineId, OracleConfig, ParachainInfoConfig, SessionConfig,
-	SessionKeys, Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig, TokensConfig,
-	VestingConfig,
+	AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig, GenesisConfig,
+	ImOnlineConfig, ImOnlineId, OracleConfig, ParachainInfoConfig, SessionConfig, SessionKeys,
+	Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig, VestingConfig, WASM_BINARY,
 };
 
 use sp_runtime::{
@@ -15,18 +14,24 @@ use sp_runtime::{
 	Perbill,
 };
 
-use primitives::{AssetId, Balance};
+use primitives::AssetId;
 
 pub const CORE_ASSET_ID: AssetId = 1;
 
 type AccountPublic = <Signature as Verify>::Signer;
 
-/// Node `ChainSpec` extensions.
-///
-/// Additional parameters for some Substrate core modules,
-/// customizable from the chain spec.
-#[derive(Default, Clone, Serialize, Deserialize, ChainSpecExtension)]
-#[serde(rename_all = "camelCase")]
+const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
+const STANDARD_PROPERTIES: &str = r#"
+        {
+            "ss58Format": 42,
+            "tokenDecimals": 15,
+            "tokenSymbol": "STD"
+        }"#;
+const STANDARD_PROTOCOL_ID: &str = "standard";
+
+/// The extensions for the [`ChainSpec`].
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
+#[serde(deny_unknown_fields)]
 pub struct Extensions {
 	/// The relay chain of the Parachain.
 	pub relay_chain: String,
@@ -41,7 +46,7 @@ impl Extensions {
 	}
 }
 
-/// Specialized `ChainSpec`.
+/// Specialized `ChainSpec` for the normal parachain runtime.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
 
 /// Helper function to generate a crypto pair from seed
@@ -69,111 +74,186 @@ pub fn authority_keys_from_seed(seed: &str) -> (AccountId, AccountId, AuraId, Im
 	)
 }
 
-/// Gen chain specification for given parachain id
-pub fn get_chain_spec(id: ParaId) -> ChainSpec {
-	ChainSpec::from_genesis(
+pub fn standard_rococo_config() -> Result<ChainSpec, String> {
+	ChainSpec::from_json_bytes(&include_bytes!("../spec/standard_rococo_raw.json")[..])
+}
+
+pub fn standard_barocco_config() -> Result<ChainSpec, String> {
+	ChainSpec::from_json_bytes(&include_bytes!("../spec/standard_barocco_raw.json")[..])
+}
+
+pub fn standard_parachain_config(id: ParaId) -> Result<ChainSpec, String> {
+	use hex_literal::hex;
+
+	Ok(ChainSpec::from_genesis(
+		// Name
+		"Standard Parachain",
+		// ID
+		"standard_parachain",
+		// Chain Type
+		ChainType::Live,
+		move || {
+			testnet_genesis(
+				// Sudo account
+				// ZHd7drSUrpJfkkYYjMoKfCwtyN5SU6qSiQrA4BoESiuCTTa
+				hex!["9434f808bdb12725c67d7dca1f2584970c0c702215508fbd148e0262f2a15e00"].into(),
+				// Initial authorities
+				vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
+				// Pre-funded accounts
+				vec![
+					hex!["9434f808bdb12725c67d7dca1f2584970c0c702215508fbd148e0262f2a15e00"].into(),
+					get_account_id_from_seed::<sr25519::Public>("Alice"),
+					get_account_id_from_seed::<sr25519::Public>("Bob"),
+					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
+					get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
+				],
+				id,
+			)
+		},
+		// Bootnodes
+		vec![],
+		// Telemetry
+		Some(
+			sc_telemetry::TelemetryEndpoints::new(vec![(STAGING_TELEMETRY_URL.to_string(), 0)])
+				.expect("Telemetry url is valid"),
+		),
+		// Protocol ID
+		Some(STANDARD_PROTOCOL_ID),
+		// Properties
+		serde_json::from_str(STANDARD_PROPERTIES).unwrap(),
+		// Extensions
+		Extensions { relay_chain: "rococo".into(), para_id: id.into() },
+	))
+}
+
+pub fn development_config(id: ParaId) -> Result<ChainSpec, String> {
+	Ok(ChainSpec::from_genesis(
+		// Name
+		"Development",
+		// ID
+		"dev",
+		ChainType::Local,
+		move || {
+			testnet_genesis(
+				// Sudo account
+				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				// Initial authorities
+				vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
+				// Pre-funded accounts
+				vec![
+					get_account_id_from_seed::<sr25519::Public>("Alice"),
+					get_account_id_from_seed::<sr25519::Public>("Bob"),
+					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
+					get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
+				],
+				id,
+			)
+		},
+		// Bootnodes
+		vec![],
+		// Telemetry
+		None,
+		// Protocol ID
+		None,
+		// Properties
+		None,
+		// Extensions
+		Extensions { relay_chain: "rococo-local".into(), para_id: id.into() },
+	))
+}
+
+pub fn local_config(id: ParaId) -> Result<ChainSpec, String> {
+	Ok(ChainSpec::from_genesis(
 		"Local Testnet",
 		"local_testnet",
 		ChainType::Local,
-		move || testnet_genesis(get_account_id_from_seed::<sr25519::Public>("Alice"), None, id),
+		move || {
+			testnet_genesis(
+				// Sudo account
+				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				// Initial authorities
+				vec![authority_keys_from_seed("Alice")],
+				// Pre-funded accounts
+				vec![
+					get_account_id_from_seed::<sr25519::Public>("Alice"),
+					get_account_id_from_seed::<sr25519::Public>("Bob"),
+					get_account_id_from_seed::<sr25519::Public>("Charlie"),
+					get_account_id_from_seed::<sr25519::Public>("Dave"),
+					get_account_id_from_seed::<sr25519::Public>("Eve"),
+					get_account_id_from_seed::<sr25519::Public>("Ferdie"),
+					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
+					get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
+					get_account_id_from_seed::<sr25519::Public>("Charlie//stash"),
+					get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
+					get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
+					get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
+				],
+				// Parachain ID
+				id,
+			)
+		},
+		// Bootnodes
 		vec![],
+		// Telemetry
 		None,
+		// Protocol ID
 		None,
+		// Properties
 		None,
-		Extensions { relay_chain: "opportunity-rococo".into(), para_id: id.into() },
-	)
-}
-
-fn testnet_genesis(
-	sudo_key: AccountId,
-	endowed_accounts: Option<Vec<AccountId>>,
-	para_id: ParaId,
-) -> GenesisConfig {
-	let balances: Vec<(AccountId, Balance)> = endowed_accounts
-		.clone()
-		.unwrap_or_else(|| {
-			vec![
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
-				get_account_id_from_seed::<sr25519::Public>("Bob"),
-				get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-				get_account_id_from_seed::<sr25519::Public>("Charlie"),
-				get_account_id_from_seed::<sr25519::Public>("Dave"),
-				get_account_id_from_seed::<sr25519::Public>("Eve"),
-				get_account_id_from_seed::<sr25519::Public>("Ferdie"),
-			]
-		})
-		.iter()
-		.cloned()
-		.map(|k| (k, 1 << 60))
-		.collect();
-
-	let endowed_accounts: Vec<(AccountId, Balance)> = endowed_accounts
-		.clone()
-		.unwrap_or_else(|| {
-			vec![
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
-				get_account_id_from_seed::<sr25519::Public>("Bob"),
-				get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-				get_account_id_from_seed::<sr25519::Public>("Charlie"),
-				get_account_id_from_seed::<sr25519::Public>("Dave"),
-				get_account_id_from_seed::<sr25519::Public>("Eve"),
-				get_account_id_from_seed::<sr25519::Public>("Ferdie"),
-			]
-		})
-		.iter()
-		.cloned()
-		.map(|k| (k, 1 << 60))
-		.collect();
-
-	make_genesis(balances, endowed_accounts, sudo_key, para_id)
+		// Extensions
+		Extensions { relay_chain: "rococo-local".into(), para_id: id.into() },
+	))
 }
 
 fn session_keys(aura: AuraId, im_online: ImOnlineId) -> SessionKeys {
 	SessionKeys { aura, im_online }
 }
 
-/// Helper function to create GenesisConfig
-fn make_genesis(
-	balances: Vec<(AccountId, Balance)>,
-	endowed_accounts: Vec<(AccountId, Balance)>,
+fn testnet_genesis(
 	root_key: AccountId,
+	initial_authorities: Vec<(AccountId, AccountId, AuraId, ImOnlineId)>,
+	endowed_accounts: Vec<AccountId>,
 	parachain_id: ParaId,
 ) -> GenesisConfig {
-	let authorities = vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")];
-	let stakers = authorities
-		.iter()
-		.map(|x| (x.0.clone(), x.1.clone(), 100_000_000_000_000_000_u128, StakerStatus::Validator))
-		.collect::<Vec<_>>();
 	GenesisConfig {
 		system: SystemConfig {
-			code: wasm_binary_unwrap().to_vec(),
+			code: WASM_BINARY.expect("WASM binary was not build, please build it!").to_vec(),
 			changes_trie_config: Default::default(),
 		},
 		sudo: SudoConfig { key: root_key },
 		parachain_system: Default::default(),
 		parachain_info: ParachainInfoConfig { parachain_id },
-		balances: BalancesConfig { balances },
+		balances: BalancesConfig {
+			balances: endowed_accounts.iter().cloned().map(|k| (k, 1 << 60)).collect(),
+		},
 		vesting: VestingConfig { vesting: vec![] },
 		session: SessionConfig {
-			keys: authorities
+			keys: initial_authorities
 				.iter()
 				.map(|x| (x.0.clone(), x.0.clone(), session_keys(x.2.clone(), x.3.clone())))
 				.collect::<Vec<_>>(),
 		},
 		staking: StakingConfig {
-			validator_count: authorities.len() as u32,
-			minimum_validator_count: authorities.len() as u32,
-			invulnerables: authorities.iter().map(|x| x.0.clone()).collect(),
+			validator_count: initial_authorities.len() as u32,
+			minimum_validator_count: 1,
+			stakers: initial_authorities
+				.iter()
+				.map(|x| {
+					(
+						x.0.clone(),
+						x.1.clone(),
+						100_000_000_000_000_000_u128,
+						StakerStatus::Validator,
+					)
+				})
+				.collect(),
+			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
 			slash_reward_fraction: Perbill::from_percent(10),
-			stakers,
 			..Default::default()
 		},
 		aura: AuraConfig { authorities: vec![] },
 		im_online: ImOnlineConfig { keys: vec![] },
 		aura_ext: Default::default(),
-		tokens: TokensConfig { balances: endowed_accounts.iter().flat_map(|_x| vec![]).collect() },
 		asset_registry: AssetRegistryConfig {
 			core_asset_id: CORE_ASSET_ID,
 			asset_ids: vec![
@@ -181,8 +261,9 @@ fn make_genesis(
 				(b"MTR".to_vec(), 2),
 				(b"DOT".to_vec(), 3),
 				(b"KSM".to_vec(), 4),
+				(b"ROC".to_vec(), 5),
 			],
-			next_asset_id: 5,
+			next_asset_id: 6,
 		},
 		oracle: OracleConfig {
 			oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec(),
