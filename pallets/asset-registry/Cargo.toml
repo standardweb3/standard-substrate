@@ -21,7 +21,7 @@ package = 'parity-scale-codec'
 version = '2.0.0'
 
 [dependencies]
-primitive-types = {default-features = false, version = '0.9.0'}
+primitive-types = {default-features = false, version = '0.10.1'}
 serde = {features = ['derive'], optional = true, version = '1.0.119'}
 primitives = {path = '../../primitives', default-features = false}
 
