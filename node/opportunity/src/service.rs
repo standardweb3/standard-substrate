@@ -20,6 +20,9 @@
 
 //! Service implementation. Specialized wrapper over substrate service.
 
+use crate::rpc::{
+	create_full, create_light, BabeDeps, FullDeps, GrandpaDeps, IoHandler, LightDeps,
+};
 use futures::prelude::*;
 use opportunity_runtime::{self, RuntimeApi};
 use primitives::Block;
@@ -58,10 +61,13 @@ pub fn new_partial(
 		FullClient,
 		FullBackend,
 		FullSelectChain,
-		sp_consensus::DefaultImportQueue<Block, FullClient>,
+		sc_consensus::DefaultImportQueue<Block, FullClient>,
 		sc_transaction_pool::FullPool<Block, FullClient>,
 		(
-			impl Fn(sc_rpc::DenyUnsafe, sc_rpc::SubscriptionTaskExecutor) -> RpcExtension,
+			impl Fn(
+				sc_rpc::DenyUnsafe,
+				sc_rpc::SubscriptionTaskExecutor,
+			) -> Result<IoHandler, sc_service::Error>,
 			(
 				sc_consensus_babe::BabeBlockImport<Block, FullClient, FullGrandpaBlockImport>,
 				sc_finality_grandpa::LinkHalf<Block, FullClient, FullSelectChain>,
@@ -172,18 +178,18 @@ pub fn new_partial(
 		let chain_spec = config.chain_spec.cloned_box();
 
 		let rpc_extensions_builder = move |deny_unsafe, subscription_executor| {
-			let deps = crate::rpc::FullDeps {
+			let deps = FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
 				select_chain: select_chain.clone(),
 				chain_spec: chain_spec.cloned_box(),
 				deny_unsafe,
-				babe: crate::rpc::BabeDeps {
+				babe: BabeDeps {
 					babe_config: babe_config.clone(),
 					shared_epoch_changes: shared_epoch_changes.clone(),
 					keystore: keystore.clone(),
 				},
-				grandpa: crate::rpc::GrandpaDeps {
+				grandpa: GrandpaDeps {
 					shared_voter_state: shared_voter_state.clone(),
 					shared_authority_set: shared_authority_set.clone(),
 					justification_stream: justification_stream.clone(),
@@ -192,7 +198,7 @@ pub fn new_partial(
 				},
 			};
 
-			crate::rpc::create_full(deps)
+			create_full(deps).map_err(Into::into)
 		};
 
 		(rpc_extensions_builder, rpc_setup)
@@ -241,15 +247,10 @@ pub fn new_full_base(
 
 	config.network.extra_sets.push(sc_finality_grandpa::grandpa_peers_set_config());
 
-	#[cfg(feature = "cli")]
-	config.network.request_response_protocols.push(
-		sc_finality_grandpa_warp_sync::request_response_config_for_chain(
-			&config,
-			task_manager.spawn_handle(),
-			backend.clone(),
-			import_setup.1.shared_authority_set().clone(),
-		),
-	);
+	let warp_sync = Arc::new(sc_finality_grandpa::warp_proof::NetworkProvider::new(
+		backend.clone(),
+		import_setup.1.shared_authority_set().clone(),
+	));
 
 	let (network, system_rpc_tx, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
@@ -260,6 +261,7 @@ pub fn new_full_base(
 			import_queue,
 			on_demand: None,
 			block_announce_validator_builder: None,
+			warp_sync: Some(warp_sync),
 		})?;
 
 	if config.offchain_worker.enabled {
@@ -525,6 +527,11 @@ pub fn new_light_base(
 		telemetry.as_ref().map(|x| x.handle()),
 	)?;
 
+	let warp_sync = Arc::new(sc_finality_grandpa::warp_proof::NetworkProvider::new(
+		backend.clone(),
+		grandpa_link.shared_authority_set().clone(),
+	));
+
 	let (network, system_rpc_tx, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &config,
@@ -534,6 +541,7 @@ pub fn new_light_base(
 			import_queue,
 			on_demand: Some(on_demand.clone()),
 			block_announce_validator_builder: None,
+			warp_sync: Some(warp_sync),
 		})?;
 
 	let enable_grandpa = !config.disable_grandpa;
@@ -565,14 +573,14 @@ pub fn new_light_base(
 		);
 	}
 
-	let light_deps = crate::rpc::LightDeps {
+	let light_deps = LightDeps {
 		remote_blockchain: backend.remote_blockchain(),
 		fetcher: on_demand.clone(),
 		client: client.clone(),
 		pool: transaction_pool.clone(),
 	};
 
-	let rpc_extensions = crate::rpc::create_light(light_deps);
+	let rpc_extensions = create_light(light_deps);
 
 	let rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		on_demand: Some(on_demand),

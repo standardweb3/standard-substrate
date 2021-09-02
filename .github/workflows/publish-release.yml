@@ -31,12 +31,22 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download artifact
+      - name: Download binary artifact
         uses: dawidd6/action-download-artifact@v2
         with:
           branch: master
           workflow: binary-build.yml
           workflow_conclusion: success
+
+      - name: Download runtime artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          branch: master
+          workflow: runtime-build.yml
+          workflow_conclusion: success
+
+      - name: Display structure of downloaded files
+        run: ls -R
 
       - name: Create checksums file
         run: |

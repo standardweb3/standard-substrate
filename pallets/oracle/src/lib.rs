@@ -53,7 +53,7 @@ decl_module! {
 			Sockets::<T>::remove(_socket);
 			Oracles::<T>::remove(_who.clone());
 			Self::deposit_event(RawEvent::ProviderDeregistered(_who));
-				
+
 			Ok(())
 		}
 
