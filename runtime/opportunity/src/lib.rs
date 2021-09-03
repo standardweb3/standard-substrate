@@ -861,7 +861,7 @@ impl_opaque_keys! {
 }
 
 parameter_types! {
-	pub const ChainId: u8 = 100;
+	pub const BridgeChainId: u8 = 100;
 	pub const ProposalLifetime: BlockNumber = 1000;
 }
 
@@ -869,7 +869,7 @@ impl pallet_standard_chainbridge::Config for Runtime {
 	type Event = Event;
 	type AdminOrigin = frame_system::EnsureRoot<Self::AccountId>;
 	type Proposal = Call;
-	type ChainId = ChainId;
+	type BridgeChainId = BridgeChainId;
 	type ProposalLifetime = ProposalLifetime;
 }
 
