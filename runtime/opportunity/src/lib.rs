@@ -621,6 +621,8 @@ impl pallet_babe::Config for Runtime {
 	type ExpectedBlockTime = ExpectedBlockTime;
 	type EpochChangeTrigger = pallet_babe::ExternalTrigger;
 
+	type DisabledValidators = Session;
+
 	type KeyOwnerProofSystem = Historical;
 
 	type KeyOwnerProof = <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(
@@ -859,7 +861,7 @@ impl_opaque_keys! {
 }
 
 parameter_types! {
-	pub const ChainId: u8 = 100;
+	pub const BridgeChainId: u8 = 100;
 	pub const ProposalLifetime: BlockNumber = 1000;
 }
 
@@ -867,7 +869,7 @@ impl pallet_standard_chainbridge::Config for Runtime {
 	type Event = Event;
 	type AdminOrigin = frame_system::EnsureRoot<Self::AccountId>;
 	type Proposal = Call;
-	type ChainId = ChainId;
+	type BridgeChainId = BridgeChainId;
 	type ProposalLifetime = ProposalLifetime;
 }
 
@@ -1064,6 +1066,10 @@ sp_api::impl_runtime_apis! {
 	impl fg_primitives::GrandpaApi<Block> for Runtime {
 		fn grandpa_authorities() -> GrandpaAuthorityList {
 			Grandpa::grandpa_authorities()
+		}
+
+		fn current_set_id() -> fg_primitives::SetId {
+			Grandpa::current_set_id()
 		}
 
 		fn submit_report_equivocation_unsigned_extrinsic(

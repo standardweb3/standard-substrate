@@ -2,16 +2,14 @@
 
 use super::{
 	mock::{
-		assert_events, new_test_ext, Balances, Bridge, Call, Event, Origin, ProposalLifetime,
-		System, Test, TestChainId, ENDOWED_BALANCE, RELAYER_A, RELAYER_B, RELAYER_C,
+		assert_events, new_test_ext, new_test_ext_initialized, Balances, Bridge, Call, Event, Origin,
+		ProposalLifetime, System, Test, TestBridgeChainId, ENDOWED_BALANCE, RELAYER_A, RELAYER_B, RELAYER_C,
 		TEST_THRESHOLD,
 	},
 	*,
 };
-use crate::mock::new_test_ext_initialized;
 use frame_support::{assert_noop, assert_ok};
-use frame_system::{self as system};
-use sp_core::U256;
+use frame_system as system;
 
 #[test]
 fn derive_ids() {
@@ -102,8 +100,8 @@ fn whitelist_chain() {
 
 		assert_ok!(Bridge::whitelist_chain(Origin::root(), 0));
 		assert_noop!(
-			Bridge::whitelist_chain(Origin::root(), TestChainId::get()),
-			Error::<Test>::InvalidChainId
+			Bridge::whitelist_chain(Origin::root(), TestBridgeChainId::get()),
+			Error::<Test>::InvalidBridgeChainId
 		);
 
 		assert_events(vec![Event::Bridge(crate::Event::ChainWhitelisted(0))]);
@@ -250,7 +248,7 @@ fn add_remove_relayer() {
 	})
 }
 
-fn make_proposal(r: Vec<u8>) -> mock::Call {
+fn make_proposal(r: Vec<u8>) -> Call {
 	Call::System(system::Call::remark(r))
 }
 
@@ -385,8 +383,10 @@ fn create_unsucessful_proposal() {
 		assert_eq!(prop, expected);
 
 		assert_eq!(Balances::free_balance(RELAYER_B), 0);
-		assert_eq!(Balances::free_balance(Bridge::account_id()), ENDOWED_BALANCE);
-
+		assert_eq!(
+			Balances::free_balance(Bridge::account_id()),
+			ENDOWED_BALANCE
+		);
 		assert_events(vec![
 			Event::Bridge(crate::Event::VoteFor(src_id, prop_id, RELAYER_A)),
 			Event::Bridge(crate::Event::VoteAgainst(src_id, prop_id, RELAYER_B)),
@@ -443,7 +443,10 @@ fn execute_after_threshold_change() {
 		assert_eq!(prop, expected);
 
 		assert_eq!(Balances::free_balance(RELAYER_B), 0);
-		assert_eq!(Balances::free_balance(Bridge::account_id()), ENDOWED_BALANCE);
+		assert_eq!(
+			Balances::free_balance(Bridge::account_id()),
+			ENDOWED_BALANCE
+		);
 
 		assert_events(vec![
 			Event::Bridge(crate::Event::VoteFor(src_id, prop_id, RELAYER_A)),

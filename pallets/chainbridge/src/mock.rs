@@ -2,7 +2,7 @@
 
 use super::*;
 
-use frame_support::{assert_ok, ord_parameter_types, parameter_types, weights::Weight, PalletId};
+use frame_support::{assert_ok, ord_parameter_types, parameter_types, PalletId};
 use frame_system::{self as system};
 use sp_core::H256;
 use sp_runtime::{
@@ -19,11 +19,8 @@ parameter_types! {
 	pub const SS58Prefix: u16 = 2207;
 }
 
-impl system::Config for Test {
-	type BaseCallFilter = ();
-	type BlockWeights = ();
-	type BlockLength = ();
-	type DbWeight = ();
+impl frame_system::Config for Test {
+	type BaseCallFilter = frame_support::traits::Everything;
 	type Origin = Origin;
 	type Call = Call;
 	type Index = u64;
@@ -35,13 +32,16 @@ impl system::Config for Test {
 	type Header = Header;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
+	type DbWeight = ();
 	type Version = ();
-	type PalletInfo = PalletInfo;
 	type AccountData = pallet_balances::AccountData<u64>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type SystemWeightInfo = ();
-	type SS58Prefix = SS58Prefix;
+	type PalletInfo = PalletInfo;
+	type BlockWeights = ();
+	type BlockLength = ();
+	type SS58Prefix = ();
 	type OnSetCode = ();
 }
 
@@ -68,7 +68,7 @@ impl pallet_balances::Config for Test {
 }
 
 parameter_types! {
-	pub const TestChainId: u8 = 5;
+	pub const TestBridgeChainId: u8 = 5;
 	pub const ProposalLifetime: u64 = 50;
 }
 
@@ -76,7 +76,7 @@ impl Config for Test {
 	type Event = Event;
 	type AdminOrigin = frame_system::EnsureRoot<Self::AccountId>;
 	type Proposal = Call;
-	type ChainId = TestChainId;
+	type BridgeChainId = TestBridgeChainId;
 	type ProposalLifetime = ProposalLifetime;
 }
 
@@ -89,8 +89,8 @@ frame_support::construct_runtime!(
 		NodeBlock = Block,
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
-		System: system::{Pallet, Call, Event<T>},
-		Balances: balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Bridge: bridge::{Pallet, Call, Storage, Event<T>},
 	}
 );
@@ -103,18 +103,22 @@ pub const ENDOWED_BALANCE: u64 = 100_000_000;
 pub const TEST_THRESHOLD: u32 = 2;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
-	let bridge_id = PalletId(*b"cb/bridg").into_account();
-	let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
-	pallet_balances::GenesisConfig::<Test> { balances: vec![(bridge_id, ENDOWED_BALANCE)] }
-		.assimilate_storage(&mut t)
+	let bridge_id = PalletId(*b"stnd/cbg").into_account();
+	let mut t = frame_system::GenesisConfig::default()
+		.build_storage::<Test>()
 		.unwrap();
+	pallet_balances::GenesisConfig::<Test> {
+		balances: vec![(bridge_id, ENDOWED_BALANCE)],
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| System::set_block_number(1));
 	ext
 }
 
 pub fn new_test_ext_initialized(
-	src_id: ChainId,
+	src_id: BridgeChainId,
 	r_id: ResourceId,
 	resource: Vec<u8>,
 ) -> sp_io::TestExternalities {
