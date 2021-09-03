@@ -36,7 +36,7 @@ lazy_static = "1.4"
 log = "0.4.14"
 
 # RPC related Dependencies
-jsonrpc-core = "15.1.0"
+jsonrpc-core = "18.0.0"
 
 # Local Dependencies
 standard-runtime = { path = "../../runtime/standard" }
