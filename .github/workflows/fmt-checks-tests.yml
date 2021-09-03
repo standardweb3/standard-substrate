@@ -3,6 +3,9 @@ name: Tests run
 permissions:
   contents: read
 
+env:
+  NIGHTLY_TOOLCHAIN_BUILD: "nightly-2021-06-28"
+
 # Controls when the action will run.
 on:
   pull_request:
@@ -38,6 +41,7 @@ concurrency:
 jobs:
   rust-checks:
     runs-on: ubuntu-20.04
+    if: github.actor != 'dependabot[bot]'
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2

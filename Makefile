@@ -60,34 +60,24 @@ run-collator2:
 
 .PHONY: docker-build
 docker-build:
-	DOCKER_BUILDKIT=1 docker build -f Docker/Dockerfile -t opportunity-standalone:local .
+	DOCKER_BUILDKIT=1 docker build -f docker/Dockerfile -t opportunity-standalone:local .
 
-# example reference: 
-# VOLUME_PATH='./data' DATA_DIR='/data' NODE_NAME='Standard Validator' make docker-run
+# example: make docker-run VOLUME_PATH='./data' DATA_DIR='/data' NODE_NAME='Standard Validator' 
 .PHONY: docker-run
 docker-run:
 	docker run --rm -it -v "$(VOLUME_PATH)":"$(DATA_DIR)" \
-		--name opportunity-standalone \
-		opportunity-standalone:latest \
+		--name "${NODE}" \
+		standardprotocol/"${NODE}":latest \
 		--base-path "$(DATA_DIR)" \
 		--chain opportunity \
 		--port 30333 \
-		--bootnodes /dns/opportunity.standard.tech/tcp/30333/p2p/12D3KooWDPnry4Ei9RxgtY4RfwsM5fnUxg5sXJGbe8LMKrLs8tkf \
-				/dns/opportunity2.standard.tech/tcp/30333/p2p/12D3KooWGPAekiLHBHyCYe4x1BAbvSpHYbwkSHk3KxNyoZoyCmp6' \
 		--name "$(NAME)" \
 		--validator
 
-# example reference: 
-# NAME='validator' make docker-compose-run
+# example: make docker-compose-run NODE='opportunity-standalone' CHAIN='opportunity'
 .PHONY: docker-compose-run
 docker-compose-run:
-	NAME="$(NAME)" docker-compose -f ./Docker/docker-compose.yml up --detach
-
-# example reference: 
-# NAME='validator' make docker-compose-build-run
-.PHONY: docker-compose-build-run
-docker-compose-build-run:
-	NAME="$(NAME)" docker-compose -f ./Docker/docker-compose.build.yml up --detach
+	NODE="$(NODE)" CHAIN="${CHAIN}" docker-compose -f ./docker/docker-compose.yml up --detach
 
 .PHONY: docker-logs
 docker-logs:

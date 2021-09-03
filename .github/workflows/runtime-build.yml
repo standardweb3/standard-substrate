@@ -1,4 +1,4 @@
-name: Srtool build
+name: Runtime build
 
 on:
   workflow_run:

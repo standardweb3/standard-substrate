@@ -2,19 +2,19 @@ version: "3.8"
 
 services:
   opportunity-standalone:
-    image: standardprotocol/opportunity-standalone:latest
-    container_name: opportunity-standalone
+    image: standardprotocol/${NODE}:latest
+    container_name: ${NODE}
     volumes:
       - "data-node:/data"
     ports:
       - "30333:30333"
     command: >-
-      --chain opportunity
+      --chain "${CHAIN}"
       --base-path /data
       --port 30333
-      --name "${NAME}"
+      --name "${NODE}"
       --validator
 
 volumes:
   data-node:
-    name: ${NAME}-name
+    name: "${NODE}-volume"
