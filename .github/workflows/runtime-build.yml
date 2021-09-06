@@ -40,7 +40,8 @@ jobs:
 
       - name: Runtime build - ${{ matrix.chain }}
         id: srtool_build
-        uses: chevdor/srtool-actions@master
+        # uses: chevdor/srtool-actions@master
+        uses: ./.github/actions/srtool
         with:
           image: ${{ github.event.inputs.srtool_image || env.SRTOOL_IMAGE }}
           tag: ${{ github.event.inputs.srtool_version || env.SRTOOL_VERSION }}
