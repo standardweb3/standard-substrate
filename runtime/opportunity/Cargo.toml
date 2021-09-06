@@ -74,12 +74,10 @@ pallet-bounties = { version = "4.0.0-dev", default-features = false, git = 'http
 pallet-collective = { version = "4.0.0-dev", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.9" }
 pallet-democracy = { default-features = false, version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.9" }
 pallet-elections-phragmen = { version = "5.0.0-dev", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.9" }
-# treasury pallet
 pallet-grandpa = { default-features = false, version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.9" }
-pallet-identity = { version = "4.0.0-dev", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.9" }
+pallet-identity = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.9" }
 pallet-im-online = { default-features = false, version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.9" }
 pallet-indices = { default-features = false, version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.9" }
-# identity pallet
 pallet-membership = { version = "4.0.0-dev", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.9" }
 pallet-offences = { default-features = false, version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.9" }
 pallet-scheduler = { default-features = false, version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.9" }
@@ -113,6 +111,9 @@ std = [
 	'pallet-balances/std',
 	'pallet-timestamp/std',
 	'pallet-sudo/std',
+	'pallet-membership/std',
+	'pallet-identity/std',
+	'pallet-treasury/std',
 	'pallet-transaction-payment/std',
 	'pallet-offences/std',
 	'pallet-staking/std',
@@ -121,9 +122,15 @@ std = [
 	'pallet-grandpa/std',
 	'pallet-session/std',
 	'pallet-scheduler/std',
+	'pallet-grandpa/std',
+	'pallet-tips/std',
+	'pallet-collective/std',
 	'pallet-democracy/std',
 	'pallet-im-online/std',
 	'frame-election-provider-support/std',
+	'pallet-elections-phragmen/std',
+	"pallet-transaction-payment/std",
+	"pallet-transaction-payment-rpc-runtime-api/std",
 	'pallet-asset-registry/std',
 	'pallet-standard-oracle/std',
 	'pallet-standard-market/std',
