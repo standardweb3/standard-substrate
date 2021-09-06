@@ -1,4 +1,4 @@
-name: Build runtime
+name: Build Runtime
 
 env:
   SRTOOL_IMAGE: paritytech/srtool
@@ -40,7 +40,7 @@ jobs:
 
       - name: Runtime build - ${{ matrix.chain }}
         id: srtool_build
-        uses: chevdor/srtool-actions@v0.3.0
+        uses: chevdor/srtool-actions@master
         with:
           image: ${{ github.event.inputs.srtool_image || env.SRTOOL_IMAGE }}
           tag: ${{ github.event.inputs.srtool_version || env.SRTOOL_VERSION }}
