@@ -55,6 +55,10 @@ jobs:
           find . -type f -name "standard-collator-*" -exec sha256sum {} \; >> SHA256CHECKSUMS
           find . -type f -name "standard_runtime.compact.wasm" -exec sha256sum {} \; >> SHA256CHECKSUMS
 
+      - name: Archive runtime outputs
+        run: |
+          tar -cvzf runtime_build.tar.gz opportunity-runtime-* standard-runtime-*
+
       - name: Build Changelog
         id: build-changelog
         uses: mikepenz/release-changelog-builder-action@v2.2.0
@@ -69,7 +73,7 @@ jobs:
         id: release-step
         if: github.ref == 'refs/heads/master'
         with:
-          artifacts: "SHA256CHECKSUMS, standard-substrate-*/*"
+          artifacts: "SHA256CHECKSUMS, runtime_build.tar.gz, standard-substrate-*/*, opportunity-runtime-*/**/opportunity_runtime.compact.wasm, standard-runtime-*/**/standard_runtime.compact.wasm"
           allowUpdates: true
           artifactErrorsFailBuild: true
           name: ${{ github.event.inputs.release-name }}
