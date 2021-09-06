@@ -4,8 +4,12 @@
 
 ## Github Actions status
 
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/digitalnativeinc/standard-substrate?label=latest%20release)
+![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/digitalnativeinc/standard-substrate?include_prereleases&label=latest%20pre-release)
+
 [![Tests run](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/fmt-checks-tests.yml/badge.svg?branch=master)](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/fmt-checks-tests.yml)
 [![Build Binaries](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/binary-build.yml/badge.svg?branch=master)](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/binary-build.yml)
+[![Build Runtime](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/runtime-build.yml/badge.svg?branch=master)](https://github.com/digitalnativeinc/standard-substrate/actions/workflows/runtime-build.yml)
 
 # Contact
 
@@ -28,6 +32,7 @@ All documentation related to running a validator node can be found on [gitbook.i
 # Build
 
 Up to date instructions on building this project can be found on [gitbook.io](https://standard-protocol-1.gitbook.io/standard-protocol-validator-guide/).
+
 ### Rust
 
 Installation instructions can be found by navigating to [Substrate docs](https://substrate.dev/docs/en/knowledgebase/getting-started/).

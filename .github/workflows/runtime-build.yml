@@ -1,8 +1,9 @@
-name: Runtime build
+name: Build runtime
 
 env:
-  SUBWASM_VERSION: 0.13.2
+  SRTOOL_IMAGE: paritytech/srtool
   SRTOOL_VERSION: 1.53.0
+  SUBWASM_VERSION: 0.13.2
 
 on:
   workflow_run:
@@ -14,6 +15,10 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
+      srtool_image:
+        description: The srtool image to use
+        default: paritytech/srtool
+        required: false
       srtool_version:
         description: The srtool version to use
         required: false
@@ -37,13 +42,16 @@ jobs:
         id: srtool_build
         uses: chevdor/srtool-actions@v0.3.0
         with:
-          chain: ${{ matrix.chain }}
+          image: ${{ github.event.inputs.srtool_image || env.SRTOOL_IMAGE }}
           tag: ${{ github.event.inputs.srtool_version || env.SRTOOL_VERSION }}
+          chain: ${{ matrix.chain }}
+          # workdir: "${{ github.workspace }}"
+          # runtime_dir: "runtime/${{ matrix.chain }}"
 
       - name: Install subwasm - ${{ matrix.chain }}
         run: |
-          wget https://github.com/chevdor/subwasm/releases/download/v${{ github.event.inputs.subwasm_version || env.SRTOOL_VERSION }}/subwasm_linux_amd64_v${{ github.event.inputs.subwasm_version || env.SRTOOL_VERSION }}.deb
-          sudo dpkg -i subwasm_linux_amd64_v${{ github.event.inputs.subwasm_version || env.SRTOOL_VERSION }}.deb
+          wget https://github.com/chevdor/subwasm/releases/download/v${{ github.event.inputs.subwasm_version || env.SUBWASM_VERSION }}/subwasm_linux_amd64_v${{ github.event.inputs.subwasm_version || env.SUBWASM_VERSION }}.deb
+          sudo dpkg -i subwasm_linux_amd64_v${{ github.event.inputs.subwasm_version || env.SUBWASM_VERSION }}.deb
           subwasm --version
 
       - name: Show Runtime information - ${{ matrix.chain }}
