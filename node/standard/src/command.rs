@@ -24,7 +24,9 @@ fn load_spec(
 	para_id: ParaId,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	Ok(match id {
-		"" | "standard-parachain" => Box::new(chain_spec::standard_parachain_config(para_id)?),
+		"" | "standard-rococo-genesis" => Box::new(chain_spec::standard_rococo_genesis_config(para_id)?),
+		"standard-kusama-genesis" => Box::new(chain_spec::standard_kusama_genesis_config(para_id)?),
+		// "standard-kusama" => Box::new(chain_spec::standard_kusama_config()?),
 		"standard-rococo" => Box::new(chain_spec::standard_rococo_config()?),
 		"standard-barocco" => Box::new(chain_spec::standard_barocco_config()?),
 		"dev" => Box::new(chain_spec::development_config(para_id)?),
@@ -44,7 +46,7 @@ impl SubstrateCli for Cli {
 
 	fn description() -> String {
 		format!(
-			"Standard parachain collator\n\nThe command-line arguments provided first will be \
+			"Standard Parachain Collator\n\nThe command-line arguments provided first will be \
 		passed to the parachain node, while the arguments provided after -- will be passed \
 		to the relaychain node.\n\n\
 		{} [parachain-args] -- [relaychain-args]",
@@ -83,7 +85,7 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn description() -> String {
-		"Standard parachain collator\n\nThe command-line arguments provided first will be \
+		"Standard Parachain Collator\n\nThe command-line arguments provided first will be \
 		passed to the parachain node, while the arguments provided after -- will be passed \
 		to the relaychain node.\n\n\
     standard-collator [parachain-args] -- [relaychain-args]"
