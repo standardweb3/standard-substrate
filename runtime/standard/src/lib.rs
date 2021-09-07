@@ -77,12 +77,12 @@ pub fn wasm_binary_unwrap() -> &'static [u8] {
 /// Runtime version.
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("standard"),
-	impl_name: create_runtime_str!("standard"),
+	impl_name: create_runtime_str!("standard10"),
 	authoring_version: 1,
-	spec_version: 21,
-	impl_version: 0,
+	spec_version: 9090,
+	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 3,
+	transaction_version: 4,
 };
 
 /// Native version.
