@@ -82,14 +82,62 @@ pub fn standard_barocco_config() -> Result<ChainSpec, String> {
 	ChainSpec::from_json_bytes(&include_bytes!("../spec/standard_barocco_raw.json")[..])
 }
 
-pub fn standard_parachain_config(id: ParaId) -> Result<ChainSpec, String> {
+// pub fn standard_kusama_config() -> Result<ChainSpec, String> {
+// 	ChainSpec::from_json_bytes(&include_bytes!("../spec/standard_kusama_raw.json")[..])
+// }
+
+pub fn standard_kusama_genesis_config(id: ParaId) -> Result<ChainSpec, String> {
+	use hex_literal::hex;
+
+	Ok(ChainSpec::from_genesis(
+		// Name
+		"Standard Kusama Parachain",
+		// ID
+		"standard_ksm_parachain",
+		// Chain Type
+		ChainType::Live,
+		move || {
+			testnet_genesis(
+				// Sudo account
+				// ZHd7drSUrpJfkkYYjMoKfCwtyN5SU6qSiQrA4BoESiuCTTa
+				hex!["5EUxKM69tZmKDyocwmdiDJdtmgipEXVkfytMbiCAH1P6Q9W9"].into(),
+				// Initial authorities
+				vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
+				// Pre-funded accounts
+				vec![
+					hex!["5EUxKM69tZmKDyocwmdiDJdtmgipEXVkfytMbiCAH1P6Q9W9"].into(),
+					get_account_id_from_seed::<sr25519::Public>("Alice"),
+					get_account_id_from_seed::<sr25519::Public>("Bob"),
+					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
+					get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
+				],
+				id,
+			)
+		},
+		// Bootnodes
+		vec![],
+		// Telemetry
+		Some(
+			sc_telemetry::TelemetryEndpoints::new(vec![(STAGING_TELEMETRY_URL.to_string(), 0)])
+				.expect("Telemetry url is valid"),
+		),
+		// Protocol ID
+		Some(STANDARD_PROTOCOL_ID),
+		// Properties
+		serde_json::from_str(STANDARD_PROPERTIES).unwrap(),
+		// Extensions
+		Extensions { relay_chain: "kusama".into(), para_id: id.into() },
+	))
+}
+
+pub fn standard_rococo_genesis_config(id: ParaId) -> Result<ChainSpec, String> {
 	use hex_literal::hex;
 
 	Ok(ChainSpec::from_genesis(
 		// Name
 		"Standard Parachain",
 		// ID
-		"standard_parachain",
+		"standard_rococo_parachain",
 		// Chain Type
 		ChainType::Live,
 		move || {
