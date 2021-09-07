@@ -99,13 +99,13 @@ pub fn standard_kusama_genesis_config(id: ParaId) -> Result<ChainSpec, String> {
 		move || {
 			testnet_genesis(
 				// Sudo account
-				// ZHd7drSUrpJfkkYYjMoKfCwtyN5SU6qSiQrA4BoESiuCTTa
-				hex!["5EUxKM69tZmKDyocwmdiDJdtmgipEXVkfytMbiCAH1P6Q9W9"].into(),
+				// 5EUxKM69tZmKDyocwmdiDJdtmgipEXVkfytMbiCAH1P6Q9W9
+				hex!["6af70880fe4b040979009fd07dfbe631c355088c285a27061e883e0c0fbbe907"].into(),
 				// Initial authorities
 				vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
 				// Pre-funded accounts
 				vec![
-					hex!["5EUxKM69tZmKDyocwmdiDJdtmgipEXVkfytMbiCAH1P6Q9W9"].into(),
+					hex!["6af70880fe4b040979009fd07dfbe631c355088c285a27061e883e0c0fbbe907"].into(),
 					get_account_id_from_seed::<sr25519::Public>("Alice"),
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
 					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),

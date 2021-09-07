@@ -46,7 +46,7 @@ impl SubstrateCli for Cli {
 
 	fn description() -> String {
 		format!(
-			"Standard parachain collator\n\nThe command-line arguments provided first will be \
+			"Standard Parachain Collator\n\nThe command-line arguments provided first will be \
 		passed to the parachain node, while the arguments provided after -- will be passed \
 		to the relaychain node.\n\n\
 		{} [parachain-args] -- [relaychain-args]",
@@ -85,7 +85,7 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn description() -> String {
-		"Standard parachain collator\n\nThe command-line arguments provided first will be \
+		"Standard Parachain Collator\n\nThe command-line arguments provided first will be \
 		passed to the parachain node, while the arguments provided after -- will be passed \
 		to the relaychain node.\n\n\
     standard-collator [parachain-args] -- [relaychain-args]"
