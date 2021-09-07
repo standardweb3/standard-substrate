@@ -29,6 +29,8 @@ pub struct Extensions {
 	pub fork_blocks: ForkBlocks<Block>,
 	/// Known bad block hashes.
 	pub bad_blocks: BadBlocks<Block>,
+	/// The light sync state extension used by the sync-state rpc.
+	pub light_sync_state: sc_sync_state_rpc::LightSyncStateExtension,
 }
 
 //  The `ChainSpec` parameterized for the opportunity runtime.
