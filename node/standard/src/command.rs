@@ -26,7 +26,7 @@ fn load_spec(
 	Ok(match id {
 		"" | "standard-rococo-genesis" => Box::new(chain_spec::standard_rococo_genesis_config(para_id)?),
 		"standard-kusama-genesis" => Box::new(chain_spec::standard_kusama_genesis_config(para_id)?),
-		// "standard-kusama" => Box::new(chain_spec::standard_kusama_config()?),
+		"standard-kusama" => Box::new(chain_spec::standard_kusama_config()?),
 		"standard-rococo" => Box::new(chain_spec::standard_rococo_config()?),
 		"standard-barocco" => Box::new(chain_spec::standard_barocco_config()?),
 		"dev" => Box::new(chain_spec::development_config(para_id)?),

@@ -7,7 +7,7 @@
 		"/dns/two.rococo.standardtech.xyz/tcp/30333/p2p/12D3KooWBReJSdDJWJPaRoVUF3Zgr2dH2DJfyzoBSrDH6NRma72t"
 	],
 	"telemetryEndpoints": [["/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F", 0]],
-	"protocolId": "standard",
+	"protocolId": "standard_rococo",
 	"properties": {
 		"ss58Format": 42,
 		"tokenDecimals": 15,

@@ -7,7 +7,7 @@
 		"/dns/two.baroccoparachain.standardtech.xyz/tcp/30333/p2p/12D3KooWGJCaB7hQrVUPYu74yaSnSu8kvm2KvmcS3qfGBjebtsdT"
 	],
 	"telemetryEndpoints": [["/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F", 0]],
-	"protocolId": "standard",
+	"protocolId": "standard_barocco",
 	"properties": {
 		"ss58Format": 42,
 		"tokenDecimals": 15,

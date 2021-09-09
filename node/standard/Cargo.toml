@@ -22,7 +22,11 @@ crate-type = [ "cdylib", "rlib" ]
 substrate-build-script-utils = { version = "3.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 
 [features]
-default = []
+# required for dev/local chains
+default = [ "rococo-native" ]
+kusama-native = [ "polkadot-service/kusama-native", "polkadot-cli/kusama-native" ]
+westend-native = [ "polkadot-service/westend-native", "polkadot-cli/westend-native" ]
+rococo-native = [ "polkadot-service/rococo-native", "polkadot-cli/rococo-native" ]
 runtime-benchmarks = ['standard-runtime/runtime-benchmarks']
 
 [dependencies]

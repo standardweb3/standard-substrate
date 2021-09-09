@@ -25,7 +25,7 @@ const STANDARD_PROPERTIES: &str = r#"
         {
             "ss58Format": 42,
             "tokenDecimals": 15,
-            "tokenSymbol": "STD"
+            "tokenSymbol": "STND"
         }"#;
 const STANDARD_PROTOCOL_ID: &str = "standard";
 
@@ -82,9 +82,9 @@ pub fn standard_barocco_config() -> Result<ChainSpec, String> {
 	ChainSpec::from_json_bytes(&include_bytes!("../spec/standard_barocco_raw.json")[..])
 }
 
-// pub fn standard_kusama_config() -> Result<ChainSpec, String> {
-// 	ChainSpec::from_json_bytes(&include_bytes!("../spec/standard_kusama_raw.json")[..])
-// }
+pub fn standard_kusama_config() -> Result<ChainSpec, String> {
+	ChainSpec::from_json_bytes(&include_bytes!("../spec/standard_kusama_raw.json")[..])
+}
 
 pub fn standard_kusama_genesis_config(id: ParaId) -> Result<ChainSpec, String> {
 	use hex_literal::hex;
@@ -305,7 +305,7 @@ fn testnet_genesis(
 		asset_registry: AssetRegistryConfig {
 			core_asset_id: CORE_ASSET_ID,
 			asset_ids: vec![
-				(b"STD".to_vec(), 1),
+				(b"STND".to_vec(), 1),
 				(b"MTR".to_vec(), 2),
 				(b"DOT".to_vec(), 3),
 				(b"KSM".to_vec(), 4),
