@@ -4,7 +4,7 @@ permissions:
   contents: read
 
 env:
-  NIGHTLY_TOOLCHAIN_BUILD: "nightly-2021-06-28"
+  TOOLCHAIN_BUILD: "nightly-2021-06-28"
 
 # Controls when the action will run.
 on:
@@ -49,22 +49,25 @@ jobs:
           submodules: true
 
       - name: Install Rust for Substrate
-        uses: digitalnativeinc/install-rust-substrate-action@master
+        uses: actions-rs/toolchain@v1
         with:
-          nightly_toolchain_build: "nightly-2021-06-28"
+          toolchain: ${{ env.TOOLCHAIN_BUILD }}"
 
       # Check codebase style, will output error 1 if there is formatting to be done
       # Continues on error for now, need to format code fully first,
       # then remove `continue-on-error` to enforce it
       - name: Run Fmt
-        continue-on-error: true
-        run: |
-          make ci-format
-
-      - name: Run Checks
-        run: |
-          make check
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
 
       - name: Run Tests
-        run: |
-          make test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all
+
+      - uses: actions-rs/audit-check@v1
+        with:
+          token: ${{ secrets.BOT_GITHUB_TOKEN }}

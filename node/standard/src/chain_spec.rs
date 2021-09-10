@@ -36,7 +36,7 @@ pub struct Extensions {
 	/// The relay chain of the Parachain.
 	pub relay_chain: String,
 	/// The id of the Parachain.
-	pub para_id: u32,
+	pub para_id: u32
 }
 
 impl Extensions {
@@ -135,7 +135,7 @@ pub fn standard_rococo_genesis_config(id: ParaId) -> Result<ChainSpec, String> {
 
 	Ok(ChainSpec::from_genesis(
 		// Name
-		"Standard Parachain",
+		"Standard Rococo Parachain",
 		// ID
 		"standard_rococo_parachain",
 		// Chain Type
@@ -206,7 +206,7 @@ pub fn development_config(id: ParaId) -> Result<ChainSpec, String> {
 		// Properties
 		None,
 		// Extensions
-		Extensions { relay_chain: "rococo-local".into(), para_id: id.into() },
+		Extensions { relay_chain: "rococo-dev".into(), para_id: id.into() },
 	))
 }
 
