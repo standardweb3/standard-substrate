@@ -1,6 +1,6 @@
 {
-	"name": "Standard Parachain",
-	"id": "standard_parachain",
+	"name": "Standard Rococo Parachain",
+	"id": "standard_rococo_parachain",
 	"chainType": "Live",
 	"bootNodes": [
 		"/dns/one.rococo.standardtech.xyz/tcp/30333/p2p/12D3KooWPcbtA5kMRV18GwomeWyKPe1GKtHzb6Fm7xNCNR6WeV7U",
@@ -16,7 +16,6 @@
 	"relay_chain": "rococo",
 	"para_id": 2070,
 	"consensusEngine": null,
-	"lightSyncState": null,
 	"codeSubstitutes": {},
 	"genesis": {
 		"raw": {

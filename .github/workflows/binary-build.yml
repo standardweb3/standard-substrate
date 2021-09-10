@@ -4,7 +4,8 @@ permissions:
   contents: read
 
 env:
-  NIGHTLY_TOOLCHAIN_BUILD: "nightly-2021-06-28"
+  TOOLCHAIN_BUILD: "nightly-2021-06-28"
+  TOOLCHAIN_OVERRIDE: false
 
 # Controls when the action will run.
 on:
@@ -20,9 +21,13 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
-      nightly-toolchain-build:
-        description: "Nightly Rust toolchain to use"
-        default: ${NIGHTLY_TOOLCHAIN_BUILD}
+      toolchain-build:
+        description: "Rust toolchain to use"
+        default: ${TOOLCHAIN_BUILD}
+        required: false
+      toolchain-override:
+        description: "Set installed toolchain as an override for the current directory"
+        default: ${TOOLCHAIN_OVERRIDE}
         required: false
 
 defaults:
@@ -64,11 +69,21 @@ jobs:
       - name: Install Rust for Substrate - ${{ matrix.os }}
         uses: digitalnativeinc/install-rust-substrate-action@master
         with:
-          nightly_toolchain_build: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.nightly-toolchain-build || env.NIGHTLY_TOOLCHAIN_BUILD }}
+          toolchain_build: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.toolchain-build || env.TOOLCHAIN_BUILD }}
+
+      - name: Install Rust for Substrate
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.TOOLCHAIN_BUILD }}"
+          override: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.toolchain-override || env.TOOLCHAIN_BUILD }}
+          target: wasm32-unknown-unknown
+          components: rustfmt
 
       - name: Run Build - ${{ matrix.os }}
-        run: |
-          make build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
 
       # retrieves arch details for a build machine
       # example: 'linux-amd64'

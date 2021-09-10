@@ -1,25 +1,7 @@
+use crate::chain_spec;
 use sc_cli::{KeySubcommand, SignCmd, VanityCmd, VerifyCmd};
 use std::path::PathBuf;
 use structopt::StructOpt;
-
-/// An overarching CLI command definition.
-#[derive(Debug, StructOpt)]
-#[structopt(settings = &[
-	structopt::clap::AppSettings::GlobalVersion,
-	structopt::clap::AppSettings::ArgsNegateSubcommands,
-	structopt::clap::AppSettings::SubcommandsNegateReqs,
-])]
-pub struct Cli {
-	#[structopt(subcommand)]
-	pub subcommand: Option<Subcommand>,
-
-	#[structopt(flatten)]
-	pub run: cumulus_client_cli::RunCmd,
-
-	/// Relaychain arguments
-	#[structopt(raw = true)]
-	pub relaychain_args: Vec<String>,
-}
 
 /// Possible subcommands of the main binary.
 #[derive(Debug, StructOpt)]
@@ -102,6 +84,25 @@ pub struct ExportGenesisWasmCommand {
 	pub chain: Option<String>,
 }
 
+/// An overarching CLI command definition.
+#[derive(Debug, StructOpt)]
+#[structopt(settings = &[
+	structopt::clap::AppSettings::GlobalVersion,
+	structopt::clap::AppSettings::ArgsNegateSubcommands,
+	structopt::clap::AppSettings::SubcommandsNegateReqs,
+])]
+pub struct Cli {
+	#[structopt(subcommand)]
+	pub subcommand: Option<Subcommand>,
+
+	#[structopt(flatten)]
+	pub run: cumulus_client_cli::RunCmd,
+
+	/// Relaychain arguments
+	#[structopt(raw = true)]
+	pub relaychain_args: Vec<String>,
+}
+
 #[derive(Debug)]
 #[allow(missing_docs)]
 pub struct RelayChainCli {
@@ -121,7 +122,7 @@ impl RelayChainCli {
 		para_config: &sc_service::Configuration,
 		relay_chain_args: impl Iterator<Item = &'a String>,
 	) -> Self {
-		let extension = crate::chain_spec::Extensions::try_get(&*para_config.chain_spec);
+		let extension = chain_spec::Extensions::try_get(&*para_config.chain_spec);
 		let chain_id = extension.map(|e| e.relay_chain.clone());
 		let base_path = para_config.base_path.as_ref().map(|x| x.path().join("polkadot"));
 		Self { base_path, chain_id, base: polkadot_cli::RunCmd::from_iter(relay_chain_args) }
