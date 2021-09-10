@@ -2,9 +2,9 @@
 
 use super::{
 	mock::{
-		assert_events, new_test_ext, new_test_ext_initialized, Balances, Bridge, Call, Event, Origin,
-		ProposalLifetime, System, Test, TestBridgeChainId, ENDOWED_BALANCE, RELAYER_A, RELAYER_B, RELAYER_C,
-		TEST_THRESHOLD,
+		assert_events, new_test_ext, new_test_ext_initialized, Balances, Bridge, Call, Event,
+		Origin, ProposalLifetime, System, Test, TestBridgeChainId, ENDOWED_BALANCE, RELAYER_A,
+		RELAYER_B, RELAYER_C, TEST_THRESHOLD,
 	},
 	*,
 };
@@ -383,10 +383,7 @@ fn create_unsucessful_proposal() {
 		assert_eq!(prop, expected);
 
 		assert_eq!(Balances::free_balance(RELAYER_B), 0);
-		assert_eq!(
-			Balances::free_balance(Bridge::account_id()),
-			ENDOWED_BALANCE
-		);
+		assert_eq!(Balances::free_balance(Bridge::account_id()), ENDOWED_BALANCE);
 		assert_events(vec![
 			Event::Bridge(crate::Event::VoteFor(src_id, prop_id, RELAYER_A)),
 			Event::Bridge(crate::Event::VoteAgainst(src_id, prop_id, RELAYER_B)),
@@ -443,10 +440,7 @@ fn execute_after_threshold_change() {
 		assert_eq!(prop, expected);
 
 		assert_eq!(Balances::free_balance(RELAYER_B), 0);
-		assert_eq!(
-			Balances::free_balance(Bridge::account_id()),
-			ENDOWED_BALANCE
-		);
+		assert_eq!(Balances::free_balance(Bridge::account_id()), ENDOWED_BALANCE);
 
 		assert_events(vec![
 			Event::Bridge(crate::Event::VoteFor(src_id, prop_id, RELAYER_A)),

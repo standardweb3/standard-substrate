@@ -16,9 +16,9 @@ pub mod pallet {
 	pub use frame_support::{
 		pallet_prelude::*, traits::StorageVersion, weights::GetDispatchInfo, PalletId, Parameter,
 	};
-	use sp_runtime::traits::{AccountIdConversion, Dispatchable};
 	use frame_system::{self as system, pallet_prelude::*};
 	pub use sp_core::U256;
+	use sp_runtime::traits::{AccountIdConversion, Dispatchable};
 	use sp_std::prelude::*;
 
 	const DEFAULT_RELAYER_THRESHOLD: u32 = 1;
@@ -472,12 +472,8 @@ pub mod pallet {
 			let now = <frame_system::Pallet<T>>::block_number();
 			let mut votes = match Votes::<T>::get(src_id, (nonce, prop.clone())) {
 				Some(v) => v,
-				None => {
-					ProposalVotes {
-						expiry: now + T::ProposalLifetime::get(),
-						..Default::default()
-					}
-				}
+				None =>
+					ProposalVotes { expiry: now + T::ProposalLifetime::get(), ..Default::default() },
 			};
 
 			// Ensure the proposal isn't complete and relayer hasn't already voted

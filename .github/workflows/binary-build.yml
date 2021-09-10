@@ -66,18 +66,17 @@ jobs:
           brew update
           brew install openssl
 
-      - name: Install Rust for Substrate - ${{ matrix.os }}
-        uses: digitalnativeinc/install-rust-substrate-action@master
-        with:
-          toolchain_build: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.toolchain-build || env.TOOLCHAIN_BUILD }}
+      # - name: Install Rust for Substrate - ${{ matrix.os }}
+      #   uses: digitalnativeinc/install-rust-substrate-action@master
+      #   with:
+      #     toolchain_build: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.toolchain-build || env.TOOLCHAIN_BUILD }}
 
-      - name: Install Rust for Substrate
+      - name: Install Rust for Substrate - ${{ matrix.os }}
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ env.TOOLCHAIN_BUILD }}"
+          toolchain: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.toolchain-build || env.TOOLCHAIN_BUILD }}
           override: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.toolchain-override || env.TOOLCHAIN_BUILD }}
           target: wasm32-unknown-unknown
-          components: rustfmt
 
       - name: Run Build - ${{ matrix.os }}
         uses: actions-rs/cargo@v1

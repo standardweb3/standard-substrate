@@ -104,14 +104,10 @@ pub const TEST_THRESHOLD: u32 = 2;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let bridge_id = PalletId(*b"stnd/cbg").into_account();
-	let mut t = frame_system::GenesisConfig::default()
-		.build_storage::<Test>()
+	let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
+	pallet_balances::GenesisConfig::<Test> { balances: vec![(bridge_id, ENDOWED_BALANCE)] }
+		.assimilate_storage(&mut t)
 		.unwrap();
-	pallet_balances::GenesisConfig::<Test> {
-		balances: vec![(bridge_id, ENDOWED_BALANCE)],
-	}
-	.assimilate_storage(&mut t)
-	.unwrap();
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| System::set_block_number(1));
 	ext

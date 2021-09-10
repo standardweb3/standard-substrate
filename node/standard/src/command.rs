@@ -10,8 +10,8 @@ use log::info;
 use polkadot_parachain::primitives::AccountIdConversion;
 use primitives::Block;
 use sc_cli::{
-	CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
-	NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
+	CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams, NetworkParams,
+	Result, RuntimeVersion, SharedParams, SubstrateCli,
 };
 use sc_service::config::{BasePath, PrometheusConfig};
 use sp_core::hexdisplay::HexDisplay;
@@ -24,7 +24,8 @@ fn load_spec(
 	para_id: ParaId,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	Ok(match id {
-		"" | "standard-rococo-genesis" => Box::new(chain_spec::standard_rococo_genesis_config(para_id)?),
+		"" | "standard-rococo-genesis" =>
+			Box::new(chain_spec::standard_rococo_genesis_config(para_id)?),
 		"standard-kusama-genesis" => Box::new(chain_spec::standard_kusama_genesis_config(para_id)?),
 		"standard-kusama" => Box::new(chain_spec::standard_kusama_config()?),
 		"standard-rococo" => Box::new(chain_spec::standard_rococo_config()?),
@@ -109,7 +110,9 @@ impl SubstrateCli for RelayChainCli {
 			.load_spec(id)
 	}
 
-	fn native_runtime_version(chain_spec: &Box<dyn sc_service::ChainSpec>) -> &'static RuntimeVersion {
+	fn native_runtime_version(
+		chain_spec: &Box<dyn sc_service::ChainSpec>,
+	) -> &'static RuntimeVersion {
 		polkadot_cli::Cli::native_runtime_version(chain_spec)
 	}
 }
