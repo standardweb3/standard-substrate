@@ -52,6 +52,9 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ env.TOOLCHAIN_BUILD }}"
+          override: false
+          target: wasm32-unknown-unknown
+          components: rustfmt
 
       # Check codebase style, will output error 1 if there is formatting to be done
       # Continues on error for now, need to format code fully first,

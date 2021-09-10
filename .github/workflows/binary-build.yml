@@ -5,6 +5,7 @@ permissions:
 
 env:
   TOOLCHAIN_BUILD: "nightly-2021-06-28"
+  TOOLCHAIN_OVERRIDE: false
 
 # Controls when the action will run.
 on:
@@ -23,6 +24,10 @@ on:
       toolchain-build:
         description: "Rust toolchain to use"
         default: ${TOOLCHAIN_BUILD}
+        required: false
+      toolchain-override:
+        description: "Set installed toolchain as an override for the current directory"
+        default: ${TOOLCHAIN_OVERRIDE}
         required: false
 
 defaults:
@@ -65,6 +70,14 @@ jobs:
         uses: digitalnativeinc/install-rust-substrate-action@master
         with:
           toolchain_build: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.toolchain-build || env.TOOLCHAIN_BUILD }}
+
+      - name: Install Rust for Substrate
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.TOOLCHAIN_BUILD }}"
+          override: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.toolchain-override || env.TOOLCHAIN_BUILD }}
+          target: wasm32-unknown-unknown
+          components: rustfmt
 
       - name: Run Build - ${{ matrix.os }}
         uses: actions-rs/cargo@v1
