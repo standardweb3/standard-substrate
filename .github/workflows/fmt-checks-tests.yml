@@ -51,7 +51,7 @@ jobs:
       - name: Install Rust for Substrate
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ env.TOOLCHAIN_BUILD }}"
+          toolchain: ${{ env.TOOLCHAIN_BUILD }}
           override: false
           target: wasm32-unknown-unknown
           components: rustfmt
