@@ -3,8 +3,8 @@
 	"id": "standard_ksm_parachain",
 	"chainType": "Live",
 	"bootNodes": [
-		"/dns/one.kusama.standardtech.xyz/tcp/30333/p2p/12D3KooWPcbtA5kMRV18GwomeWyKPe1GKtHzb6Fm7xNCNR6WeV7U",
-		"/dns/two.kusama.standardtech.xyz/tcp/30333/p2p/12D3KooWBReJSdDJWJPaRoVUF3Zgr2dH2DJfyzoBSrDH6NRma72t"
+		"/dns/one.kusama.standardtech.xyz/tcp/30333/p2p/12D3KooWBe8ANrkZZc79yeW26C3sr7qWT9BHtpC9oVSuasnmDYYD",
+		"/dns/two.kusama.standardtech.xyz/tcp/30333/p2p/12D3KooWQj1bY1BS1z4c9VLhApfz4mwqYMhc79RJMv643JQjoioR"
 	],
 	"telemetryEndpoints": [["/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F", 0]],
 	"protocolId": "standard_kusama",
