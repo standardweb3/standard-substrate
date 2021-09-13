@@ -111,7 +111,6 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPallets,
-	RemoveCollectiveFlip,
 >;
 
 /// We assume that ~10% of the block weight is consumed by `on_initalize` handlers.
@@ -180,7 +179,7 @@ parameter_types! {
 
 impl frame_system::Config for Runtime {
 	/// The basic call filter to use in dispatchable.
-	type BaseCallFilter = ();
+	type BaseCallFilter = frame_support::traits::AllowAll;
 	/// Block & extrinsics weights: base values and limits.
 	type BlockWeights = RuntimeBlockWeights;
 	/// The maximum length of a block (in bytes).
@@ -686,6 +685,12 @@ parameter_types! {
 	// pub const StakingUnsignedPriority: TransactionPriority = TransactionPriority::max_value() / 2;
 }
 
+type SlashCancelOrigin = EnsureOneOf<
+	AccountId,
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionAtLeast<_3, _4, AccountId, CouncilCollective>,
+>;
+
 impl pallet_staking::Config for Runtime {
 	const MAX_NOMINATIONS: u32 = 16;
 	type Currency = Balances;
@@ -697,7 +702,7 @@ impl pallet_staking::Config for Runtime {
 	type Reward = ();
 	type SessionsPerEra = SessionsPerEra;
 	type SlashDeferDuration = SlashDeferDuration;
-	type SlashCancelOrigin = frame_system::EnsureRoot<Self::AccountId>;
+	type SlashCancelOrigin = SlashCancelOrigin;
 	type BondingDuration = BondingDuration;
 	type SessionInterface = Self;
 	type NextNewSession = Session;
@@ -921,16 +926,6 @@ construct_runtime!(
 		ChainBridge: pallet_standard_chainbridge::{Pallet, Call, Storage, Event<T>},
 	}
 );
-
-pub struct RemoveCollectiveFlip;
-impl frame_support::traits::OnRuntimeUpgrade for RemoveCollectiveFlip {
-	fn on_runtime_upgrade() -> Weight {
-		use frame_support::storage::migration;
-		// Remove the storage value `RandomMaterial` from removed pallet `RandomnessCollectiveFlip`
-		migration::remove_storage_prefix(b"RandomnessCollectiveFlip", b"RandomMaterial", b"");
-		<Runtime as frame_system::Config>::DbWeight::get().writes(1)
-	}
-}
 
 #[cfg(not(feature = "disable-runtime-api"))]
 sp_api::impl_runtime_apis! {
