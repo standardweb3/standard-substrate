@@ -14,7 +14,7 @@
 		"tokenSymbol": "STND"
 	},
 	"relay_chain": "kusama",
-	"para_id": 2000,
+	"para_id": 2094,
 	"consensusEngine": null,
 	"codeSubstitutes": {},
 	"genesis": {
