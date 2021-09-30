@@ -403,7 +403,8 @@ impl pallet_staking::Config for Runtime {
 	type SessionsPerEra = SessionsPerEra;
 	type BondingDuration = BondingDuration;
 	type SlashDeferDuration = SlashDeferDuration;
-	/// A super-majority of the council can cancel the slash. - TBD                                                         
+	/// A super-majority of the council can cancel the slash. - TBD
+	///
 	type SlashCancelOrigin = EnsureRoot<AccountId>;
 	type SessionInterface = Self;
 	type EraPayout = pallet_staking::ConvertCurve<RewardCurve>;
@@ -505,22 +506,12 @@ pub type XcmOriginToTransactDispatchOrigin = (
 	XcmPassthrough<Origin>,
 );
 
-// match_type! {
-// 	pub type JustTheParent: impl Contains<MultiLocation> = { X1(Parent) };
-// }
-
 parameter_types! {
 	// One XCM operation is 1_000_000 weight - almost certainly a conservative estimate.
 	pub UnitWeightCost: Weight = 1_000_000;
 	// One UNIT buys 1 second of weight.
 	// pub const WeightPrice: (MultiLocation, u128) = (X1(Parent), STD);
 }
-
-// match_type! {
-// 	pub type ParentOrParentsUnitPlurality: impl Contains<MultiLocation> = {
-// 		X1(Parent) | X2(Parent, Plurality { id: BodyId::Unit, .. })
-// 	};
-// }
 
 match_type! {
 	pub type ParentOrParentsExecutivePlurality: impl Contains<MultiLocation> = {

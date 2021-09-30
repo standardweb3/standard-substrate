@@ -21,8 +21,8 @@
 //!
 //! ## Overview
 //!
-//! The Standard Market module provides functionality for management and exchange of fungible asset classes
-//! with a fixed supply, including:
+//! The Standard Market module provides functionality for management and exchange of fungible asset
+//! classes with a fixed supply, including:
 //!
 //! * Liquidity provider token issuance
 //! * Compensation for providing liquidity
@@ -35,8 +35,11 @@
 //!
 //! ### Terminology
 //!
-//! * **Liquidity provider token:** The creation of a new asset by providing liquidity between two fungible assets. Liquidity provider token act as the share of the pool and gets the profit created from exchange fee.
-//! * **Asset exchange:** The process of an account transferring an asset to exchange with other kind of fungible asset.
+//! * **Liquidity provider token:** The creation of a new asset by providing liquidity between two
+//!   fungible assets. Liquidity provider token act as the share of the pool and gets the profit
+//!   created from exchange fee.
+//! * **Asset exchange:** The process of an account transferring an asset to exchange with other
+//!   kind of fungible asset.
 //! * **Fungible asset:** An asset whose units are interchangeable.
 //! * **Non-fungible asset:** An asset for which each unit has unique characteristics.
 //!
@@ -44,8 +47,10 @@
 //!
 //! The Standard system in Substrate is designed to make the following possible:
 //!
-//! * Reward liquidity providers with tokens to receive exchanges fees which is proportional to their contribution.
-//! * Swap assets with automated market price equation(e.g. X*Y=K or curve function from Kyber, dodoex, etc).
+//! * Reward liquidity providers with tokens to receive exchanges fees which is proportional to
+//!   their contribution.
+//! * Swap assets with automated market price equation(e.g. X*Y=K or curve function from Kyber,
+//!   dodoex, etc).
 //! * Issue an fungible asset which can be backed with opening exchange with other assets
 //!
 //! ## Interface
@@ -53,24 +58,29 @@
 //! ### Dispatchable Functions
 //!
 //! that called the function.
-//! * `mint_liquidity` - Mints liquidity token by adding deposits to a certain pair for exchange. The assets must have different identifier.
-//! * `burn_liquidity` - Burns liquidity token for a pair and receives each asset in the pair.  
+//! * `mint_liquidity` - Mints liquidity token by adding deposits to a certain pair for exchange.
+//!   The assets must have different identifier.
+//! * `burn_liquidity` - Burns liquidity token for a pair and receives each asset in the pair.
 //! * `swap` - Swaps from one asset to the another, paying 0.3% fee to the liquidity providers.
 //!
-//! Please refer to the [`Call`](./enum.Call.html) enum and its associated variants for documentation on each function.
+//! Please refer to the [`Call`](./enum.Call.html) enum and its associated variants for
+//! documentation on each function.
 //!
 //! ### Public Functions
 //!
 //!
-//! Please refer to the [`Module`](./struct.Module.html) struct for details on publicly available functions.
+//! Please refer to the [`Module`](./struct.Module.html) struct for details on publicly available
+//! functions.
 //!
 //! ## Usage
 //!
-//! The following example shows how to use the Subswap module in your runtime by exposing public functions to:
+//! The following example shows how to use the Subswap module in your runtime by exposing public
+//! functions to:
 //!
 //! ### Prerequisites
 //!
-//! Import the Subswap module and types and derive your runtime's configuration traits from the Assets module trait.
+//! Import the Subswap module and types and derive your runtime's configuration traits from the
+//! Assets module trait.
 //!
 //! ### Simple Code Snippet
 //!
@@ -113,7 +123,8 @@ pub trait Config: frame_system::Config + pallet_asset_registry::Config {
 	/// The overarching event type.
 	type Event: From<Event> + Into<<Self as frame_system::Config>::Event>;
 	type SystemPalletId: Get<PalletId>;
-	//   type AssetId: Parameter + Member + Into<u32> + AtLeast32Bit + Default + Copy + MaybeSerializeDeserialize;
+	//   type AssetId: Parameter + Member + Into<u32> + AtLeast32Bit + Default + Copy +
+	// MaybeSerializeDeserialize;
 
 	type Assets: fungibles::Inspect<Self::AccountId, AssetId = AssetId, Balance = Balance>
 		+ fungibles::Mutate<Self::AccountId, AssetId = AssetId, Balance = Balance>
