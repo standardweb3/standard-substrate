@@ -32,7 +32,8 @@ pub mod currency {
 
 /// Time.
 pub mod time {
-	// Moment/BlockNumber type created directly here instead of importing the whole node_primitives module
+	// Moment/BlockNumber type created directly here instead of importing the whole node_primitives
+	// module
 	type Moment = u64;
 	type BlockNumber = u32;
 

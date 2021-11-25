@@ -85,8 +85,8 @@ where
 }
 
 /// Opportunity Testnet Chainspec.
-/// Rust compiler is not deterministic. Therefore, compiled chainspec is shared to run the node for shared genesis block.
-/// Reference: https://stackoverflow.com/questions/66554685/substrate-genesis-blocks-not-matching
+/// Rust compiler is not deterministic. Therefore, compiled chainspec is shared to run the node for
+/// shared genesis block. Reference: https://stackoverflow.com/questions/66554685/substrate-genesis-blocks-not-matching
 pub fn opportunity_config() -> Result<ChainSpec, String> {
 	ChainSpec::from_json_bytes(&include_bytes!("../spec/opportunity_raw.json")[..])
 }

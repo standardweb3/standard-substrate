@@ -1,15 +1,13 @@
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use pallet::*;
-
 #[cfg(test)]
 mod mock;
 
 #[cfg(test)]
 mod tests;
-
 pub use pallet::*;
+
 #[frame_support::pallet]
 pub mod pallet {
 	use codec::{Decode, Encode, EncodeLike};
@@ -17,6 +15,7 @@ pub mod pallet {
 		pallet_prelude::*, traits::StorageVersion, weights::GetDispatchInfo, PalletId, Parameter,
 	};
 	use frame_system::{self as system, pallet_prelude::*};
+	use scale_info::TypeInfo;
 	pub use sp_core::U256;
 	use sp_runtime::traits::{AccountIdConversion, Dispatchable};
 	use sp_std::prelude::*;
@@ -40,14 +39,14 @@ pub mod pallet {
 		return r_id
 	}
 
-	#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug)]
+	#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 	pub enum ProposalStatus {
 		Initiated,
 		Approved,
 		Rejected,
 	}
 
-	#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug)]
+	#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 	pub struct ProposalVotes<AccountId, BlockNumber> {
 		pub votes_for: Vec<AccountId>,
 		pub votes_against: Vec<AccountId>,
@@ -125,7 +124,6 @@ pub mod pallet {
 	}
 
 	#[pallet::event]
-	#[pallet::metadata(T::AccountId = "AccountId")]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// Vote threshold has changed (new_threshold)

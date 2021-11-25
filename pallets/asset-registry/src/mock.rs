@@ -31,7 +31,7 @@ parameter_types! {
 
 impl system::Config for Test {
 	type OnSetCode = ();
-	type BaseCallFilter = ();
+	type BaseCallFilter = frame_support::traits::Everything;
 	type BlockWeights = ();
 	type BlockLength = ();
 	type Origin = Origin;
