@@ -6,7 +6,8 @@ use sp_core::{sr25519, Pair, Public};
 use standard_runtime::{
 	AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig, GenesisConfig,
 	ImOnlineConfig, ImOnlineId, OracleConfig, ParachainInfoConfig, SessionConfig, SessionKeys,
-	Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig, VestingConfig, WASM_BINARY,
+	Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig, VestingConfig, CollatorSelectionConfig,
+	WASM_BINARY, EXISTENTIAL_DEPOSIT
 };
 
 use sp_runtime::{
@@ -14,7 +15,7 @@ use sp_runtime::{
 	Perbill,
 };
 
-use primitives::AssetId;
+use primitives::{ AssetId };
 
 pub const CORE_ASSET_ID: AssetId = 1;
 
@@ -28,6 +29,9 @@ const STANDARD_PROPERTIES: &str = r#"
             "tokenSymbol": "STND"
         }"#;
 const STANDARD_PROTOCOL_ID: &str = "standard";
+
+/// Specialized `ChainSpec` for the normal parachain runtime.
+pub type StandardChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
 
 /// The extensions for the [`ChainSpec`].
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
@@ -45,9 +49,6 @@ impl Extensions {
 		sc_chain_spec::get_extension(chain_spec.extensions())
 	}
 }
-
-/// Specialized `ChainSpec` for the normal parachain runtime.
-pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
 
 /// Helper function to generate a crypto pair from seed
 pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
@@ -74,22 +75,14 @@ pub fn authority_keys_from_seed(seed: &str) -> (AccountId, AccountId, AuraId, Im
 	)
 }
 
-pub fn standard_rococo_config() -> Result<ChainSpec, String> {
-	ChainSpec::from_json_bytes(&include_bytes!("../spec/standard_rococo_raw.json")[..])
+fn session_keys(aura: AuraId, im_online: ImOnlineId) -> SessionKeys {
+	SessionKeys { aura, im_online }
 }
 
-pub fn standard_barocco_config() -> Result<ChainSpec, String> {
-	ChainSpec::from_json_bytes(&include_bytes!("../spec/standard_barocco_raw.json")[..])
-}
-
-pub fn standard_kusama_config() -> Result<ChainSpec, String> {
-	ChainSpec::from_json_bytes(&include_bytes!("../spec/standard_kusama_raw.json")[..])
-}
-
-pub fn standard_kusama_genesis_config(id: ParaId) -> Result<ChainSpec, String> {
+pub fn standard_kusama_genesis_config() -> StandardChainSpec {
 	use hex_literal::hex;
 
-	Ok(ChainSpec::from_genesis(
+	StandardChainSpec::from_genesis(
 		// Name
 		"Standard Kusama Parachain",
 		// ID
@@ -111,7 +104,7 @@ pub fn standard_kusama_genesis_config(id: ParaId) -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
 					get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
 				],
-				id,
+				2094.into(),
 			)
 		},
 		// Bootnodes
@@ -126,14 +119,17 @@ pub fn standard_kusama_genesis_config(id: ParaId) -> Result<ChainSpec, String> {
 		// Properties
 		serde_json::from_str(STANDARD_PROPERTIES).unwrap(),
 		// Extensions
-		Extensions { relay_chain: "kusama".into(), para_id: id.into() },
-	))
+		Extensions {
+			relay_chain: "kusama".into(),
+			para_id: 2094
+		},
+	)
 }
 
-pub fn standard_rococo_genesis_config(id: ParaId) -> Result<ChainSpec, String> {
+pub fn standard_rococo_genesis_config() -> StandardChainSpec {
 	use hex_literal::hex;
 
-	Ok(ChainSpec::from_genesis(
+	StandardChainSpec::from_genesis(
 		// Name
 		"Standard Rococo Parachain",
 		// ID
@@ -155,7 +151,7 @@ pub fn standard_rococo_genesis_config(id: ParaId) -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
 					get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
 				],
-				id,
+				2000.into(),
 			)
 		},
 		// Bootnodes
@@ -170,12 +166,14 @@ pub fn standard_rococo_genesis_config(id: ParaId) -> Result<ChainSpec, String> {
 		// Properties
 		serde_json::from_str(STANDARD_PROPERTIES).unwrap(),
 		// Extensions
-		Extensions { relay_chain: "rococo".into(), para_id: id.into() },
-	))
+		Extensions {
+			relay_chain: "rococo".into(),
+			para_id: 2000 },
+	)
 }
 
-pub fn development_config(id: ParaId) -> Result<ChainSpec, String> {
-	Ok(ChainSpec::from_genesis(
+pub fn development_config() -> StandardChainSpec {
+	StandardChainSpec::from_genesis(
 		// Name
 		"Development",
 		// ID
@@ -194,7 +192,7 @@ pub fn development_config(id: ParaId) -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
 					get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
 				],
-				id,
+				2000.into(),
 			)
 		},
 		// Bootnodes
@@ -206,12 +204,14 @@ pub fn development_config(id: ParaId) -> Result<ChainSpec, String> {
 		// Properties
 		None,
 		// Extensions
-		Extensions { relay_chain: "rococo-dev".into(), para_id: id.into() },
-	))
+		Extensions {
+			relay_chain: "rococo-dev".into(),
+			para_id: 2000 },
+	)
 }
 
-pub fn local_config(id: ParaId) -> Result<ChainSpec, String> {
-	Ok(ChainSpec::from_genesis(
+pub fn local_config() -> StandardChainSpec {
+	StandardChainSpec::from_genesis(
 		"Local Testnet",
 		"local_testnet",
 		ChainType::Local,
@@ -236,8 +236,7 @@ pub fn local_config(id: ParaId) -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
 					get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
 				],
-				// Parachain ID
-				id,
+				2000.into(),
 			)
 		},
 		// Bootnodes
@@ -249,19 +248,17 @@ pub fn local_config(id: ParaId) -> Result<ChainSpec, String> {
 		// Properties
 		None,
 		// Extensions
-		Extensions { relay_chain: "rococo-local".into(), para_id: id.into() },
-	))
-}
-
-fn session_keys(aura: AuraId, im_online: ImOnlineId) -> SessionKeys {
-	SessionKeys { aura, im_online }
+		Extensions {
+			relay_chain: "rococo-local".into(),
+			para_id: 2000 },
+	)
 }
 
 fn testnet_genesis(
 	root_key: AccountId,
 	initial_authorities: Vec<(AccountId, AccountId, AuraId, ImOnlineId)>,
 	endowed_accounts: Vec<AccountId>,
-	parachain_id: ParaId,
+	id: ParaId,
 ) -> GenesisConfig {
 	GenesisConfig {
 		system: SystemConfig {
@@ -270,7 +267,12 @@ fn testnet_genesis(
 		},
 		sudo: SudoConfig { key: root_key },
 		parachain_system: Default::default(),
-		parachain_info: ParachainInfoConfig { parachain_id },
+		parachain_info: ParachainInfoConfig { parachain_id: id },
+		collator_selection: CollatorSelectionConfig {
+			invulnerables: initial_authorities.iter().cloned().map(|(acc, _, _, _)| acc).collect(),
+			candidacy_bond: EXISTENTIAL_DEPOSIT * 16,
+			..Default::default()
+		},
 		balances: BalancesConfig {
 			balances: endowed_accounts.iter().cloned().map(|k| (k, 1 << 60)).collect(),
 		},

@@ -1,22 +1,17 @@
 use crate::chain_spec;
-use sc_cli::{KeySubcommand, SignCmd, VanityCmd, VerifyCmd};
 use std::path::PathBuf;
 use structopt::StructOpt;
 
-/// Possible subcommands of the main binary.
+/// Sub-commands supported by the collator.
 #[derive(Debug, StructOpt)]
 pub enum Subcommand {
-	/// Key management cli utilities
-	Key(KeySubcommand),
+	/// Export the genesis state of the parachain.
+	#[structopt(name = "export-genesis-state")]
+	ExportGenesisState(ExportGenesisStateCommand),
 
-	/// Verify a signature for a message, provided on STDIN, with a given (public or secret) key.
-	Verify(VerifyCmd),
-
-	/// Generate a seed that provides a vanity address.
-	Vanity(VanityCmd),
-
-	/// Sign a message, with a given (secret) key.
-	Sign(SignCmd),
+	/// Export the genesis wasm of the parachain.
+	#[structopt(name = "export-genesis-wasm")]
+	ExportGenesisWasm(ExportGenesisWasmCommand),
 
 	/// Build a chain specification.
 	BuildSpec(sc_cli::BuildSpecCmd),
@@ -39,13 +34,9 @@ pub enum Subcommand {
 	/// Revert the chain to a previous state.
 	Revert(sc_cli::RevertCmd),
 
-	/// Export the genesis state of the parachain.
-	#[structopt(name = "export-genesis-state")]
-	ExportGenesisState(ExportGenesisStateCommand),
-
-	/// Export the genesis wasm of the parachain.
-	#[structopt(name = "export-genesis-wasm")]
-	ExportGenesisWasm(ExportGenesisWasmCommand),
+	/// The custom benchmark subcommmand benchmarking runtime pallets.
+	#[structopt(name = "benchmark", about = "Benchmark runtime pallets.")]
+	Benchmark(frame_benchmarking_cli::BenchmarkCmd),
 }
 
 /// Command for exporting the genesis state of the parachain
@@ -58,10 +49,6 @@ pub struct ExportGenesisStateCommand {
 	/// Write output in binary. Default is to write in hex.
 	#[structopt(short, long)]
 	pub raw: bool,
-
-	/// Id of the parachain this state is for.
-	#[structopt(long)]
-	pub parachain_id: Option<u32>,
 
 	/// The name of the chain for that the genesis state should be exported.
 	#[structopt(long)]
@@ -84,7 +71,6 @@ pub struct ExportGenesisWasmCommand {
 	pub chain: Option<String>,
 }
 
-/// An overarching CLI command definition.
 #[derive(Debug, StructOpt)]
 #[structopt(settings = &[
 	structopt::clap::AppSettings::GlobalVersion,
@@ -98,13 +84,12 @@ pub struct Cli {
 	#[structopt(flatten)]
 	pub run: cumulus_client_cli::RunCmd,
 
-	/// Relaychain arguments
+	/// Relay chain arguments
 	#[structopt(raw = true)]
-	pub relaychain_args: Vec<String>,
+	pub relay_chain_args: Vec<String>,
 }
 
 #[derive(Debug)]
-#[allow(missing_docs)]
 pub struct RelayChainCli {
 	/// The actual relay chain cli object.
 	pub base: polkadot_cli::RunCmd,

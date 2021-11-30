@@ -489,7 +489,7 @@ dependencies = [
  "beefy-gadget",
  "beefy-primitives",
  "futures 0.3.18",
- "jsonrpc-core 18.0.0",
+ "jsonrpc-core",
  "jsonrpc-core-client",
  "jsonrpc-derive",
  "jsonrpc-pubsub",
@@ -3133,25 +3133,12 @@ checksum = "d2b99d4207e2a04fb4581746903c2bb7eb376f88de9c699d0f3e10feeac0cd3a"
 dependencies = [
  "derive_more",
  "futures 0.3.18",
- "jsonrpc-core 18.0.0",
+ "jsonrpc-core",
  "jsonrpc-pubsub",
  "log",
  "serde",
  "serde_json",
  "url 1.7.2",
-]
-
-[[package]]
-name = "jsonrpc-core"
-version = "15.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0745a6379e3edc893c84ec203589790774e4247420033e71a76d3ab4687991fa"
-dependencies = [
- "futures 0.1.31",
- "log",
- "serde",
- "serde_derive",
- "serde_json",
 ]
 
 [[package]]
@@ -3199,7 +3186,7 @@ checksum = "e1dea6e07251d9ce6a552abfb5d7ad6bc290a4596c8dcc3d795fae2bbdc1f3ff"
 dependencies = [
  "futures 0.3.18",
  "hyper",
- "jsonrpc-core 18.0.0",
+ "jsonrpc-core",
  "jsonrpc-server-utils",
  "log",
  "net2",
@@ -3214,7 +3201,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "382bb0206323ca7cda3dcd7e245cea86d37d02457a02a975e3378fb149a48845"
 dependencies = [
  "futures 0.3.18",
- "jsonrpc-core 18.0.0",
+ "jsonrpc-core",
  "jsonrpc-server-utils",
  "log",
  "parity-tokio-ipc",
@@ -3229,7 +3216,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "240f87695e6c6f62fb37f05c02c04953cf68d6408b8c1c89de85c7a0125b1011"
 dependencies = [
  "futures 0.3.18",
- "jsonrpc-core 18.0.0",
+ "jsonrpc-core",
  "lazy_static",
  "log",
  "parking_lot 0.11.2",
@@ -3246,7 +3233,7 @@ dependencies = [
  "bytes 1.1.0",
  "futures 0.3.18",
  "globset",
- "jsonrpc-core 18.0.0",
+ "jsonrpc-core",
  "lazy_static",
  "log",
  "tokio",
@@ -3262,7 +3249,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f892c7d766369475ab7b0669f417906302d7c0fb521285c0a0c92e52e7c8e946"
 dependencies = [
  "futures 0.3.18",
- "jsonrpc-core 18.0.0",
+ "jsonrpc-core",
  "jsonrpc-server-utils",
  "log",
  "parity-ws",
@@ -4804,7 +4791,7 @@ checksum = "28988d872ab76095a6e6ac88d99b54fd267702734fd7ffe610ca27f533ddb95a"
 
 [[package]]
 name = "opportunity-runtime"
-version = "0.9.9"
+version = "0.9.12"
 dependencies = [
  "frame-benchmarking",
  "frame-election-provider-support",
@@ -4873,12 +4860,12 @@ dependencies = [
 
 [[package]]
 name = "opportunity-standalone"
-version = "0.9.9"
+version = "0.9.12"
 dependencies = [
  "frame-benchmarking",
  "frame-benchmarking-cli",
  "futures 0.3.18",
- "jsonrpc-core 18.0.0",
+ "jsonrpc-core",
  "libp2p-wasm-ext 0.28.2",
  "node-inspect",
  "node-primitives",
@@ -5208,6 +5195,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-collator-selection"
+version = "3.0.0"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.12#c02514d8cb66d6860e597f75d53ca07119dbbf32"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-authorship",
+ "pallet-session",
+ "parity-scale-codec",
+ "rand 0.7.3",
+ "scale-info",
+ "serde",
+ "sp-runtime",
+ "sp-staking",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-collective"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.12#d76f39995315ec36980908e4b99709bd14927044"
@@ -5422,7 +5429,7 @@ name = "pallet-mmr-rpc"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.12#d76f39995315ec36980908e4b99709bd14927044"
 dependencies = [
- "jsonrpc-core 18.0.0",
+ "jsonrpc-core",
  "jsonrpc-core-client",
  "jsonrpc-derive",
  "pallet-mmr-primitives",
@@ -5740,7 +5747,7 @@ name = "pallet-transaction-payment-rpc"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.12#d76f39995315ec36980908e4b99709bd14927044"
 dependencies = [
- "jsonrpc-core 18.0.0",
+ "jsonrpc-core",
  "jsonrpc-core-client",
  "jsonrpc-derive",
  "pallet-transaction-payment-rpc-runtime-api",
@@ -6925,7 +6932,7 @@ source = "git+https://github.com/paritytech/polkadot?branch=release-v0.9.12#5fee
 dependencies = [
  "beefy-gadget",
  "beefy-gadget-rpc",
- "jsonrpc-core 18.0.0",
+ "jsonrpc-core",
  "pallet-mmr-rpc",
  "pallet-transaction-payment-rpc",
  "polkadot-primitives",
@@ -8339,7 +8346,7 @@ source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.12#d7
 dependencies = [
  "derive_more",
  "futures 0.3.18",
- "jsonrpc-core 18.0.0",
+ "jsonrpc-core",
  "jsonrpc-core-client",
  "jsonrpc-derive",
  "sc-consensus-babe",
@@ -8529,7 +8536,7 @@ dependencies = [
  "derive_more",
  "finality-grandpa",
  "futures 0.3.18",
- "jsonrpc-core 18.0.0",
+ "jsonrpc-core",
  "jsonrpc-core-client",
  "jsonrpc-derive",
  "jsonrpc-pubsub",
@@ -8718,7 +8725,7 @@ source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.12#d7
 dependencies = [
  "futures 0.3.18",
  "hash-db",
- "jsonrpc-core 18.0.0",
+ "jsonrpc-core",
  "jsonrpc-pubsub",
  "log",
  "parity-scale-codec",
@@ -8748,7 +8755,7 @@ version = "0.10.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.12#d76f39995315ec36980908e4b99709bd14927044"
 dependencies = [
  "futures 0.3.18",
- "jsonrpc-core 18.0.0",
+ "jsonrpc-core",
  "jsonrpc-core-client",
  "jsonrpc-derive",
  "jsonrpc-pubsub",
@@ -8773,7 +8780,7 @@ version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.12#d76f39995315ec36980908e4b99709bd14927044"
 dependencies = [
  "futures 0.3.18",
- "jsonrpc-core 18.0.0",
+ "jsonrpc-core",
  "jsonrpc-http-server",
  "jsonrpc-ipc-server",
  "jsonrpc-pubsub",
@@ -8795,7 +8802,7 @@ dependencies = [
  "futures 0.3.18",
  "futures-timer 3.0.2",
  "hash-db",
- "jsonrpc-core 18.0.0",
+ "jsonrpc-core",
  "jsonrpc-pubsub",
  "log",
  "parity-scale-codec",
@@ -8868,7 +8875,7 @@ name = "sc-sync-state-rpc"
 version = "0.10.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.12#d76f39995315ec36980908e4b99709bd14927044"
 dependencies = [
- "jsonrpc-core 18.0.0",
+ "jsonrpc-core",
  "jsonrpc-core-client",
  "jsonrpc-derive",
  "parity-scale-codec",
@@ -10082,7 +10089,7 @@ checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 
 [[package]]
 name = "standard-collator"
-version = "0.9.9"
+version = "0.9.12"
 dependencies = [
  "cumulus-client-cli",
  "cumulus-client-collator",
@@ -10096,7 +10103,7 @@ dependencies = [
  "frame-benchmarking-cli",
  "hex",
  "hex-literal",
- "jsonrpc-core 15.1.0",
+ "jsonrpc-core",
  "lazy_static",
  "log",
  "pallet-transaction-payment-rpc",
@@ -10113,6 +10120,8 @@ dependencies = [
  "sc-client-db",
  "sc-consensus",
  "sc-executor",
+ "sc-finality-grandpa",
+ "sc-finality-grandpa-rpc",
  "sc-keystore",
  "sc-network",
  "sc-offchain",
@@ -10122,6 +10131,7 @@ dependencies = [
  "sc-telemetry",
  "sc-tracing",
  "sc-transaction-pool",
+ "sc-transaction-pool-api",
  "serde",
  "serde_json",
  "sp-api",
@@ -10147,7 +10157,7 @@ dependencies = [
 
 [[package]]
 name = "standard-runtime"
-version = "0.9.9"
+version = "0.9.12"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-dmp-queue",
@@ -10170,6 +10180,7 @@ dependencies = [
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
+ "pallet-collator-selection",
  "pallet-election-provider-multi-phase",
  "pallet-im-online",
  "pallet-offences",
@@ -10190,7 +10201,9 @@ dependencies = [
  "parachain-info",
  "parity-scale-codec",
  "polkadot-parachain",
+ "polkadot-runtime-common",
  "primitives",
+ "scale-info",
  "serde",
  "sp-api",
  "sp-block-builder",
@@ -10370,7 +10383,7 @@ source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.12#d7
 dependencies = [
  "frame-system-rpc-runtime-api",
  "futures 0.3.18",
- "jsonrpc-core 18.0.0",
+ "jsonrpc-core",
  "jsonrpc-core-client",
  "jsonrpc-derive",
  "log",
@@ -10883,8 +10896,8 @@ version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f559b464de2e2bdabcac6a210d12e9b5a5973c251e102c44c585c71d51bd78e"
 dependencies = [
- "cfg-if 0.1.10",
- "rand 0.7.3",
+ "cfg-if 1.0.0",
+ "rand 0.8.4",
  "static_assertions",
 ]
 

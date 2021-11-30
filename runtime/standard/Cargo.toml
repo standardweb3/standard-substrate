@@ -1,6 +1,6 @@
 [package]
 name = 'standard-runtime'
-version = '0.9.9'
+version = '0.9.12'
 authors = [ 'Digital Native Foundation' ]
 edition = '2018'
 homepage = 'https://standard.tech'
@@ -15,6 +15,7 @@ substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", bran
 codec = { package = 'parity-scale-codec', version = '2.0.0', default-features = false, features = ['derive']}
 log = { version = "0.4.14", default-features = false }
 serde = { version = '1.0.130', optional = true, features = ['derive'] }
+scale-info = { version = "1.0.0", default-features = false, features = ["derive"] }
 
 # Local Dependencies
 primitives = { default-features = false, path = "../../primitives" }
@@ -81,6 +82,7 @@ cumulus-pallet-xcmp-queue = { git = 'https://github.com/paritytech/cumulus', bra
 cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.12", default-features = false }
 cumulus-primitives-timestamp = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.12", default-features = false }
 cumulus-primitives-utility = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.12", default-features = false }
+pallet-collator-selection = { git = 'https://github.com/paritytech/cumulus', branch = 'polkadot-v0.9.12', default-features = false }
 parachain-info = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.12", default-features = false }
 
 # Polkadot Dependencies
@@ -89,6 +91,7 @@ xcm = { git = "https://github.com/paritytech/polkadot", default-features = false
 xcm-builder = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.12" }
 xcm-executor = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.12" }
 pallet-xcm = { git = 'https://github.com/paritytech/polkadot', branch = 'release-v0.9.12', default-features = false }
+runtime-common = { package = "polkadot-runtime-common", git = 'https://github.com/paritytech/polkadot.git', default-features = false, branch = "release-v0.9.12" }
 
 [features]
 default = [ "std" ]
@@ -99,7 +102,8 @@ runtime-benchmarks = [
 	'frame-system-benchmarking',
 	'frame-system/runtime-benchmarks',
 	'pallet-balances/runtime-benchmarks',
-	'pallet-timestamp/runtime-benchmarks'
+	'pallet-timestamp/runtime-benchmarks',
+    "pallet-collator-selection/runtime-benchmarks",
 ]
 std = [
     "serde",
@@ -139,6 +143,7 @@ std = [
     "pallet-timestamp/std",
     "pallet-transaction-payment/std",
     "pallet-transaction-payment-rpc-runtime-api/std",
+    "pallet-collator-selection/std",
     "xcm/std",
     "xcm-builder/std",
     "xcm-executor/std",

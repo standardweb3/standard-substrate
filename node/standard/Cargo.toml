@@ -1,6 +1,6 @@
 [package]
 name = 'standard-collator'
-version = '0.9.9'
+version = '0.9.12'
 authors = [ 'Digital Native Foundation' ]
 build = 'build.rs'
 edition = '2018'
@@ -11,6 +11,7 @@ description = 'Standard Node Client.'
 
 [[bin]]
 name = 'standard-collator'
+path = "src/main.rs"
 
 [package.metadata.docs.rs]
 targets = [ 'x86_64-unknown-linux-gnu' ]
@@ -40,7 +41,7 @@ lazy_static = "1.4"
 log = "0.4.14"
 
 # RPC related Dependencies
-jsonrpc-core = "15.1.0"
+jsonrpc-core = "18.0.0"
 
 # Local Dependencies
 standard-runtime = { path = "../../runtime/standard" }
@@ -49,8 +50,6 @@ primitives = { path = "../../primitives" }
 # Substrate Dependencies
 frame-benchmarking = { version = "4.0.0-dev", git = 'https://github.com/paritytech/substrate', branch = 'polkadot-v0.9.12' }
 frame-benchmarking-cli = { version = "4.0.0-dev", git = 'https://github.com/paritytech/substrate', branch = 'polkadot-v0.9.12' }
-# frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
-# pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 pallet-transaction-payment-rpc = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 substrate-frame-rpc-system = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 substrate-prometheus-endpoint = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
@@ -67,11 +66,14 @@ sc-keystore = { git = 'https://github.com/paritytech/substrate', branch = 'polka
 sc-network = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 sc-offchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 sc-rpc = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
-sc-rpc-api = { version = "0.10.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
-sc-service = { version = '0.10.0-dev', git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", features = ['wasmtime'] }
+sc-rpc-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
+sc-service = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", features = ['wasmtime'] }
 sc-telemetry = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 sc-tracing = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 sc-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
+sc-transaction-pool-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
+sc-finality-grandpa = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
+sc-finality-grandpa-rpc = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 
 ## Substrate Primitive Dependencies
 sp-api = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
