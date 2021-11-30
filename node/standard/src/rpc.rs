@@ -7,8 +7,8 @@
 
 use std::sync::Arc;
 
+use primitives::Balance;
 use standard_runtime::{opaque::Block, AccountId, Index as Nonce};
-use primitives::{Balance};
 
 use sc_client_api::AuxStore;
 pub use sc_rpc::{DenyUnsafe, SubscriptionTaskExecutor};

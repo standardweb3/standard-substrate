@@ -4,10 +4,10 @@ use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
 use sp_core::{sr25519, Pair, Public};
 use standard_runtime::{
-	AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig, GenesisConfig,
-	ImOnlineConfig, ImOnlineId, OracleConfig, ParachainInfoConfig, SessionConfig, SessionKeys,
-	Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig, VestingConfig, CollatorSelectionConfig,
-	WASM_BINARY, EXISTENTIAL_DEPOSIT
+	AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig, CollatorSelectionConfig,
+	GenesisConfig, ImOnlineConfig, ImOnlineId, OracleConfig, ParachainInfoConfig, SessionConfig,
+	SessionKeys, Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig, VestingConfig,
+	EXISTENTIAL_DEPOSIT, WASM_BINARY,
 };
 
 use sp_runtime::{
@@ -15,7 +15,7 @@ use sp_runtime::{
 	Perbill,
 };
 
-use primitives::{ AssetId };
+use primitives::AssetId;
 
 pub const CORE_ASSET_ID: AssetId = 1;
 
@@ -119,10 +119,7 @@ pub fn standard_kusama_genesis_config() -> StandardChainSpec {
 		// Properties
 		serde_json::from_str(STANDARD_PROPERTIES).unwrap(),
 		// Extensions
-		Extensions {
-			relay_chain: "kusama".into(),
-			para_id: 2094
-		},
+		Extensions { relay_chain: "kusama".into(), para_id: 2094 },
 	)
 }
 
@@ -166,9 +163,7 @@ pub fn standard_rococo_genesis_config() -> StandardChainSpec {
 		// Properties
 		serde_json::from_str(STANDARD_PROPERTIES).unwrap(),
 		// Extensions
-		Extensions {
-			relay_chain: "rococo".into(),
-			para_id: 2000 },
+		Extensions { relay_chain: "rococo".into(), para_id: 2000 },
 	)
 }
 
@@ -204,9 +199,7 @@ pub fn development_config() -> StandardChainSpec {
 		// Properties
 		None,
 		// Extensions
-		Extensions {
-			relay_chain: "rococo-dev".into(),
-			para_id: 2000 },
+		Extensions { relay_chain: "rococo-dev".into(), para_id: 2000 },
 	)
 }
 
@@ -248,9 +241,7 @@ pub fn local_config() -> StandardChainSpec {
 		// Properties
 		None,
 		// Extensions
-		Extensions {
-			relay_chain: "rococo-local".into(),
-			para_id: 2000 },
+		Extensions { relay_chain: "rococo-local".into(), para_id: 2000 },
 	)
 }
 

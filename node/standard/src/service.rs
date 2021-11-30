@@ -2,8 +2,8 @@
 use std::sync::Arc;
 
 // Local Types
-use standard_runtime::{RuntimeApi, AccountId, Index as Nonce};
-use primitives::{Balance};
+use primitives::Balance;
+use standard_runtime::{AccountId, Index as Nonce, RuntimeApi};
 
 // Cumulus Imports
 use cumulus_client_consensus_aura::{
