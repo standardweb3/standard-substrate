@@ -1,11 +1,13 @@
-use sc_cli::RunCmd;
+use sc_cli::{KeySubcommand, RunCmd, SignCmd, VanityCmd, VerifyCmd};
 use structopt::StructOpt;
 
+/// An overarching CLI command definition.
 #[derive(Debug, StructOpt)]
 pub struct Cli {
+	/// Possible subcommand with parameters.
 	#[structopt(subcommand)]
 	pub subcommand: Option<Subcommand>,
-
+	#[allow(missing_docs)]
 	#[structopt(flatten)]
 	pub run: RunCmd,
 }
@@ -13,7 +15,23 @@ pub struct Cli {
 #[derive(Debug, StructOpt)]
 pub enum Subcommand {
 	/// Key management cli utilities
-	Key(sc_cli::KeySubcommand),
+	Key(KeySubcommand),
+
+	/// The custom inspect subcommmand for decoding blocks and extrinsics.
+	#[structopt(
+		name = "inspect",
+		about = "Decode given block or extrinsic using current native runtime."
+	)]
+
+	/// Verify a signature for a message, provided on STDIN, with a given (public or secret) key.
+	Verify(VerifyCmd),
+
+	/// Generate a seed that provides a vanity address.
+	Vanity(VanityCmd),
+
+	/// Sign a message, with a given (secret) key.
+	Sign(SignCmd),
+
 	/// Build a chain specification.
 	BuildSpec(sc_cli::BuildSpecCmd),
 
