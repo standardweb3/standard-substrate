@@ -27,7 +27,7 @@ on:
         required: false
       toolchain-override:
         description: "Set installed toolchain as an override for the current directory"
-        default: false
+        default: "false"
         required: false
 
 defaults:
