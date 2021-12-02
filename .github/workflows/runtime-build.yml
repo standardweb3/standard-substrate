@@ -2,8 +2,8 @@ name: Build Runtime
 
 env:
   SRTOOL_IMG: paritytech/srtool
-  SRTOOL_VERSION: 1.53.0
-  SUBWASM_VERSION: 0.13.2
+  SRTOOL_VERSION: 1.56.1
+  SUBWASM_VERSION: 0.16.1
 
 on:
   workflow_run:
