@@ -1,18 +1,10 @@
 use crate as oracle;
 use crate::*;
-use frame_support::{
-	assert_ok, parameter_types,
-	traits::{Currency, FindAuthor, Get, OnInitialize, OneSessionHandler},
-	weights::constants::RocksDbWeight,
-};
+use frame_support::{parameter_types, weights::constants::RocksDbWeight};
 use pallet_balances;
 use sp_core::H256;
 use sp_io;
-use sp_runtime::{
-	curve::PiecewiseLinear,
-	testing::{Header, TestXt, UintAuthorityId},
-	traits::{IdentityLookup, Zero},
-};
+use sp_runtime::{testing::Header, traits::IdentityLookup};
 
 /// The AccountId alias in this test module.
 pub(crate) type AccountId = u64;
@@ -38,7 +30,7 @@ parameter_types! {
 
 impl frame_system::Config for Test {
 	type OnSetCode = ();
-	type BaseCallFilter = ();
+	type BaseCallFilter = frame_support::traits::Everything;
 	type BlockWeights = ();
 	type BlockLength = ();
 	type DbWeight = RocksDbWeight;

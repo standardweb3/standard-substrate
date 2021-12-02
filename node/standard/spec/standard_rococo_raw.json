@@ -14,7 +14,7 @@
 		"tokenSymbol": "STND"
 	},
 	"relay_chain": "rococo",
-	"para_id": 2003,
+	"para_id": 2000,
 	"consensusEngine": null,
 	"codeSubstitutes": {},
 	"genesis": {

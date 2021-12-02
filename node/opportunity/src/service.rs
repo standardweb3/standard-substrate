@@ -23,35 +23,125 @@
 use crate::rpc::{
 	create_full, create_light, BabeDeps, FullDeps, GrandpaDeps, IoHandler, LightDeps,
 };
-use futures::prelude::*;
 use opportunity_runtime::{self, RuntimeApi};
 use primitives::Block;
-use sc_client_api::{ExecutorProvider, RemoteBackend};
+
+use codec::Encode;
+use frame_system_rpc_runtime_api::AccountNonceApi;
+use futures::prelude::*;
+use sc_client_api::{BlockBackend, ExecutorProvider, RemoteBackend};
 use sc_consensus_babe::{self, SlotProportion};
-use sc_executor::native_executor_instance;
-pub use sc_executor::NativeExecutor;
+use sc_executor::NativeElseWasmExecutor;
 use sc_network::{Event, NetworkService};
+pub use sc_rpc_api::DenyUnsafe;
 use sc_service::{config::Configuration, error::Error as ServiceError, RpcHandlers, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryWorker};
-use sp_runtime::traits::Block as BlockT;
+use sp_api::ProvideRuntimeApi;
+use sp_core::crypto::Pair;
+use sp_runtime::{generic, traits::Block as BlockT, SaturatedConversion};
 use std::sync::Arc;
 
-// Declare an instance of the native executor named `Executor`. Include the wasm binary as the
-// equivalent wasm code.
-native_executor_instance!(
-	pub Executor,
-	opportunity_runtime::api::dispatch,
-	opportunity_runtime::native_version,
-	frame_benchmarking::benchmarking::HostFunctions,
-);
+// Declare an instance of the native executor named `ExecutorDispatch`. Include the wasm binary as
+// the equivalent wasm code.
+pub struct ExecutorDispatch;
 
-type FullClient = sc_service::TFullClient<Block, RuntimeApi, Executor>;
+impl sc_executor::NativeExecutionDispatch for ExecutorDispatch {
+	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
+
+	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
+		opportunity_runtime::api::dispatch(method, data)
+	}
+
+	fn native_version() -> sc_executor::NativeVersion {
+		opportunity_runtime::native_version()
+	}
+}
+
+/// The full client type definition.
+pub type FullClient =
+	sc_service::TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<ExecutorDispatch>>;
 type FullBackend = sc_service::TFullBackend<Block>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
 type FullGrandpaBlockImport =
 	sc_finality_grandpa::GrandpaBlockImport<FullBackend, Block, FullClient, FullSelectChain>;
-type LightClient = sc_service::TLightClient<Block, RuntimeApi, Executor>;
+type LightClient =
+	sc_service::TLightClient<Block, RuntimeApi, NativeElseWasmExecutor<ExecutorDispatch>>;
+/// The transaction pool type defintion.
+pub type TransactionPool = sc_transaction_pool::FullPool<Block, FullClient>;
 
+/// Fetch the nonce of the given `account` from the chain state.
+///
+/// Note: Should only be used for tests.
+pub fn fetch_nonce(client: &FullClient, account: sp_core::sr25519::Pair) -> u32 {
+	let best_hash = client.chain_info().best_hash;
+	client
+		.runtime_api()
+		.account_nonce(&generic::BlockId::Hash(best_hash), account.public().into())
+		.expect("Fetching account nonce works; qed")
+}
+
+/// Create a transaction using the given `call`.
+///
+/// The transaction will be signed by `sender`. If `nonce` is `None` it will be fetched from the
+/// state of the best block.
+///
+/// Note: Should only be used for tests.
+pub fn create_extrinsic(
+	client: &FullClient,
+	sender: sp_core::sr25519::Pair,
+	function: impl Into<opportunity_runtime::Call>,
+	nonce: Option<u32>,
+) -> opportunity_runtime::UncheckedExtrinsic {
+	let function = function.into();
+	let genesis_hash = client.block_hash(0).ok().flatten().expect("Genesis block exists; qed");
+	let best_hash = client.chain_info().best_hash;
+	let best_block = client.chain_info().best_number;
+	let nonce = nonce.unwrap_or_else(|| fetch_nonce(client, sender.clone()));
+
+	let period = opportunity_runtime::BlockHashCount::get()
+		.checked_next_power_of_two()
+		.map(|c| c / 2)
+		.unwrap_or(2) as u64;
+	let tip = 0;
+	let extra: opportunity_runtime::SignedExtra = (
+		frame_system::CheckSpecVersion::<opportunity_runtime::Runtime>::new(),
+		frame_system::CheckTxVersion::<opportunity_runtime::Runtime>::new(),
+		frame_system::CheckGenesis::<opportunity_runtime::Runtime>::new(),
+		frame_system::CheckEra::<opportunity_runtime::Runtime>::from(generic::Era::mortal(
+			period,
+			best_block.saturated_into(),
+		)),
+		frame_system::CheckNonce::<opportunity_runtime::Runtime>::from(nonce),
+		frame_system::CheckWeight::<opportunity_runtime::Runtime>::new(),
+		pallet_transaction_payment::ChargeTransactionPayment::<opportunity_runtime::Runtime>::from(
+			tip,
+		),
+	);
+
+	let raw_payload = opportunity_runtime::SignedPayload::from_raw(
+		function.clone(),
+		extra.clone(),
+		(
+			opportunity_runtime::VERSION.spec_version,
+			opportunity_runtime::VERSION.transaction_version,
+			genesis_hash,
+			best_hash,
+			(),
+			(),
+			(),
+		),
+	);
+	let signature = raw_payload.using_encoded(|e| sender.sign(e));
+
+	opportunity_runtime::UncheckedExtrinsic::new_signed(
+		function.clone(),
+		sp_runtime::AccountId32::from(sender.public()).into(),
+		opportunity_runtime::Signature::Sr25519(signature.clone()),
+		extra.clone(),
+	)
+}
+
+/// Creates a new partial node.
 pub fn new_partial(
 	config: &Configuration,
 ) -> Result<
@@ -63,7 +153,7 @@ pub fn new_partial(
 		sc_transaction_pool::FullPool<Block, FullClient>,
 		(
 			impl Fn(
-				sc_rpc::DenyUnsafe,
+				DenyUnsafe,
 				sc_rpc::SubscriptionTaskExecutor,
 			) -> Result<IoHandler, sc_service::Error>,
 			(
@@ -88,10 +178,17 @@ pub fn new_partial(
 		})
 		.transpose()?;
 
+	let executor = NativeElseWasmExecutor::<ExecutorDispatch>::new(
+		config.wasm_method,
+		config.default_heap_pages,
+		config.max_runtime_instances,
+	);
+
 	let (client, backend, keystore_container, task_manager) =
-		sc_service::new_full_parts::<Block, RuntimeApi, Executor>(
-			&config,
+		sc_service::new_full_parts::<Block, RuntimeApi, _>(
+			config,
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
+			executor,
 		)?;
 	let client = Arc::new(client);
 
@@ -214,11 +311,16 @@ pub fn new_partial(
 	})
 }
 
+/// Result of [`new_full_base`].
 pub struct NewFullBase {
+	/// The task manager of the node.
 	pub task_manager: TaskManager,
+	/// The client instance of the node.
 	pub client: Arc<FullClient>,
+	/// The networking service of the node.
 	pub network: Arc<NetworkService<Block, <Block as BlockT>::Hash>>,
-	pub transaction_pool: Arc<sc_transaction_pool::FullPool<Block, FullClient>>,
+	/// The transaction pool of the node.
+	pub transaction_pool: Arc<TransactionPool>,
 }
 
 /// Creates a full service from the configuration.
@@ -244,10 +346,10 @@ pub fn new_full_base(
 	let auth_disc_publish_non_global_ips = config.network.allow_non_globals_in_dht;
 
 	config.network.extra_sets.push(sc_finality_grandpa::grandpa_peers_set_config());
-
 	let warp_sync = Arc::new(sc_finality_grandpa::warp_proof::NetworkProvider::new(
 		backend.clone(),
 		import_setup.1.shared_authority_set().clone(),
+		Vec::default(),
 	));
 
 	let (network, system_rpc_tx, network_starter) =
@@ -281,7 +383,7 @@ pub fn new_full_base(
 
 	let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		config,
-		backend: backend.clone(),
+		backend,
 		client: client.clone(),
 		keystore: keystore_container.sync_keystore(),
 		network: network.clone(),
@@ -336,7 +438,13 @@ pub fn new_full_base(
 							slot_duration,
 						);
 
-					Ok((timestamp, slot, uncles))
+					let storage_proof =
+						sp_transaction_storage_proof::registration::new_data_provider(
+							&*client_clone,
+							&parent,
+						)?;
+
+					Ok((timestamp, slot, uncles, storage_proof))
 				}
 			},
 			force_authoring,
@@ -431,6 +539,7 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 	new_full_base(config, |_, _| ()).map(|NewFullBase { task_manager, .. }| task_manager)
 }
 
+/// Creates a light service from the configuration.
 pub fn new_light_base(
 	mut config: Configuration,
 ) -> Result<
@@ -450,21 +559,23 @@ pub fn new_light_base(
 		.clone()
 		.filter(|x| !x.is_empty())
 		.map(|endpoints| -> Result<_, sc_telemetry::Error> {
-			#[cfg(feature = "browser")]
-			let transport = Some(sc_telemetry::ExtTransport::new(libp2p_wasm_ext::ffi::websocket_transport()));
-			#[cfg(not(feature = "browser"))]
-			let transport = None;
-
-			let worker = TelemetryWorker::with_transport(16, transport)?;
+			let worker = TelemetryWorker::new(16)?;
 			let telemetry = worker.handle().new_telemetry(endpoints);
 			Ok((worker, telemetry))
 		})
 		.transpose()?;
 
+	let executor = NativeElseWasmExecutor::<ExecutorDispatch>::new(
+		config.wasm_method,
+		config.default_heap_pages,
+		config.max_runtime_instances,
+	);
+
 	let (client, backend, keystore_container, mut task_manager, on_demand) =
-		sc_service::new_light_parts::<Block, RuntimeApi, Executor>(
+		sc_service::new_light_parts::<Block, RuntimeApi, _>(
 			&config,
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
+			executor,
 		)?;
 
 	let mut telemetry = telemetry.map(|(worker, telemetry)| {
@@ -504,7 +615,7 @@ pub fn new_light_base(
 		babe_block_import,
 		Some(Box::new(justification_import)),
 		client.clone(),
-		select_chain.clone(),
+		select_chain,
 		move |_, ()| async move {
 			let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
 
@@ -528,6 +639,7 @@ pub fn new_light_base(
 	let warp_sync = Arc::new(sc_finality_grandpa::warp_proof::NetworkProvider::new(
 		backend.clone(),
 		grandpa_link.shared_authority_set().clone(),
+		Vec::default(),
 	));
 
 	let (network, system_rpc_tx, network_starter) =

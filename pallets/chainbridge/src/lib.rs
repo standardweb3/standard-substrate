@@ -1,15 +1,13 @@
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use pallet::*;
-
 #[cfg(test)]
 mod mock;
 
 #[cfg(test)]
 mod tests;
-
 pub use pallet::*;
+
 #[frame_support::pallet]
 pub mod pallet {
 	use codec::{Decode, Encode, EncodeLike};
@@ -17,6 +15,7 @@ pub mod pallet {
 		pallet_prelude::*, traits::StorageVersion, weights::GetDispatchInfo, PalletId, Parameter,
 	};
 	use frame_system::{self as system, pallet_prelude::*};
+	use scale_info::TypeInfo;
 	pub use sp_core::U256;
 	use sp_runtime::traits::{AccountIdConversion, Dispatchable};
 	use sp_std::prelude::*;
@@ -40,14 +39,14 @@ pub mod pallet {
 		return r_id
 	}
 
-	#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug)]
+	#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 	pub enum ProposalStatus {
 		Initiated,
 		Approved,
 		Rejected,
 	}
 
-	#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug)]
+	#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 	pub struct ProposalVotes<AccountId, BlockNumber> {
 		pub votes_for: Vec<AccountId>,
 		pub votes_against: Vec<AccountId>,
@@ -115,7 +114,8 @@ pub mod pallet {
 			+ EncodeLike
 			+ GetDispatchInfo;
 		/// The identifier for this chain.
-		/// This must be unique and must not collide with existing IDs within a set of bridged chains.
+		/// This must be unique and must not collide with existing IDs within a set of bridged
+		/// chains.
 		#[pallet::constant]
 		type BridgeChainId: Get<BridgeChainId>;
 
@@ -124,7 +124,6 @@ pub mod pallet {
 	}
 
 	#[pallet::event]
-	#[pallet::metadata(T::AccountId = "AccountId")]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// Vote threshold has changed (new_threshold)
@@ -135,9 +134,11 @@ pub mod pallet {
 		RelayerAdded(T::AccountId),
 		/// Relayer removed from set
 		RelayerRemoved(T::AccountId),
-		/// FunglibleTransfer is for relaying fungibles (dest_id, nonce, resource_id, amount, recipient, metadata)
+		/// FunglibleTransfer is for relaying fungibles (dest_id, nonce, resource_id, amount,
+		/// recipient, metadata)
 		FungibleTransfer(BridgeChainId, DepositNonce, ResourceId, U256, Vec<u8>),
-		/// NonFungibleTransfer is for relaying NFTS (dest_id, nonce, resource_id, token_id, recipient, metadata)
+		/// NonFungibleTransfer is for relaying NFTS (dest_id, nonce, resource_id, token_id,
+		/// recipient, metadata)
 		NonFungibleTransfer(BridgeChainId, DepositNonce, ResourceId, Vec<u8>, Vec<u8>, Vec<u8>),
 		/// GenericTransfer is for a generic data payload (dest_id, nonce, resource_id, metadata)
 		GenericTransfer(BridgeChainId, DepositNonce, ResourceId, Vec<u8>),
@@ -530,8 +531,8 @@ pub mod pallet {
 			Self::try_resolve_proposal(nonce, src_id, prop)
 		}
 
-		/// Commits a vote against the proposal and cancels it if more than (relayers.len() - threshold)
-		/// votes against exist.
+		/// Commits a vote against the proposal and cancels it if more than (relayers.len() -
+		/// threshold) votes against exist.
 		fn vote_against(
 			who: T::AccountId,
 			nonce: DepositNonce,
@@ -563,7 +564,8 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Initiates a transfer of a fungible asset out of the chain. This should be called by another pallet.
+		/// Initiates a transfer of a fungible asset out of the chain. This should be called by
+		/// another pallet.
 		pub fn transfer_fungible(
 			dest_id: BridgeChainId,
 			resource_id: ResourceId,
@@ -576,7 +578,8 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Initiates a transfer of a nonfungible asset out of the chain. This should be called by another pallet.
+		/// Initiates a transfer of a nonfungible asset out of the chain. This should be called by
+		/// another pallet.
 		pub fn transfer_nonfungible(
 			dest_id: BridgeChainId,
 			resource_id: ResourceId,
@@ -597,7 +600,8 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Initiates a transfer of generic data out of the chain. This should be called by another pallet.
+		/// Initiates a transfer of generic data out of the chain. This should be called by another
+		/// pallet.
 		pub fn transfer_generic(
 			dest_id: BridgeChainId,
 			resource_id: ResourceId,

@@ -35,8 +35,11 @@
 //!
 //! ### Terminology
 //!
-//! * **Liquidity provider token:** The creation of a new asset by providing liquidity between two fungible assets. Liquidity provider token act as the share of the pool and gets the profit created from exchange fee.
-//! * **Asset exchange:** The process of an account transferring an asset to exchange with other kind of fungible asset.
+//! * **Liquidity provider token:** The creation of a new asset by providing liquidity between two
+//!   fungible assets. Liquidity provider token act as the share of the pool and gets the profit
+//!   created from exchange fee.
+//! * **Asset exchange:** The process of an account transferring an asset to exchange with other
+//!   kind of fungible asset.
 //! * **Fungible asset:** An asset whose units are interchangeable.
 //! * **Non-fungible asset:** An asset for which each unit has unique characteristics.
 //!
@@ -44,26 +47,32 @@
 //!
 //! The Subswap system in Substrate is designed to make the following possible:
 //!
-//! * Reward liquidity providers with tokens to receive exchanges fees which is proportional to their contribution.
-//! * Swap assets with automated market price equation(e.g. X*Y=K or curve function from Kyber, dodoex, etc).
+//! * Reward liquidity providers with tokens to receive exchanges fees which is proportional to
+//!   their contribution.
+//! * Swap assets with automated market price equation(e.g. X*Y=K or curve function from Kyber,
+//!   dodoex, etc).
 //! * Issue an fungible asset which can be backed with opening exchange with other assets
 //!
 //! ## Interface
 //!
 //! ### Dispatchable Functions
 //!
-//! * `issue` - Issues the total supply of a new fungible asset to the account of the caller of the function.
-//! * `mint` - Mints the asset to the account in the argument with the requested amount from the caller. Caller must be the creator of the asset.
+//! * `issue` - Issues the total supply of a new fungible asset to the account of the caller of the
+//!   function.
+//! * `mint` - Mints the asset to the account in the argument with the requested amount from the
+//!   caller. Caller must be the creator of the asset.
 //! * `burn` - Burns the asset from the caller by the amount in the argument
 //! * `transfer` - Transfers an `amount` of units of fungible asset `id` from the balance of
 //! the function caller's account (`origin`) to a `target` account.
 //! * `destroy` - Destroys the entire holding of a fungible asset `id` associated with the account
 //! that called the function.
-//! * `mint_liquidity` - Mints liquidity token by adding deposits to a certain pair for exchange. The assets must have different identifier.
-//! * `burn_liquidity` - Burns liquidity token for a pair and receives each asset in the pair.  
+//! * `mint_liquidity` - Mints liquidity token by adding deposits to a certain pair for exchange.
+//!   The assets must have different identifier.
+//! * `burn_liquidity` - Burns liquidity token for a pair and receives each asset in the pair.
 //! * `swap` - Swaps from one asset to the another, paying 0.3% fee to the liquidity providers.
 //!
-//! Please refer to the [`Call`](./enum.Call.html) enum and its associated variants for documentation on each function.
+//! Please refer to the [`Call`](./enum.Call.html) enum and its associated variants for
+//! documentation on each function.
 //!
 //! ### Public Functions
 //!
@@ -71,16 +80,19 @@
 //! * `total_supply` - Get the total supply of an asset.
 //! * `mint_from_system` - Mint asset from the system to an account, increasing total supply.
 //! * `burn_from_system` - Burn asset from the system to an account, decreasing total supply.
-//! * `transfer_from_system - Transfer asset from an account to the system with no change in total supply.
+//! * `transfer_from_system - Transfer asset from an account to the system with no change in total
+//!   supply.
 //! * `transfer_to_system - Transfer asset from system to the user with no chang in total supply.
 //! * `issue_from_system` - Issue asset from system
 //! * `swap` - Swap one asset to another asset
 //!
-//! Please refer to the [`Module`](./struct.Module.html) struct for details on publicly available functions.
+//! Please refer to the [`Module`](./struct.Module.html) struct for details on publicly available
+//! functions.
 //!
 //! ## Usage
 //!
-//! The following example shows how to use the Subswap module in your runtime by exposing public functions to:
+//! The following example shows how to use the Subswap module in your runtime by exposing public
+//! functions to:
 //!
 //! * Issue and manage a new fungible asset.
 //! * Query the fungible asset holding balance of an account.
@@ -89,7 +101,8 @@
 //!
 //! ### Prerequisites
 //!
-//! Import the Subswap module and types and derive your runtime's configuration traits from the Assets module trait.
+//! Import the Subswap module and types and derive your runtime's configuration traits from the
+//! Assets module trait.
 //!
 //! ### Simple Code Snippet
 //!
@@ -122,8 +135,7 @@
 //! Below are assumptions that must be held when using this module.  If any of
 //! them are violated, the behavior of this module is undefined.
 //!
-//! * The total count of assets should be less than
-//!   `Trait::AssetId::max_value()`.
+//! * The total count of assets should be less than `Trait::AssetId::max_value()`.
 //!
 //! ## Related Modules
 //!
@@ -137,16 +149,14 @@ use crate::sp_api_hidden_includes_decl_storage::hidden_include::traits::Get;
 use codec::{Decode, Encode};
 use frame_support::{
 	decl_error, decl_event, decl_module, decl_storage, ensure,
-	traits::{
-		fungibles::{Inspect, Mutate, Transfer},
-		tokens::fungibles,
-	},
+	traits::{fungibles::Transfer, tokens::fungibles},
 	PalletId,
 };
 use frame_system::{ensure_root, ensure_signed};
 use pallet_standard_market as market;
 use pallet_standard_oracle as oracle;
 use primitives::{AssetId, Balance};
+use scale_info::TypeInfo;
 use sp_core::U256;
 use sp_runtime::{
 	traits::{AccountIdConversion, UniqueSaturatedInto},
@@ -154,7 +164,7 @@ use sp_runtime::{
 };
 use sp_std::{fmt::Debug, prelude::*};
 
-#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug)]
+#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, TypeInfo)]
 pub struct CDP<Balance: Encode + Decode + Clone + Debug + Eq + PartialEq> {
 	/// Percentage of liquidator who liquidate the cdp \[numerator, denominator]
 	liquidation_fee: (Balance, Balance),

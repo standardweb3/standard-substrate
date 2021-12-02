@@ -74,8 +74,6 @@ ExecStart=/usr/local/bin/opportunity-standalone \
 --base-path $1 \
 --chain opportunity \
 --port 30333 \
---bootnodes /dns/opportunity.standard.tech/tcp/30333/p2p/12D3KooWDPnry4Ei9RxgtY4RfwsM5fnUxg5sXJGbe8LMKrLs8tkf \
-/dns/opportunity2.standard.tech/tcp/30333/p2p/12D3KooWGPAekiLHBHyCYe4x1BAbvSpHYbwkSHk3KxNyoZoyCmp6 \
 --name $2 \
 --validator
 Restart=always
