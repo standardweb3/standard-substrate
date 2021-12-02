@@ -72,7 +72,7 @@ const REWARD_F1: Perbill = Perbill::from_percent(50);
 pub type SpanIndex = u32;
 
 // A range of start..end eras for a slashing span.
-#[derive(Encode, Decode)]
+#[derive(Encode, Decode, TypeInfo)]
 #[cfg_attr(test, derive(Debug, PartialEq))]
 pub(crate) struct SlashingSpan {
 	pub(crate) index: SpanIndex,
@@ -87,7 +87,7 @@ impl SlashingSpan {
 }
 
 /// An encoding of all of a nominator's slashing spans.
-#[derive(Encode, Decode, RuntimeDebug)]
+#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
 pub struct SlashingSpans {
 	// the index of the current slashing span of the nominator. different for
 	// every stash, resets when the account hits free balance 0.
@@ -180,7 +180,7 @@ impl SlashingSpans {
 }
 
 /// A slashing-span record for a particular stash.
-#[derive(Encode, Decode, Default)]
+#[derive(Encode, Decode, Default, TypeInfo)]
 pub(crate) struct SpanRecord<Balance> {
 	slashed: Balance,
 	paid_out: Balance,

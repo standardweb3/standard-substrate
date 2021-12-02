@@ -133,3 +133,10 @@ libp2p-wasm-ext = { version = "0.28", features = ["websocket"], optional = true 
 serde = { version = "1.0.123", features = ["derive"] }
 serde_json = { version = "1.0" }
 futures = '0.3.4'
+
+[dev-dependencies]
+sc-service-test = { version = "2.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
+sc-keystore = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
+sp-keyring = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
+sp-tracing = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
+tempfile = "3.1.0"

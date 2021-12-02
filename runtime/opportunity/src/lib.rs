@@ -41,7 +41,7 @@ pub use sp_runtime::BuildStorage;
 
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{KeyOwnerProofSystem, LockIdentifier, U128CurrencyToVote, OnRuntimeUpgrade},
+	traits::{KeyOwnerProofSystem, LockIdentifier, OnRuntimeUpgrade, U128CurrencyToVote},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
 		DispatchClass, IdentityFee, Weight,

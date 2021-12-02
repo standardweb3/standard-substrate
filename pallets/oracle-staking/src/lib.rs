@@ -333,7 +333,7 @@ type NegativeImbalanceOf<T> = <<T as Config>::Currency as Currency<
 >>::NegativeImbalance;
 
 /// Information regarding the active era (era in used in session).
-#[derive(Encode, Decode, RuntimeDebug)]
+#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
 pub struct ActiveEraInfo {
 	/// Index of era.
 	pub index: EraIndex,
@@ -587,7 +587,7 @@ pub struct Exposure<AccountId, Balance: HasCompact> {
 
 /// A pending slash record. The value of the slash has been computed but not applied yet,
 /// rather deferred for several eras.
-#[derive(Encode, Decode, Default, RuntimeDebug)]
+#[derive(Encode, Decode, Default, RuntimeDebug, TypeInfo)]
 pub struct UnappliedSlash<AccountId, Balance: HasCompact> {
 	/// The stash ID of the offending validator.
 	validator: AccountId,
@@ -715,7 +715,7 @@ impl Default for Forcing {
 // A value placed in storage that represents the current version of the Staking storage. This value
 // is used by the `on_runtime_upgrade` logic to determine whether we run storage migration logic.
 // This should match directly with the semantic versions of the Rust crate.
-#[derive(Encode, Decode, Clone, Copy, PartialEq, Eq, RuntimeDebug)]
+#[derive(Encode, Decode, Clone, Copy, PartialEq, Eq, RuntimeDebug, TypeInfo)]
 enum Releases {
 	V1_0_0Ancient,
 	V2_0_0,

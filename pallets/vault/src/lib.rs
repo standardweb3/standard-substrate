@@ -149,10 +149,7 @@ use crate::sp_api_hidden_includes_decl_storage::hidden_include::traits::Get;
 use codec::{Decode, Encode};
 use frame_support::{
 	decl_error, decl_event, decl_module, decl_storage, ensure,
-	traits::{
-		fungibles::{Inspect, Mutate, Transfer},
-		tokens::fungibles,
-	},
+	traits::{fungibles::Transfer, tokens::fungibles},
 	PalletId,
 };
 use frame_system::{ensure_root, ensure_signed};
