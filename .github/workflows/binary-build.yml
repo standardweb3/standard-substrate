@@ -23,11 +23,11 @@ on:
     inputs:
       toolchain-build:
         description: "Rust toolchain to use"
-        default: ${{ TOOLCHAIN_BUILD }}
+        default: "nightly-2021-09-12"
         required: false
       toolchain-override:
         description: "Set installed toolchain as an override for the current directory"
-        default: ${{ TOOLCHAIN_OVERRIDE }}
+        default: false
         required: false
 
 defaults:
@@ -66,16 +66,11 @@ jobs:
           brew update
           brew install openssl
 
-      # - name: Install Rust for Substrate - ${{ matrix.os }}
-      #   uses: digitalnativeinc/install-rust-substrate-action@master
-      #   with:
-      #     toolchain_build: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.toolchain-build || env.TOOLCHAIN_BUILD }}
-
       - name: Install Rust for Substrate - ${{ matrix.os }}
         uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.toolchain-build || env.TOOLCHAIN_BUILD }}
-          override: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.toolchain-override || env.TOOLCHAIN_BUILD }}
+          override: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.toolchain-override || env.TOOLCHAIN_OVERRIDE }}
           target: wasm32-unknown-unknown
 
       - name: Run Build - ${{ matrix.os }}
