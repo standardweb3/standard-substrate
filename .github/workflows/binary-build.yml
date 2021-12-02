@@ -23,11 +23,11 @@ on:
     inputs:
       toolchain-build:
         description: "Rust toolchain to use"
-        default: ${TOOLCHAIN_BUILD}
+        default: ${{ TOOLCHAIN_BUILD }}
         required: false
       toolchain-override:
         description: "Set installed toolchain as an override for the current directory"
-        default: ${TOOLCHAIN_OVERRIDE}
+        default: ${{ TOOLCHAIN_OVERRIDE }}
         required: false
 
 defaults:
