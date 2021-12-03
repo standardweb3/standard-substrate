@@ -8,7 +8,7 @@ use sp_core::{
 	u32_trait::{_1, _2, _3, _4, _5},
 	OpaqueMetadata,
 };
-
+use beefy_primitives::crypto::AuthorityId as BeefyId;
 use pallet_grandpa::{
 	fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList,
 };
@@ -137,10 +137,10 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 /// The BABE epoch configuration at genesis.
-pub const BABE_GENESIS_EPOCH_CONFIG: sp_consensus_babe::BabeEpochConfiguration =
-	sp_consensus_babe::BabeEpochConfiguration {
+pub const BABE_GENESIS_EPOCH_CONFIG: babe_primitives::BabeEpochConfiguration =
+	babe_primitives::BabeEpochConfiguration {
 		c: PRIMARY_PROBABILITY,
-		allowed_slots: sp_consensus_babe::AllowedSlots::PrimaryAndSecondaryPlainSlots,
+		allowed_slots: babe_primitives::AllowedSlots::PrimaryAndSecondaryPlainSlots,
 	};
 
 /// The version information used to identify this runtime when compiled natively.
@@ -1009,14 +1009,21 @@ sp_api::impl_runtime_apis! {
 		}
 	}
 
-	impl sp_consensus_babe::BabeApi<Block> for Runtime {
-		fn configuration() -> sp_consensus_babe::BabeGenesisConfiguration {
+	impl beefy_primitives::BeefyApi<Block> for Runtime {
+		fn validator_set() -> beefy_primitives::ValidatorSet<BeefyId> {
+			// dummy implementation due to lack of BEEFY pallet.
+			beefy_primitives::ValidatorSet { validators: Vec::new(), id: 0 }
+		}
+	}
+
+	impl babe_primitives::BabeApi<Block> for Runtime {
+		fn configuration() -> babe_primitives::BabeGenesisConfiguration {
 			// The choice of `c` parameter (where `1 - c` represents the
 			// probability of a slot being empty), is done in accordance to the
 			// slot duration and expected target block time, for safely
 			// resisting network delays of maximum two seconds.
 			// <https://research.web3.foundation/en/latest/polkadot/BABE/Babe/#6-practical-results>
-			sp_consensus_babe::BabeGenesisConfiguration {
+			babe_primitives::BabeGenesisConfiguration {
 				slot_duration: Babe::slot_duration(),
 				epoch_length: EpochDuration::get(),
 				c: BABE_GENESIS_EPOCH_CONFIG.c,
@@ -1026,32 +1033,32 @@ sp_api::impl_runtime_apis! {
 			}
 		}
 
-		fn current_epoch_start() -> sp_consensus_babe::Slot {
+		fn current_epoch_start() -> babe_primitives::Slot {
 			Babe::current_epoch_start()
 		}
 
-		fn current_epoch() -> sp_consensus_babe::Epoch {
+		fn current_epoch() -> babe_primitives::Epoch {
 			Babe::current_epoch()
 		}
 
-		fn next_epoch() -> sp_consensus_babe::Epoch {
+		fn next_epoch() -> babe_primitives::Epoch {
 			Babe::next_epoch()
 		}
 
 		fn generate_key_ownership_proof(
-			_slot_number: sp_consensus_babe::Slot,
-			authority_id: sp_consensus_babe::AuthorityId,
-		) -> Option<sp_consensus_babe::OpaqueKeyOwnershipProof> {
+			_slot_number: babe_primitives::Slot,
+			authority_id: babe_primitives::AuthorityId,
+		) -> Option<babe_primitives::OpaqueKeyOwnershipProof> {
 			use parity_scale_codec::Encode;
 
-			Historical::prove((sp_consensus_babe::KEY_TYPE, authority_id))
+			Historical::prove((babe_primitives::KEY_TYPE, authority_id))
 				.map(|p| p.encode())
-				.map(sp_consensus_babe::OpaqueKeyOwnershipProof::new)
+				.map(babe_primitives::OpaqueKeyOwnershipProof::new)
 		}
 
 		fn submit_report_equivocation_unsigned_extrinsic(
-			equivocation_proof: sp_consensus_babe::EquivocationProof<<Block as BlockT>::Header>,
-			key_owner_proof: sp_consensus_babe::OpaqueKeyOwnershipProof,
+			equivocation_proof: babe_primitives::EquivocationProof<<Block as BlockT>::Header>,
+			key_owner_proof: babe_primitives::OpaqueKeyOwnershipProof,
 		) -> Option<()> {
 			let key_owner_proof = key_owner_proof.decode()?;
 

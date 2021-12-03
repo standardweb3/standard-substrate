@@ -44,7 +44,8 @@ frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate"
 frame-try-runtime = { version = "0.10.0-dev", git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.12", optional = true, default-features = false }
 
 ## Substrate Primitive Dependencies
-sp-consensus-babe = { version = '0.10.0-dev', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.12", default-features = false }
+babe-primitives = { package = "sp-consensus-babe", git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.12" }
+beefy-primitives = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.12" }
 sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
@@ -109,10 +110,12 @@ std = [
 	'sp-block-builder/std',
 	'sp-transaction-pool/std',
 	'sp-inherents/std',
+	'sp-authority-discovery/std',
 	'frame-support/std',
 	'frame-executive/std',
 	'frame-system/std',
 	'frame-system-rpc-runtime-api/std',
+	'frame-election-provider-support/std',
 	'pallet-balances/std',
 	'pallet-timestamp/std',
 	'pallet-sudo/std',
@@ -123,7 +126,6 @@ std = [
 	'pallet-offences/std',
 	'pallet-staking/std',
 	'pallet-authorship/std',
-	'sp-authority-discovery/std',
 	'pallet-grandpa/std',
 	'pallet-session/std',
 	'pallet-scheduler/std',
@@ -132,7 +134,6 @@ std = [
 	'pallet-collective/std',
 	'pallet-democracy/std',
 	'pallet-im-online/std',
-	'frame-election-provider-support/std',
 	'pallet-elections-phragmen/std',
 	"pallet-transaction-payment/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
@@ -140,11 +141,13 @@ std = [
 	'pallet-standard-oracle/std',
 	'pallet-standard-market/std',
 	'pallet-standard-vault/std',
-	'sp-consensus-babe/std',
 	'pallet-indices/std',
 	'pallet-babe/std',
 	'pallet-authority-discovery/std',
 	'pallet-standard-chainbridge/std',
+	'beefy-primitives/std',
+	'babe-primitives/std',
+	'runtime-common/std',
 ]
 
 runtime-benchmarks = [
