@@ -4,10 +4,10 @@ use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
 use sp_core::{sr25519, Pair, Public};
 use standard_runtime::{
-	AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig, CollatorSelectionConfig,
-	GenesisConfig, ImOnlineConfig, ImOnlineId, OracleConfig, ParachainInfoConfig, SessionConfig,
-	SessionKeys, Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig, VestingConfig,
-	EXISTENTIAL_DEPOSIT, WASM_BINARY,
+	wasm_binary_unwrap, AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig,
+	CollatorSelectionConfig, GenesisConfig, ImOnlineConfig, ImOnlineId, OracleConfig,
+	ParachainInfoConfig, SessionConfig, SessionKeys, Signature, StakerStatus, StakingConfig,
+	SudoConfig, SystemConfig, VestingConfig, EXISTENTIAL_DEPOSIT,
 };
 
 use sp_runtime::{
@@ -252,10 +252,7 @@ fn testnet_genesis(
 	id: ParaId,
 ) -> GenesisConfig {
 	GenesisConfig {
-		system: SystemConfig {
-			code: WASM_BINARY.expect("WASM binary was not build, please build it!").to_vec(),
-			changes_trie_config: Default::default(),
-		},
+		system: SystemConfig { code: wasm_binary_unwrap().to_vec() },
 		sudo: SudoConfig { key: root_key },
 		parachain_system: Default::default(),
 		parachain_info: ParachainInfoConfig { parachain_id: id },

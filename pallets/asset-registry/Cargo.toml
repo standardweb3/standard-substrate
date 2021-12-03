@@ -1,12 +1,12 @@
 [package]
 authors = ['Standard Tech']
+version = '0.9.13'
 description = 'FRAME Pallet for asset registry management'
 edition = '2018'
 homepage = 'https://github.com/digitalnativeinc/standard-substrate'
 license = 'Unlicense'
 name = 'pallet-asset-registry'
 repository = 'https://github.com/digitalnativeinc/standard-substrate'
-version = '4.0.0-dev'
 
 [package.metadata.docs.rs]
 targets = ['x86_64-unknown-linux-gnu']
@@ -21,12 +21,12 @@ serde = {features = ['derive'], optional = true, version = '1.0.130' }
 primitives = {path = '../../primitives', default-features = false }
 scale-info = { version = "1.0.0", default-features = false, features = ["derive"] }
 
-frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false, version = '4.0.0-dev' }
-frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false, version = '4.0.0-dev' }
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false, version = '4.0.0-dev' }
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false, version = '4.0.0-dev' }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false, version = '4.0.0-dev' }
-sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false, version = '4.0.0-dev' }
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.13", default-features = false, version = '4.0.0-dev' }
+frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.13", default-features = false, version = '4.0.0-dev' }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.13", default-features = false, version = '4.0.0-dev' }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.13", default-features = false, version = '4.0.0-dev' }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.13", default-features = false, version = '4.0.0-dev' }
+sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.13", default-features = false, version = '4.0.0-dev' }
 
 [features]
 default = ['std']

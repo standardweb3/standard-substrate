@@ -10,10 +10,10 @@ use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
 use opportunity_runtime::{
-	AccountId, AssetRegistryConfig, BabeConfig, BalancesConfig, Block, CouncilConfig,
-	DemocracyConfig, ElectionsConfig, GrandpaConfig, ImOnlineConfig, OracleConfig, Perbill,
-	SessionConfig, SessionKeys, Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig,
-	TechnicalCommitteeConfig, TechnicalMembershipConfig, TreasuryConfig,
+	wasm_binary_unwrap, AccountId, AssetRegistryConfig, BabeConfig, BalancesConfig, Block,
+	CouncilConfig, DemocracyConfig, ElectionsConfig, GrandpaConfig, ImOnlineConfig, OracleConfig,
+	Perbill, SessionConfig, SessionKeys, Signature, StakerStatus, StakingConfig, SudoConfig,
+	SystemConfig, TechnicalCommitteeConfig, TechnicalMembershipConfig, TreasuryConfig,
 };
 
 use primitives::AssetId;
@@ -92,7 +92,6 @@ pub fn opportunity_config() -> Result<ChainSpec, String> {
 }
 
 pub fn opportunity_standalone_config() -> Result<ChainSpec, String> {
-	let wasm_binary = opportunity_runtime::WASM_BINARY.ok_or("Development wasm not available")?;
 	let boot_nodes = vec![];
 
 	Ok(ChainSpec::from_genesis(
@@ -104,8 +103,6 @@ pub fn opportunity_standalone_config() -> Result<ChainSpec, String> {
 		ChainType::Live,
 		move || {
 			opportunity_testnet_config_genesis(
-				// Opportunity Runtime WASM binary
-				wasm_binary,
 				// Initial authorities
 				vec![authority_keys_from_seed("Alice")],
 				// Sudo account
@@ -144,7 +141,6 @@ pub fn opportunity_standalone_config() -> Result<ChainSpec, String> {
 }
 
 pub fn development_config() -> Result<ChainSpec, String> {
-	let wasm_binary = opportunity_runtime::WASM_BINARY.ok_or("Development wasm not available")?;
 	let boot_nodes = vec![];
 
 	Ok(ChainSpec::from_genesis(
@@ -156,7 +152,6 @@ pub fn development_config() -> Result<ChainSpec, String> {
 		ChainType::Local,
 		move || {
 			opportunity_testnet_config_genesis(
-				wasm_binary,
 				// Initial authorities
 				vec![authority_keys_from_seed("Alice")],
 				// Sudo account
@@ -184,7 +179,6 @@ pub fn development_config() -> Result<ChainSpec, String> {
 }
 
 pub fn local_testnet_config() -> Result<ChainSpec, String> {
-	let wasm_binary = opportunity_runtime::WASM_BINARY.ok_or("Development wasm not available")?;
 	let boot_nodes = vec![];
 
 	Ok(ChainSpec::from_genesis(
@@ -195,7 +189,6 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 		ChainType::Local,
 		move || {
 			opportunity_testnet_config_genesis(
-				wasm_binary,
 				// Initial authorities
 				vec![authority_keys_from_seed("Alice")],
 				// Sudo account
@@ -231,7 +224,6 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 }
 
 fn opportunity_testnet_config_genesis(
-	wasm_binary: &[u8],
 	initial_authorities: Vec<(
 		AccountId,
 		AccountId,
@@ -244,11 +236,7 @@ fn opportunity_testnet_config_genesis(
 	endowed_accounts: Vec<AccountId>,
 ) -> opportunity_runtime::GenesisConfig {
 	opportunity_runtime::GenesisConfig {
-		system: SystemConfig {
-			// Add Wasm runtime to storage.
-			code: wasm_binary.to_vec(),
-			changes_trie_config: Default::default(),
-		},
+		system: SystemConfig { code: wasm_binary_unwrap().to_vec() },
 		balances: BalancesConfig {
 			balances: endowed_accounts.iter().cloned().map(|k| (k, 1 << 60)).collect(),
 		},
