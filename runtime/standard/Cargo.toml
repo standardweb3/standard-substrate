@@ -12,6 +12,7 @@ description = 'Standard Parachain Runtime.'
 substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 
 [dependencies]
+smallvec = "1.6.1"
 codec = { package = 'parity-scale-codec', version = '2.0.0', default-features = false, features = ['derive']}
 log = { version = "0.4.14", default-features = false }
 serde = { version = '1.0.130', optional = true, features = ['derive'] }
@@ -93,8 +94,10 @@ xcm-executor = { git = "https://github.com/paritytech/polkadot", default-feature
 pallet-xcm = { git = 'https://github.com/paritytech/polkadot', branch = 'release-v0.9.12', default-features = false }
 runtime-common = { package = "polkadot-runtime-common", git = 'https://github.com/paritytech/polkadot.git', default-features = false, branch = "release-v0.9.12" }
 
+
 [features]
 default = [ "std" ]
+
 runtime-benchmarks = [
 	'sp-runtime/runtime-benchmarks',
 	'frame-benchmarking',

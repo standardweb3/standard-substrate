@@ -15,12 +15,14 @@ targets = [ 'x86_64-unknown-linux-gnu' ]
 substrate-wasm-builder = { version = '5.0.0-dev', git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 
 [dependencies]
-parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
+getrandom = { version = "0.2.3", features = ["js"] }
+codec = { package = 'parity-scale-codec', version = "2.3.1", default-features = false, features = ["derive"] }
 serde = { version = '1.0.130', optional = true, features = ['derive'] }
-hex-literal = { version = '0.3.1', optional = true }
-smallvec = "1.7.0"
+hex-literal = { version = '0.3.4', optional = true }
+smallvec = "1.6.1"
 static_assertions = "1.1.0"
 scale-info = { version = "1.0.0", default-features = false, features = ["derive"] }
+log = { version = "0.4.14", default-features = false }
 
 # Local Dependencies
 primitives = { default-features = false, path = "../../primitives" }
@@ -92,11 +94,21 @@ pallet-treasury = { version = "4.0.0-dev", default-features = false, git = 'http
 # Polkadot Dependencies
 runtime-common = { package = "polkadot-runtime-common", git = 'https://github.com/paritytech/polkadot.git', default-features = false, branch = "release-v0.9.12" }
 
+# EVM Dependencies
+# pallet-base-fee = { version = "1.0.0", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-dynamic-fee = { version = "4.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-ethereum = { version = "4.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-evm = { version = "6.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-evm-precompile-modexp = { version = "2.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-evm-precompile-sha3fips = { version = "2.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-evm-precompile-simple = { version = "2.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+fp-rpc = { version = "3.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+
 [features]
 default = [ 'std' ]
-
+manual-seal = []
 std = [
-	'parity-scale-codec/std',
+	'codec/std',
   'scale-info/std',
 	'serde',
 	'sp-api/std',
@@ -111,6 +123,8 @@ std = [
 	'sp-transaction-pool/std',
 	'sp-inherents/std',
 	'sp-authority-discovery/std',
+	'sp-runtime-interface/std',
+	'sp-npos-elections/std',
 	'frame-support/std',
 	'frame-executive/std',
 	'frame-system/std',
@@ -135,8 +149,8 @@ std = [
 	'pallet-democracy/std',
 	'pallet-im-online/std',
 	'pallet-elections-phragmen/std',
-	"pallet-transaction-payment/std",
-	"pallet-transaction-payment-rpc-runtime-api/std",
+	'pallet-transaction-payment/std',
+	'pallet-transaction-payment-rpc-runtime-api/std',
 	'pallet-asset-registry/std',
 	'pallet-standard-oracle/std',
 	'pallet-standard-market/std',
@@ -148,7 +162,16 @@ std = [
 	'beefy-primitives/std',
 	'babe-primitives/std',
 	'runtime-common/std',
+	'pallet-ethereum/std',
+	'pallet-dynamic-fee/std',
+	'pallet-evm/std',
+	'fp-rpc/std',
+	'pallet-evm-precompile-simple/std',
+	'pallet-evm-precompile-sha3fips/std',
+	'pallet-evm-precompile-modexp/std',
 ]
+
+	# 'pallet-base-fee/std',
 
 runtime-benchmarks = [
 	'sp-runtime/runtime-benchmarks',
@@ -162,30 +185,30 @@ runtime-benchmarks = [
 ]
 
 try-runtime = [
-	"frame-executive/try-runtime",
-	"frame-try-runtime",
-	"frame-system/try-runtime",
-	"pallet-authority-discovery/try-runtime",
-	"pallet-authorship/try-runtime",
-	"pallet-babe/try-runtime",
-	"pallet-balances/try-runtime",
-	"pallet-bounties/try-runtime",
-	"pallet-collective/try-runtime",
-	"pallet-democracy/try-runtime",
-	"pallet-elections-phragmen/try-runtime",
-	"pallet-grandpa/try-runtime",
-	"pallet-im-online/try-runtime",
-	"pallet-membership/try-runtime",
-	"pallet-identity/try-runtime",
-	"pallet-scheduler/try-runtime",
-	"pallet-offences/try-runtime",
-	"pallet-session/try-runtime",
-	"pallet-staking/try-runtime",
-	"pallet-sudo/try-runtime",
-	"pallet-timestamp/try-runtime",
-	"pallet-tips/try-runtime",
-	"pallet-transaction-payment/try-runtime",
-	"pallet-treasury/try-runtime"
+	'frame-executive/try-runtime',
+	'frame-try-runtime',
+	'frame-system/try-runtime',
+	'pallet-authority-discovery/try-runtime',
+	'pallet-authorship/try-runtime',
+	'pallet-babe/try-runtime',
+	'pallet-balances/try-runtime',
+	'pallet-bounties/try-runtime',
+	'pallet-collective/try-runtime',
+	'pallet-democracy/try-runtime',
+	'pallet-elections-phragmen/try-runtime',
+	'pallet-grandpa/try-runtime',
+	'pallet-im-online/try-runtime',
+	'pallet-membership/try-runtime',
+	'pallet-identity/try-runtime',
+	'pallet-scheduler/try-runtime',
+	'pallet-offences/try-runtime',
+	'pallet-session/try-runtime',
+	'pallet-staking/try-runtime',
+	'pallet-sudo/try-runtime',
+	'pallet-timestamp/try-runtime',
+	'pallet-tips/try-runtime',
+	'pallet-transaction-payment/try-runtime',
+	'pallet-treasury/try-runtime'
 ]
 
 # When enabled, the runtime api will not be build.
@@ -199,5 +222,5 @@ try-runtime = [
 # deployment. This will disable stuff that shouldn't be part of the on-chain wasm
 # to make it smaller like logging for example.
 on-chain-release-build = [
-	"sp-api/disable-logging",
+	'sp-api/disable-logging',
 ]

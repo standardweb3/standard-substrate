@@ -23,6 +23,7 @@ substrate-build-script-utils = { version = "3.0.0", git = "https://github.com/pa
 
 [features]
 default = [ ]
+manual-seal = ['opportunity-runtime/manual-seal']
 # default = [ "cli", "full-node" ]
 
 # browser = [
@@ -64,6 +65,7 @@ primitives = { path = "../../primitives", default-features = false }
 
 # RPC related Dependencies
 jsonrpc-core = "18.0.0"
+jsonrpc-pubsub = "18.0.0"
 
 # Substrate Dependencies
 node-inspect = { version = "0.9.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", optional = true }
@@ -122,6 +124,15 @@ sp-runtime = { version = "4.0.0-dev", git = "https://github.com/paritytech/subst
 sp-timestamp = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 sp-transaction-storage-proof = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
+
+# Frontier Dependencies
+pallet-dynamic-fee = { version = "4.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-ethereum = { version = "4.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-evm = { version = "6.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+fc-db = { version = "2.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+fc-rpc = { version = "2.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+fc-rpc-core = { version = "1.1.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+fc-mapping-sync = { version = "2.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
 
 # WASM-specific dependencies
 wasm-bindgen = { version = "0.2.73", optional = true }

@@ -3,7 +3,7 @@ name = "primitives"
 description = "interfaces in runtime modules to interact between them in Standard substrate implementation"
 version = "0.1.0"
 authors = ["Standard Tech"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 sp-std = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.12", default-features = false }

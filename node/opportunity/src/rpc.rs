@@ -32,7 +32,17 @@
 
 use std::sync::Arc;
 
+use fc_rpc::{
+	EthApi, EthApiServer, EthBlockDataCache, EthDevSigner, EthFilterApi, EthFilterApiServer,
+	EthPubSubApi, EthPubSubApiServer, EthSigner, HexEncodedIdProvider, NetApi, NetApiServer,
+	OverrideHandle, RuntimeApiStorageOverride, SchemaV1Override, SchemaV2Override, StorageOverride,
+	Web3Api, Web3ApiServer,
+};
+use fc_rpc_core::types::FilterPool;
+use jsonrpc_pubsub::manager::SubscriptionManager;
 use opportunity_runtime::{AccountId, BlockNumber, Hash, Index};
+use pallet_ethereum::EthereumStorageSchema;
+use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 use primitives::{Balance, Block};
 use sc_client_api::AuxStore;
 use sc_consensus_babe::{Config, Epoch};
@@ -42,6 +52,7 @@ use sc_finality_grandpa::{
 	FinalityProofProvider, GrandpaJustificationStream, SharedAuthoritySet, SharedVoterState,
 };
 use sc_finality_grandpa_rpc::GrandpaRpcHandler;
+use sc_network::NetworkService;
 use sc_rpc::SubscriptionTaskExecutor;
 pub use sc_rpc_api::DenyUnsafe;
 use sc_transaction_pool_api::TransactionPool;
@@ -51,18 +62,8 @@ use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_consensus::SelectChain;
 use sp_consensus_babe::BabeApi;
 use sp_keystore::SyncCryptoStorePtr;
-
-/// Light client extra dependencies.
-pub struct LightDeps<C, F, P> {
-	/// The client instance to use.
-	pub client: Arc<C>,
-	/// Transaction pool instance.
-	pub pool: Arc<P>,
-	/// Remote access to the blockchain (async).
-	pub remote_blockchain: Arc<dyn sc_client_api::light::RemoteBlockchain<Block>>,
-	/// Fetcher instance.
-	pub fetcher: Arc<F>,
-}
+use std::collections::BTreeMap;
+use substrate_frame_rpc_system::{FullSystem, SystemApi};
 
 /// Extra dependencies for BABE.
 pub struct BabeDeps {
@@ -104,6 +105,14 @@ pub struct FullDeps<C, P, SC, B> {
 	pub babe: BabeDeps,
 	/// GRANDPA specific dependencies.
 	pub grandpa: GrandpaDeps<B>,
+	/// Network service
+	pub network: Arc<NetworkService<Block, Hash>>,
+	/// EthFilterApi pool.
+	pub filter_pool: Option<FilterPool>,
+	/// Backend.
+	pub backend: Arc<fc_db::Backend<Block>>,
+	/// Maximum number of logs in a query.
+	pub max_past_logs: u32,
 }
 
 /// A IO handler that uses all Full RPC extensions.
@@ -112,6 +121,7 @@ pub type IoHandler = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
 /// Instantiate all Full RPC extensions.
 pub fn create_full<C, P, SC, B>(
 	deps: FullDeps<C, P, SC, B>,
+	subscription_task_executor: SubscriptionTaskExecutor,
 ) -> Result<jsonrpc_core::IoHandler<sc_rpc_api::Metadata>, Box<dyn std::error::Error + Send + Sync>>
 where
 	C: ProvideRuntimeApi<Block>
@@ -130,11 +140,20 @@ where
 	B: sc_client_api::Backend<Block> + Send + Sync + 'static,
 	B::State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashFor<Block>>,
 {
-	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
-	use substrate_frame_rpc_system::{FullSystem, SystemApi};
-
 	let mut io = jsonrpc_core::IoHandler::default();
-	let FullDeps { client, pool, select_chain, chain_spec, deny_unsafe, babe, grandpa } = deps;
+	let FullDeps {
+		client,
+		pool,
+		select_chain,
+		chain_spec,
+		deny_unsafe,
+		babe,
+		grandpa,
+		network,
+		filter_pool,
+		backend,
+		max_past_logs,
+	} = deps;
 
 	let BabeDeps { keystore, babe_config, shared_epoch_changes } = babe;
 	let GrandpaDeps {
@@ -178,28 +197,47 @@ where
 		)?,
 	));
 
-	Ok(io)
-}
+	let mut overrides_map = BTreeMap::new();
+	overrides_map.insert(
+		EthereumStorageSchema::V1,
+		Box::new(SchemaV1Override::new(client.clone()))
+			as Box<dyn StorageOverride<_> + Send + Sync>,
+	);
+	overrides_map.insert(
+		EthereumStorageSchema::V2,
+		Box::new(SchemaV2Override::new(client.clone()))
+			as Box<dyn StorageOverride<_> + Send + Sync>,
+	);
 
-/// Instantiate all Light RPC extensions.
-pub fn create_light<C, P, M, F>(deps: LightDeps<C, F, P>) -> jsonrpc_core::IoHandler<M>
-where
-	C: sp_blockchain::HeaderBackend<Block>,
-	C: Send + Sync + 'static,
-	F: sc_client_api::light::Fetcher<Block> + 'static,
-	P: TransactionPool + 'static,
-	M: jsonrpc_core::Metadata + Default,
-{
-	use substrate_frame_rpc_system::{LightSystem, SystemApi};
+	let overrides = Arc::new(OverrideHandle {
+		schemas: overrides_map,
+		fallback: Box::new(RuntimeApiStorageOverride::new(client.clone())),
+	});
 
-	let LightDeps { client, pool, remote_blockchain, fetcher } = deps;
-	let mut io = jsonrpc_core::IoHandler::default();
-	io.extend_with(SystemApi::<Hash, AccountId, Index>::to_delegate(LightSystem::new(
-		client,
-		remote_blockchain,
-		fetcher,
-		pool,
+	let block_data_cache = Arc::new(EthBlockDataCache::new(50, 50));
+
+	if let Some(filter_pool) = filter_pool {
+		io.extend_with(EthFilterApiServer::to_delegate(EthFilterApi::new(
+			client.clone(),
+			backend,
+			filter_pool.clone(),
+			500 as usize, // max stored filters
+			overrides.clone(),
+			max_past_logs,
+			block_data_cache.clone(),
+		)));
+	}
+
+	io.extend_with(EthPubSubApiServer::to_delegate(EthPubSubApi::new(
+		pool.clone(),
+		client.clone(),
+		network.clone(),
+		SubscriptionManager::<HexEncodedIdProvider>::with_id_provider(
+			HexEncodedIdProvider::default(),
+			Arc::new(subscription_task_executor),
+		),
+		overrides,
 	)));
 
-	io
+	Ok(io)
 }

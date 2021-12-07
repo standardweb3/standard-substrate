@@ -1,6 +1,28 @@
 use sc_cli::{KeySubcommand, RunCmd, SignCmd, VanityCmd, VerifyCmd};
 use structopt::StructOpt;
 
+#[cfg(feature = "manual-seal")]
+use structopt::clap::arg_enum;
+
+#[cfg(feature = "manual-seal")]
+arg_enum! {
+	/// Available Sealing methods.
+	#[derive(Debug, Copy, Clone, StructOpt)]
+	pub enum Sealing {
+		// Seal using rpc method.
+		Manual,
+		// Seal when transaction is executed.
+		Instant,
+	}
+}
+
+#[cfg(feature = "manual-seal")]
+impl Default for Sealing {
+	fn default() -> Sealing {
+		Sealing::Manual
+	}
+}
+
 /// An overarching CLI command definition.
 #[derive(Debug, StructOpt)]
 pub struct Cli {
