@@ -22,7 +22,7 @@ use sc_finality_grandpa::{
 	SharedVoterState as GrandpaSharedVoterState,
 };
 
-use crate::rpc::{create_full, BabeDeps, FullDeps, GrandpaDeps, RpcExtension};
+use crate::rpc::{create_full, BabeDeps, FullDeps, GrandpaDeps, RpcResult};
 use opportunity_runtime::{self, RuntimeApi};
 use primitives::{Block, Hash};
 use fc_db::{Backend, DatabaseSettings, DatabaseSettingsSrc};
@@ -88,7 +88,7 @@ pub fn new_partial(
 				bool,
 				Arc<sc_network::NetworkService<Block, Hash>>,
 				sc_rpc::SubscriptionTaskExecutor,
-			) -> RpcExtension,
+			) -> RpcResult,
 			(
 				sc_consensus_babe::BabeBlockImport<
 					Block,
@@ -227,7 +227,7 @@ pub fn new_partial(
     let filter_pool: FilterPool = Arc::new(std::sync::Mutex::new(BTreeMap::new()));
 		// let filter_pool = filter_pool.clone();
 		// let pending_transactions = pending_transactions.clone();
-		move |deny_unsafe, is_authority, network, subscription_executor| -> RpcExtension {
+		move |deny_unsafe, is_authority, network, subscription_executor| -> RpcResult {
 			let deps = FullDeps {
 					client: client.clone(),
 					pool: transaction_pool.clone(),
@@ -254,7 +254,7 @@ pub fn new_partial(
 					},
 				};
 
-			create_full(deps, subscription_task_executor.clone())
+			create_full(deps, subscription_task_executor.clone()).map_err(Into::into)
 		}
 	};
 
@@ -389,7 +389,7 @@ pub fn new_full_base(
 			let wrap_rpc_extensions_builder = {
 				let network = network.clone();
 
-				move |deny_unsafe, subscription_executor| -> RpcExtension {
+				move |deny_unsafe, subscription_executor| -> RpcResult {
 					rpc_extensions_builder(
 						deny_unsafe,
 						is_authority,
@@ -407,7 +407,7 @@ pub fn new_full_base(
 		remote_blockchain: None,
 		system_rpc_tx,
 		telemetry: telemetry.as_mut(),
-	})?;
+	});
 
 	let (block_import, grandpa_link, babe_link) = import_setup;
 

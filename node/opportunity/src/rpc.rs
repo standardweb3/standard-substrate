@@ -65,9 +65,13 @@ use sp_consensus_babe::BabeApi;
 use sp_keystore::SyncCryptoStorePtr;
 use std::collections::BTreeMap;
 use substrate_frame_rpc_system::{FullSystem, SystemApi};
+use sc_service::{Error as ServiceError};
 
 /// A type representing all RPC extensions.
 pub type RpcExtension = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
+// pub type RpcResult = Result<RpcExtension, Box<dyn Error + Send + Sync>>;
+/// RPC result.
+pub type RpcResult = Result<RpcExtension, ServiceError>;
 
 /// Extra dependencies for BABE.
 pub struct BabeDeps {
@@ -127,7 +131,7 @@ pub struct FullDeps<C, P, SC, B, T, A: ChainApi> {
 pub fn create_full<C, P, SC, B, T, A>(
 	deps: FullDeps<C, P, SC, B, T, A>,
 	subscription_task_executor: SubscriptionTaskExecutor,
-) -> RpcExtension
+) -> RpcResult
 where
 	C: ProvideRuntimeApi<Block>
 			+ HeaderBackend<Block>
@@ -271,5 +275,5 @@ where
 	// 		deny_unsafe,
 	// 	)));
 
-	io
+	Ok(io)
 }
