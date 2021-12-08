@@ -18,10 +18,14 @@ use std::{
 	sync::{Arc},
 	time::Duration,
 };
+use sc_finality_grandpa::{
+	SharedVoterState as GrandpaSharedVoterState,
+};
 
-use crate::rpc::{create_full, BabeDeps, FullDeps, GrandpaDeps, IoHandler};
+use crate::rpc::{create_full, BabeDeps, FullDeps, GrandpaDeps, RpcExtension};
 use opportunity_runtime::{self, RuntimeApi};
 use primitives::{Block, Hash};
+use fc_db::{Backend, DatabaseSettings, DatabaseSettingsSrc};
 
 // Declare an instance of the native executor named `ExecutorDispatch`. Include the wasm binary as
 // the equivalent wasm code.
@@ -81,9 +85,10 @@ pub fn new_partial(
 		(
 			impl Fn(
 				DenyUnsafe,
-				sc_rpc::SubscriptionTaskExecutor,
+				bool,
 				Arc<sc_network::NetworkService<Block, Hash>>,
-			) -> Result<IoHandler, sc_service::Error>,
+				sc_rpc::SubscriptionTaskExecutor,
+			) -> RpcExtension,
 			(
 				sc_consensus_babe::BabeBlockImport<
 					Block,
@@ -93,8 +98,9 @@ pub fn new_partial(
 				sc_finality_grandpa::LinkHalf<Block, FullClient, FullSelectChain>,
 				sc_consensus_babe::BabeLink<Block>,
 			),
+			GrandpaSharedVoterState,
       Option<Telemetry>,
-			(sc_finality_grandpa::SharedVoterState, Arc<fc_db::Backend<Block>>),
+			Arc<Backend<Block>>,
 		),
 	>,
 	ServiceError,
@@ -116,8 +122,6 @@ pub fn new_partial(
 		config.max_runtime_instances,
 	);
 
-	// let (client, backend, keystore_container, task_manager) =
-	//   sc_service::new_full_parts::<Block, RuntimeApi, _>(&config)?;
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, _>(
 			config,
@@ -159,17 +163,23 @@ pub fn new_partial(
 		frontier_backend.clone(),
 	);
 
-	let (block_import, babe_link) = sc_consensus_babe::block_import(
+	let (babe_import, babe_link) = sc_consensus_babe::block_import(
 		sc_consensus_babe::Config::get_or_compute(&*client)?,
 		frontier_block_import,
 		client.clone(),
 	)?;
 
+	// let (babe_import, babe_link) = sc_consensus_babe::block_import(
+	// 	sc_consensus_babe::Config::get_or_compute(&*client)?,
+	// 	grandpa_block_import,
+	// 	client.clone(),
+	// )?;
+
 	let slot_duration = babe_link.config().slot_duration();
 
 	let import_queue = sc_consensus_babe::import_queue(
 		babe_link.clone(),
-		block_import.clone(),
+		babe_import.clone(),
 		Some(Box::new(justification_import)),
 		client.clone(),
 		select_chain.clone(),
@@ -192,40 +202,33 @@ pub fn new_partial(
 		sp_consensus::CanAuthorWithNativeVersion::new(client.executor().clone()),
 		telemetry.as_ref().map(|x| x.handle()),
 	)?;
+	let justification_stream = grandpa_link.justification_stream();
+	let shared_authority_set = grandpa_link.shared_authority_set().clone();
+	let import_setup = (babe_import.clone(), grandpa_link, babe_link.clone());
+	let shared_voter_state = sc_finality_grandpa::SharedVoterState::empty();
+	let rpc_setup = shared_voter_state.clone();
+	let shared_epoch_changes = babe_link.epoch_changes().clone();
+	let finality_proof_provider = sc_finality_grandpa::FinalityProofProvider::new_for_service(
+		backend.clone(),
+		Some(shared_authority_set.clone()),
+	);
+	let subscription_task_executor =
+		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 
-	let import_setup = (block_import, grandpa_link, babe_link);
-
-	let (rpc_extensions_builder, rpc_setup) = {
-		let (_, grandpa_link, babe_link) = &import_setup;
-		let justification_stream = grandpa_link.justification_stream();
-		let shared_authority_set = grandpa_link.shared_authority_set().clone();
-		let shared_voter_state = sc_finality_grandpa::SharedVoterState::empty();
-		let rpc_setup = shared_voter_state.clone();
-
-		let finality_proof_provider = sc_finality_grandpa::FinalityProofProvider::new_for_service(
-			backend.clone(),
-			Some(shared_authority_set.clone()),
-		);
-
+	let rpc_extensions_builder = {
 		let babe_config = babe_link.config().clone();
-		let shared_epoch_changes = babe_link.epoch_changes().clone();
-
 		let client = client.clone();
 		let transaction_pool = transaction_pool.clone();
 		let select_chain = select_chain.clone();
 		let keystore = keystore_container.sync_keystore();
 		let chain_spec = config.chain_spec.cloned_box();
 		let is_authority = config.role.is_authority();
-		let subscription_task_executor =
-			sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 		let backend = frontier_backend.clone();
     let filter_pool: FilterPool = Arc::new(std::sync::Mutex::new(BTreeMap::new()));
-
-		let rpc_extensions_builder =
-			move |deny_unsafe,
-			      _subscription_executor: sc_rpc::SubscriptionTaskExecutor,
-			      network: Arc<sc_network::NetworkService<Block, <Block as BlockT>::Hash>>| {
-				let deps = FullDeps {
+		// let filter_pool = filter_pool.clone();
+		// let pending_transactions = pending_transactions.clone();
+		move |deny_unsafe, is_authority, network, subscription_executor| -> RpcExtension {
+			let deps = FullDeps {
 					client: client.clone(),
 					pool: transaction_pool.clone(),
           graph: transaction_pool.pool().clone(),
@@ -246,15 +249,13 @@ pub fn new_partial(
 						shared_voter_state: shared_voter_state.clone(),
 						shared_authority_set: shared_authority_set.clone(),
 						justification_stream: justification_stream.clone(),
-						subscription_executor: _subscription_executor.clone(),
+						subscription_executor,
 						finality_provider: finality_proof_provider.clone(),
 					},
 				};
 
-				create_full(deps, subscription_task_executor.clone()).map_err(Into::into)
-			};
-
-		(rpc_extensions_builder, rpc_setup)
+			create_full(deps, subscription_task_executor.clone())
+		}
 	};
 
 	Ok(sc_service::PartialComponents {
@@ -268,13 +269,14 @@ pub fn new_partial(
 		other: (
 			rpc_extensions_builder,
 			import_setup,
+			rpc_setup,
       telemetry,
-			(rpc_setup, frontier_backend),
+			frontier_backend,
 		),
 	})
 }
 
-/// Builds a new service for a full client.
+// Builds a new service for a full client.
 pub fn new_full_base(
 	mut config: Configuration,
 	with_startup_data: impl FnOnce(
@@ -306,12 +308,15 @@ pub fn new_full_base(
 			(
 				rpc_extensions_builder,
 				import_setup,
+				rpc_setup,
         mut telemetry,
-				(rpc_setup, frontier_backend),
+				frontier_backend,
 			),
 	} = new_partial(&config)?;
 
 	let shared_voter_state = rpc_setup;
+	let role = config.role.clone();
+	let is_authority = role.is_authority();
 
 	config.network.extra_sets.push(sc_finality_grandpa::grandpa_peers_set_config());
 
@@ -374,20 +379,35 @@ pub fn new_full_base(
       ),
   );
 
-	// let rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
-	// 	config,
-	// 	backend,
-	// 	client: client.clone(),
-	// 	network: network.clone(),
-	// 	keystore: keystore_container.sync_keystore(),
-	// 	rpc_extensions_builder: Box::new(rpc_extensions_builder),
-	// 	transaction_pool: transaction_pool.clone(),
-	// 	task_manager: &mut task_manager,
-	// 	on_demand: None,
-	// 	remote_blockchain: None,
-	// 	system_rpc_tx,
-	// 	telemetry: telemetry.as_mut(),
-	// })?;
+	let rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
+		config,
+		backend: backend.clone(),
+		client: client.clone(),
+		network: network.clone(),
+		keystore: keystore_container.sync_keystore(),
+		rpc_extensions_builder: {
+			let wrap_rpc_extensions_builder = {
+				let network = network.clone();
+
+				move |deny_unsafe, subscription_executor| -> RpcExtension {
+					rpc_extensions_builder(
+						deny_unsafe,
+						is_authority,
+						network.clone(),
+						subscription_executor,
+					)
+				}
+			};
+
+			Box::new(wrap_rpc_extensions_builder)
+		},
+		transaction_pool: transaction_pool.clone(),
+		task_manager: &mut task_manager,
+		on_demand: None,
+		remote_blockchain: None,
+		system_rpc_tx,
+		telemetry: telemetry.as_mut(),
+	})?;
 
 	let (block_import, grandpa_link, babe_link) = import_setup;
 
@@ -522,7 +542,7 @@ pub fn new_full_base(
 	Ok((task_manager, client, network, transaction_pool))
 }
 
-/// Builds a new service for a full client.
+// Builds a new service for a full client.
 pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 	new_full_base(config, |_, _| ()).map(|(task_manager, _, _, _)| task_manager)
 }

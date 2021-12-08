@@ -66,6 +66,9 @@ use sp_keystore::SyncCryptoStorePtr;
 use std::collections::BTreeMap;
 use substrate_frame_rpc_system::{FullSystem, SystemApi};
 
+/// A type representing all RPC extensions.
+pub type RpcExtension = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
+
 /// Extra dependencies for BABE.
 pub struct BabeDeps {
 	/// BABE protocol config.
@@ -120,14 +123,11 @@ pub struct FullDeps<C, P, SC, B, T, A: ChainApi> {
 	pub transaction_converter: T,
 }
 
-/// A IO handler that uses all Full RPC extensions.
-pub type IoHandler = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
-
 /// Instantiate all Full RPC extensions.
 pub fn create_full<C, P, SC, B, T, A>(
 	deps: FullDeps<C, P, SC, B, T, A>,
 	subscription_task_executor: SubscriptionTaskExecutor,
-) -> Result<jsonrpc_core::IoHandler<sc_rpc_api::Metadata>, Box<dyn std::error::Error + Send + Sync>>
+) -> RpcExtension
 where
 	C: ProvideRuntimeApi<Block>
 			+ HeaderBackend<Block>
@@ -262,15 +262,14 @@ where
 		overrides,
 	)));
 
-	io.extend_with(sc_sync_state_rpc::SyncStateRpcApi::to_delegate(
-		sc_sync_state_rpc::SyncStateRpcHandler::new(
-			chain_spec,
-			client,
-			shared_authority_set,
-			shared_epoch_changes,
-			deny_unsafe,
-		)?,
-	));
+	// io.extend_with(sc_sync_state_rpc::SyncStateRpcApi::to_delegate(
+	// 	sc_sync_state_rpc::SyncStateRpcHandler::new(
+	// 		chain_spec,
+	// 		client.clone(),
+	// 		shared_authority_set,
+	// 		shared_epoch_changes,
+	// 		deny_unsafe,
+	// 	)));
 
-	Ok(io)
+	io
 }
