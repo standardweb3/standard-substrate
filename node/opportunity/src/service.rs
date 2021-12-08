@@ -312,7 +312,7 @@ pub fn new_full_base(
         mut telemetry,
 				frontier_backend,
 			),
-	} = new_partial(&config)?;
+	} = new_partial(&mut config)?;
 
 	let shared_voter_state = rpc_setup;
 	let role = config.role.clone();
