@@ -1,6 +1,6 @@
 [package]
 name = 'opportunity-standalone'
-version = '0.9.12'
+version = "0.9.12"
 authors = [ 'Digital Native Foundation' ]
 build = 'build.rs'
 edition = '2018'
@@ -133,6 +133,8 @@ fc-db = { version = "2.0.0-dev", default-features = false, git = "https://github
 fc-rpc = { version = "2.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
 fc-rpc-core = { version = "1.1.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
 fc-mapping-sync = { version = "2.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+fc-consensus = { version = "2.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+fp-rpc = { version = "3.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
 
 # WASM-specific dependencies
 wasm-bindgen = { version = "0.2.73", optional = true }

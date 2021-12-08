@@ -22,3 +22,5 @@ pub type EraIndex = u64;
 pub type SocketIndex = u32;
 /// Primary asset ID to use
 pub const CORE_ASSET_ID: AssetId = 0;
+/// A hash of some data used by the chain.
+pub type Hash = sp_core::H256;

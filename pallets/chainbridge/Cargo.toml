@@ -4,7 +4,7 @@ name = 'pallet-standard-chainbridge'
 description = 'FRAME Chainbridge Pallet Implementation'
 homepage = 'https://github.com/digitalnativeinc/standard-substrate'
 license = 'Unlicense'
-version = '4.0.0-dev'
+version = "0.9.12"
 repository = 'https://github.com/digitalnativeinc/standard-substrate'
 edition = '2018'
 

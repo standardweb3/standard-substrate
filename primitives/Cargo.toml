@@ -1,11 +1,12 @@
 [package]
 name = "primitives"
 description = "interfaces in runtime modules to interact between them in Standard substrate implementation"
-version = "0.1.0"
+version = "0.9.12"
 authors = ["Standard Tech"]
 edition = "2021"
 
 [dependencies]
+sp-core = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.12", default-features = false }
 sp-std = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.12", default-features = false }
 sp-runtime = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 
@@ -14,4 +15,5 @@ default = ["std"]
 std = [
 	"sp-std/std",
 	"sp-runtime/std",
+	"sp-core/std",
 ]

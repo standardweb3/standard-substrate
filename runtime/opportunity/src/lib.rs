@@ -36,7 +36,7 @@ use static_assertions::const_assert;
 // A few exports that help ease life for downstream crates.
 pub use pallet_balances::Call as BalancesCall;
 pub use pallet_timestamp::Call as TimestampCall;
-use sp_std::{marker::PhantomData, prelude::*};
+use sp_std::prelude::*;
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
