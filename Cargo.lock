@@ -4793,7 +4793,6 @@ checksum = "28988d872ab76095a6e6ac88d99b54fd267702734fd7ffe610ca27f533ddb95a"
 name = "opportunity-runtime"
 version = "0.9.12"
 dependencies = [
- "beefy-primitives",
  "frame-benchmarking",
  "frame-election-provider-support",
  "frame-executive",

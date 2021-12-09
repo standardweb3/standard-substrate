@@ -45,7 +45,6 @@ frame-try-runtime = { version = "0.10.0-dev", git = 'https://github.com/parityte
 
 ## Substrate Primitive Dependencies
 babe-primitives = { package = "sp-consensus-babe", git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.12" }
-beefy-primitives = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.12" }
 sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
@@ -145,7 +144,6 @@ std = [
 	'pallet-babe/std',
 	'pallet-authority-discovery/std',
 	'pallet-standard-chainbridge/std',
-	'beefy-primitives/std',
 	'babe-primitives/std',
 	'runtime-common/std',
 ]
