@@ -124,11 +124,11 @@ const MAXIMUM_BLOCK_WEIGHT: Weight = 2 * WEIGHT_PER_SECOND;
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("opportunity"),
 	impl_name: create_runtime_str!("opportunity10"),
-	authoring_version: 1,
+	authoring_version: 2,
 	spec_version: 9121,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 4,
+	transaction_version: 5,
 };
 
 // Make the WASM binary available.
