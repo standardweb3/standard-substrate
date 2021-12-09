@@ -23,7 +23,6 @@ substrate-build-script-utils = { version = "3.0.0", git = "https://github.com/pa
 
 [features]
 default = [ ]
-manual-seal = ['opportunity-runtime/manual-seal']
 # default = [ "cli", "full-node" ]
 
 # browser = [

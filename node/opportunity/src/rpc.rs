@@ -33,10 +33,10 @@
 use std::sync::Arc;
 
 use fc_rpc::{
-	EthApi, EthApiServer, EthBlockDataCache, EthFilterApi, EthFilterApiServer,
-	EthPubSubApi, EthPubSubApiServer, HexEncodedIdProvider, NetApi, NetApiServer,
-	OverrideHandle, RuntimeApiStorageOverride, SchemaV1Override, SchemaV2Override, StorageOverride,
-	Web3Api, Web3ApiServer,
+	EthApi, EthApiServer, EthBlockDataCache, EthFilterApi, EthFilterApiServer, EthPubSubApi,
+	EthPubSubApiServer, HexEncodedIdProvider, NetApi, NetApiServer, OverrideHandle,
+	RuntimeApiStorageOverride, SchemaV1Override, SchemaV2Override, StorageOverride, Web3Api,
+	Web3ApiServer,
 };
 use fc_rpc_core::types::FilterPool;
 use jsonrpc_pubsub::manager::SubscriptionManager;
@@ -44,7 +44,7 @@ use opportunity_runtime::{AccountId, BlockNumber, Hash, Index};
 use pallet_ethereum::EthereumStorageSchema;
 use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 use primitives::{Balance, Block};
-use sc_client_api::{AuxStore, StorageProvider, BlockchainEvents};
+use sc_client_api::{AuxStore, BlockchainEvents, StorageProvider};
 use sc_consensus_babe::{Config, Epoch};
 use sc_consensus_babe_rpc::BabeRpcHandler;
 use sc_consensus_epochs::SharedEpochChanges;
@@ -55,8 +55,9 @@ use sc_finality_grandpa_rpc::GrandpaRpcHandler;
 use sc_network::NetworkService;
 use sc_rpc::SubscriptionTaskExecutor;
 pub use sc_rpc_api::DenyUnsafe;
-use sc_transaction_pool_api::TransactionPool;
+use sc_service::Error as ServiceError;
 use sc_transaction_pool::{ChainApi, Pool};
+use sc_transaction_pool_api::TransactionPool;
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
@@ -65,11 +66,9 @@ use sp_consensus_babe::BabeApi;
 use sp_keystore::SyncCryptoStorePtr;
 use std::collections::BTreeMap;
 use substrate_frame_rpc_system::{FullSystem, SystemApi};
-use sc_service::{Error as ServiceError};
 
 /// A type representing all RPC extensions.
 pub type RpcExtension = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
-// pub type RpcResult = Result<RpcExtension, Box<dyn Error + Send + Sync>>;
 /// RPC result.
 pub type RpcResult = Result<RpcExtension, ServiceError>;
 
@@ -134,14 +133,14 @@ pub fn create_full<C, P, SC, B, T, A>(
 ) -> RpcResult
 where
 	C: ProvideRuntimeApi<Block>
-			+ HeaderBackend<Block>
-			+ AuxStore
-			+ StorageProvider<Block, B>
-			+ HeaderMetadata<Block, Error = BlockChainError>
-			+ BlockchainEvents<Block>
-			+ Send
-			+ Sync
-			+ 'static,
+		+ HeaderBackend<Block>
+		+ AuxStore
+		+ StorageProvider<Block, B>
+		+ HeaderMetadata<Block, Error = BlockChainError>
+		+ BlockchainEvents<Block>
+		+ Send
+		+ Sync
+		+ 'static,
 	C: sc_client_api::client::BlockchainEvents<Block>,
 	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
 	C: Send + Sync + 'static,
@@ -154,7 +153,7 @@ where
 	SC: SelectChain<Block> + 'static,
 	B: sc_client_api::Backend<Block> + Send + Sync + 'static,
 	B::State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashFor<Block>>,
-  T: fp_rpc::ConvertTransaction<sp_runtime::OpaqueExtrinsic> + Sync + Send + 'static,
+	T: fp_rpc::ConvertTransaction<sp_runtime::OpaqueExtrinsic> + Sync + Send + 'static,
 	A: ChainApi<Block = Block> + 'static,
 {
 	let mut io = jsonrpc_core::IoHandler::default();
@@ -183,7 +182,11 @@ where
 		finality_provider,
 	} = grandpa;
 
-	io.extend_with(SystemApi::to_delegate(FullSystem::new(client.clone(), pool.clone(), deny_unsafe)));
+	io.extend_with(SystemApi::to_delegate(FullSystem::new(
+		client.clone(),
+		pool.clone(),
+		deny_unsafe,
+	)));
 	// Making synchronous calls in light client freezes the browser currently,
 	// more context: https://github.com/paritytech/substrate/pull/3480
 	// These RPCs should use an asynchronous caller instead.
@@ -228,27 +231,27 @@ where
 	let block_data_cache = Arc::new(EthBlockDataCache::new(50, 50));
 
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
-			client.clone(),
-			pool.clone(),
-			graph,
-			transaction_converter,
-			network.clone(),
-			Default::default(),
-			overrides.clone(),
-			backend.clone(),
-			is_authority,
-			max_past_logs,
-			block_data_cache.clone(),
+		client.clone(),
+		pool.clone(),
+		graph,
+		transaction_converter,
+		network.clone(),
+		Default::default(),
+		overrides.clone(),
+		backend.clone(),
+		is_authority,
+		max_past_logs,
+		block_data_cache.clone(),
 	)));
 
 	io.extend_with(EthFilterApiServer::to_delegate(EthFilterApi::new(
-			client.clone(),
-			backend,
-			filter_pool,
-			max_stored_filters,
-			overrides.clone(),
-			max_past_logs,
-			block_data_cache.clone(),
+		client.clone(),
+		backend,
+		filter_pool,
+		max_stored_filters,
+		overrides.clone(),
+		max_past_logs,
+		block_data_cache.clone(),
 	)));
 
 	io.extend_with(NetApiServer::to_delegate(NetApi::new(client.clone(), network.clone(), true)));
@@ -265,15 +268,6 @@ where
 		),
 		overrides,
 	)));
-
-	// io.extend_with(sc_sync_state_rpc::SyncStateRpcApi::to_delegate(
-	// 	sc_sync_state_rpc::SyncStateRpcHandler::new(
-	// 		chain_spec,
-	// 		client.clone(),
-	// 		shared_authority_set,
-	// 		shared_epoch_changes,
-	// 		deny_unsafe,
-	// 	)));
 
 	Ok(io)
 }

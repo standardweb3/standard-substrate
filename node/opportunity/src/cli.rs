@@ -1,27 +1,5 @@
-use sc_cli::{KeySubcommand, RunCmd, SignCmd, VanityCmd, VerifyCmd};
+use sc_cli::{KeySubcommand, SignCmd, VanityCmd, VerifyCmd, RunCmd};
 use structopt::StructOpt;
-
-#[cfg(feature = "manual-seal")]
-use structopt::clap::arg_enum;
-
-#[cfg(feature = "manual-seal")]
-arg_enum! {
-	/// Available Sealing methods.
-	#[derive(Debug, Copy, Clone, StructOpt)]
-	pub enum Sealing {
-		// Seal using rpc method.
-		Manual,
-		// Seal when transaction is executed.
-		Instant,
-	}
-}
-
-#[cfg(feature = "manual-seal")]
-impl Default for Sealing {
-	fn default() -> Sealing {
-		Sealing::Manual
-	}
-}
 
 /// An overarching CLI command definition.
 #[derive(Debug, StructOpt)]
@@ -29,10 +7,21 @@ pub struct Cli {
 	/// Possible subcommand with parameters.
 	#[structopt(subcommand)]
 	pub subcommand: Option<Subcommand>,
+
 	#[allow(missing_docs)]
 	#[structopt(flatten)]
 	pub run: RunCmd,
 }
+
+// #[derive(Debug, StructOpt)]
+// pub struct RunCmd {
+// 	#[allow(missing_docs)]
+// 	#[structopt(flatten)]
+// 	pub base: sc_cli::RunCmd,
+
+// 	#[structopt(long = "disable-authority-discovery")]
+// 	pub authority_discovery_disabled: bool,
+// }
 
 #[derive(Debug, StructOpt)]
 pub enum Subcommand {
