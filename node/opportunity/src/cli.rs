@@ -1,4 +1,4 @@
-use sc_cli::{KeySubcommand, SignCmd, VanityCmd, VerifyCmd, RunCmd};
+use sc_cli::{KeySubcommand, RunCmd, SignCmd, VanityCmd, VerifyCmd};
 use structopt::StructOpt;
 
 /// An overarching CLI command definition.
