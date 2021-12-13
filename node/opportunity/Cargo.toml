@@ -15,44 +15,15 @@ name = 'opportunity-standalone'
 [package.metadata.docs.rs]
 targets = [ 'x86_64-unknown-linux-gnu' ]
 
-[lib]
-crate-type = ["cdylib", "rlib"]
-
 [build-dependencies]
 substrate-build-script-utils = { version = "3.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 
 [features]
-default = [ ]
-# default = [ "cli", "full-node" ]
-
-# browser = [
-# 	"substrate-browser-utils",
-# 	"wasm-bindgen",
-# 	"wasm-bindgen-futures",
-# 	"libp2p-wasm-ext",
-# ]
-
-# cli = [
-# 	"node-inspect",
-# 	"sc-cli",
-# 	"frame-benchmarking-cli",
-# 	"substrate-frame-cli",
-# 	"sc-service/db",
-# 	"structopt",
-# 	"substrate-build-script-utils",
-# 	"try-runtime-cli",
-# ]
+default = []
 
 runtime-benchmarks = [
 	"opportunity-runtime/runtime-benchmarks",
 ]
-
-# Enable features that allow the runtime to be tried and debugged. Name might be subject to change
-# in the near future.
-# try-runtime = [
-# 	"opportunity-runtime/try-runtime",
-# 	"try-runtime-cli",
-# ]
 
 [dependencies]
 structopt = { version = "0.3.8" }
