@@ -19,21 +19,20 @@
 #![warn(unused_extern_crates)]
 
 //! Service implementation. Specialized wrapper over substrate service.
-
-use crate::rpc::{create_full, BabeDeps, FullDeps, GrandpaDeps, IoHandler};
-use opportunity_runtime::{self, RuntimeApi};
+use opportunity_runtime::{RuntimeApi};
 use primitives::Block;
+use crate::rpc::{create_full, BabeDeps, FullDeps, GrandpaDeps, IoHandler};
 
 use futures::prelude::*;
 use sc_client_api::{ExecutorProvider};
 use sc_consensus_babe::{self, SlotProportion};
 use sc_executor::NativeElseWasmExecutor;
 use sc_network::{Event, NetworkService};
-pub use sc_rpc_api::DenyUnsafe;
 use sc_service::{config::Configuration, error::Error as ServiceError, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sp_runtime::{traits::Block as BlockT};
 use std::sync::Arc;
+use sc_rpc_api::DenyUnsafe;
 
 // Declare an instance of the native executor named `ExecutorDispatch`. Include the wasm binary as
 // the equivalent wasm code.
@@ -81,6 +80,7 @@ pub fn new_partial(
 				sc_finality_grandpa::LinkHalf<Block, FullClient, FullSelectChain>,
 				sc_consensus_babe::BabeLink<Block>,
 			),
+			sc_finality_grandpa::SharedVoterState,
 			Option<Telemetry>,
 		),
 	>,
@@ -132,7 +132,6 @@ pub fn new_partial(
 		select_chain.clone(),
 		telemetry.as_ref().map(|x| x.handle()),
 	)?;
-
 	let justification_import = grandpa_block_import.clone();
 
 	let (block_import, babe_link) = sc_consensus_babe::block_import(
@@ -170,13 +169,13 @@ pub fn new_partial(
 
 	let import_setup = (block_import, grandpa_link, babe_link);
 
-	let rpc_extensions_builder = {
+	let (rpc_extensions_builder, rpc_setup) = {
 		let (_, grandpa_link, babe_link) = &import_setup;
 
 		let justification_stream = grandpa_link.justification_stream();
 		let shared_authority_set = grandpa_link.shared_authority_set().clone();
-		// let shared_voter_state = sc_finality_grandpa::SharedVoterState::empty();
-		// let rpc_setup = shared_voter_state.clone();
+		let shared_voter_state = sc_finality_grandpa::SharedVoterState::empty();
+		let rpc_setup = shared_voter_state.clone();
 
 		let finality_proof_provider = sc_finality_grandpa::FinalityProofProvider::new_for_service(
 			backend.clone(),
@@ -205,7 +204,7 @@ pub fn new_partial(
 					keystore: keystore.clone(),
 				},
 				grandpa: GrandpaDeps {
-					shared_voter_state: sc_finality_grandpa::SharedVoterState::empty(),
+					shared_voter_state: shared_voter_state.clone(),
 					shared_authority_set: shared_authority_set.clone(),
 					justification_stream: justification_stream.clone(),
 					subscription_executor,
@@ -216,7 +215,7 @@ pub fn new_partial(
 			create_full(deps).map_err(Into::into)
 		};
 
-		rpc_extensions_builder
+		(rpc_extensions_builder, rpc_setup)
 	};
 
 	Ok(sc_service::PartialComponents {
@@ -227,7 +226,7 @@ pub fn new_partial(
 		select_chain,
 		import_queue,
 		transaction_pool,
-		other: (rpc_extensions_builder, import_setup, telemetry),
+		other: (rpc_extensions_builder, import_setup, rpc_setup, telemetry),
 	})
 }
 
@@ -259,9 +258,10 @@ pub fn new_full_base(
 		keystore_container,
 		select_chain,
 		transaction_pool,
-		other: (rpc_extensions_builder, import_setup, mut telemetry),
+		other: (rpc_extensions_builder, import_setup, rpc_setup, mut telemetry),
 	} = new_partial(&config)?;
 
+	let shared_voter_state = rpc_setup;
 	let auth_disc_publish_non_global_ips = config.network.allow_non_globals_in_dht;
 
 	config.network.extra_sets.push(sc_finality_grandpa::grandpa_peers_set_config());
@@ -319,7 +319,7 @@ pub fn new_full_base(
 
 	(with_startup_data)(&block_import, &babe_link);
 
-	if role.is_authority() {
+	if let sc_service::config::Role::Authority { .. } = &role {
 		let proposer = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
 			client.clone(),
@@ -413,7 +413,8 @@ pub fn new_full_base(
 	let keystore =
 		if role.is_authority() { Some(keystore_container.sync_keystore()) } else { None };
 
-	let grandpa_config = sc_finality_grandpa::Config {
+	let config = sc_finality_grandpa::Config {
+		// FIXME #1578 make this available through chainspec
 		gossip_duration: std::time::Duration::from_millis(333),
 		justification_period: 512,
 		name: Some(name),
@@ -431,21 +432,20 @@ pub fn new_full_base(
 		// been tested extensively yet and having most nodes in a network run it
 		// could lead to finality stalls.
 		let grandpa_config = sc_finality_grandpa::GrandpaParams {
-			config: grandpa_config,
+			config,
 			link: grandpa_link,
 			network: network.clone(),
+			telemetry: telemetry.as_ref().map(|x| x.handle()),
 			voting_rule: sc_finality_grandpa::VotingRulesBuilder::default().build(),
 			prometheus_registry,
-			shared_voter_state: sc_finality_grandpa::SharedVoterState::empty(),
-			telemetry: telemetry.as_ref().map(|x| x.handle()),
+			shared_voter_state,
 		};
 
 		// the GRANDPA voter task is considered infallible, i.e.
 		// if it fails we take down the service with it.
-		task_manager.spawn_essential_handle().spawn_blocking(
-			"grandpa-voter",
-			sc_finality_grandpa::run_grandpa_voter(grandpa_config)?,
-		);
+		task_manager
+			.spawn_essential_handle()
+			.spawn_blocking("grandpa-voter", sc_finality_grandpa::run_grandpa_voter(grandpa_config)?);
 	}
 
 	network_starter.start_network();

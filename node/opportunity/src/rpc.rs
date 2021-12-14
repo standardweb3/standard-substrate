@@ -32,8 +32,7 @@
 
 use std::sync::Arc;
 
-use opportunity_runtime::{AccountId, BlockNumber, Hash, Index};
-use primitives::{Balance, Block};
+use primitives::{Balance, Block, AccountId, BlockNumber, Hash, Index};
 use sc_client_api::AuxStore;
 use sc_consensus_babe::{Config, Epoch};
 use sc_consensus_babe_rpc::BabeRpcHandler;
@@ -138,7 +137,6 @@ where
 	// more context: https://github.com/paritytech/substrate/pull/3480
 	// These RPCs should use an asynchronous caller instead.
 	io.extend_with(TransactionPaymentApi::to_delegate(TransactionPayment::new(client.clone())));
-
 	io.extend_with(sc_consensus_babe_rpc::BabeApi::to_delegate(BabeRpcHandler::new(
 		client.clone(),
 		shared_epoch_changes.clone(),
@@ -147,7 +145,6 @@ where
 		select_chain,
 		deny_unsafe,
 	)));
-
 	io.extend_with(sc_finality_grandpa_rpc::GrandpaApi::to_delegate(GrandpaRpcHandler::new(
 		shared_authority_set.clone(),
 		shared_voter_state,
