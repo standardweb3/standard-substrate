@@ -89,6 +89,7 @@ pallet-staking = { default-features = false, version = '4.0.0-dev', git = 'https
 pallet-staking-reward-curve = { default-features = false, version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.12" }
 pallet-tips = { version = "4.0.0-dev", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.12" }
 pallet-treasury = { version = "4.0.0-dev", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.12" }
+pallet-bags-list = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 
 [features]
 default = [ 'std' ]
@@ -144,6 +145,7 @@ std = [
 	'pallet-babe/std',
 	'pallet-authority-discovery/std',
 	'pallet-standard-chainbridge/std',
+	'pallet-bags-list/std',
 	'babe-primitives/std',
 	'log/std',
 ]

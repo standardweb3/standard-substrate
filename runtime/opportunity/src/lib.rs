@@ -62,6 +62,7 @@ use primitives::{AssetId, Balance, Signature, AccountId, Hash, Index};
 pub mod constants;
 /// Constant values used within the runtime.
 use constants::{currency::*, time::*};
+mod voter_bags;
 
 /// The type for looking up accounts. We don't expect more than 4 billion of them, but you
 /// never know...
@@ -102,8 +103,11 @@ pub type Executive = frame_executive::Executive<
 	Block,
 	frame_system::ChainContext<Runtime>,
 	Runtime,
-	AllPalletsWithSystem,
-	MigratePalletVersionToStorageVersion,
+	AllPallets,
+	(
+		MigratePalletVersionToStorageVersion,
+		StakingBagsListMigrationV8
+	)
 >;
 
 /// We assume that ~10% of the block weight is consumed by `on_initalize` handlers.
@@ -122,7 +126,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_version: 9122,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 5,
+	transaction_version: 6,
 };
 
 // Make the WASM binary available.
@@ -660,7 +664,7 @@ impl pallet_staking::Config for Runtime {
 	type EraPayout = pallet_staking::ConvertCurve<RewardCurve>;
 	type ElectionProvider = onchain::OnChainSequentialPhragmen<Self>;
 	type GenesisElectionProvider = Self::ElectionProvider;
-	type SortedListProvider = pallet_staking::UseNominatorsMap<Runtime>;
+	type SortedListProvider = BagsList;
 	type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
 }
 
@@ -829,6 +833,17 @@ impl pallet_standard_chainbridge::Config for Runtime {
 	type ProposalLifetime = ProposalLifetime;
 }
 
+parameter_types! {
+    pub const BagThresholds: &'static [u64] = &voter_bags::THRESHOLDS;
+}
+
+impl pallet_bags_list::Config for Runtime {
+	type Event = Event;
+	type VoteWeightProvider = Staking;
+	type WeightInfo = pallet_bags_list::weights::SubstrateWeight<Runtime>;
+	type BagThresholds = BagThresholds;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -856,6 +871,7 @@ construct_runtime!(
 		Indices: pallet_indices::{Pallet, Call, Storage, Event<T>},
 		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>},
 		Historical: pallet_session_historical::{Pallet},
+		BagsList: pallet_bags_list::{Pallet, Call, Storage, Event<T>},
 		// Governance pallets
 		Democracy: pallet_democracy::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Council: pallet_collective::<Instance1>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
@@ -886,6 +902,15 @@ impl OnRuntimeUpgrade for MigratePalletVersionToStorageVersion {
 		frame_support::migrations::migrate_from_pallet_version_to_storage_version::<
 			AllPalletsWithSystem,
 		>(&RocksDbWeight::get())
+	}
+}
+
+// Migration to generate pallet staking's `SortedListProvider` from pre-existing nominators.
+pub struct StakingBagsListMigrationV8;
+
+impl OnRuntimeUpgrade for StakingBagsListMigrationV8 {
+	fn on_runtime_upgrade() -> frame_support::weights::Weight {
+		pallet_staking::migrations::v8::migrate::<Runtime>()
 	}
 }
 
