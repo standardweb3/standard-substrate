@@ -1,5 +1,4 @@
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
-use pallet_staking::Forcing;
 use sc_chain_spec::{ChainSpecExtension, ChainType};
 use sc_client_api::{BadBlocks, ForkBlocks};
 use serde::{Deserialize, Serialize};
@@ -10,13 +9,13 @@ use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
 use opportunity_runtime::{
-	AccountId, AssetRegistryConfig, BabeConfig, BalancesConfig, Block, CouncilConfig,
+	wasm_binary_unwrap, MAX_NOMINATIONS, AssetRegistryConfig, BabeConfig, BalancesConfig, Block, CouncilConfig,
 	DemocracyConfig, ElectionsConfig, GrandpaConfig, ImOnlineConfig, OracleConfig, Perbill,
-	SessionConfig, SessionKeys, Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig,
-	TechnicalCommitteeConfig, TechnicalMembershipConfig, TreasuryConfig,
+	SessionConfig, SessionKeys, StakerStatus, StakingConfig, SudoConfig, SystemConfig,
+	TechnicalCommitteeConfig, TechnicalMembershipConfig, TreasuryConfig
 };
+use primitives::{AssetId, Signature, AccountId, Balance};
 
-use primitives::AssetId;
 pub const CORE_ASSET_ID: AssetId = 1;
 
 // Node `ChainSpec` extensions.
@@ -92,7 +91,6 @@ pub fn opportunity_config() -> Result<ChainSpec, String> {
 }
 
 pub fn opportunity_standalone_config() -> Result<ChainSpec, String> {
-	let wasm_binary = opportunity_runtime::WASM_BINARY.ok_or("Development wasm not available")?;
 	let boot_nodes = vec![];
 
 	Ok(ChainSpec::from_genesis(
@@ -104,10 +102,10 @@ pub fn opportunity_standalone_config() -> Result<ChainSpec, String> {
 		ChainType::Live,
 		move || {
 			opportunity_testnet_config_genesis(
-				// Opportunity Runtime WASM binary
-				wasm_binary,
 				// Initial authorities
 				vec![authority_keys_from_seed("Alice")],
+				// Initial nominators
+				vec![],
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
 				// Pre-funded accounts
@@ -144,7 +142,6 @@ pub fn opportunity_standalone_config() -> Result<ChainSpec, String> {
 }
 
 pub fn development_config() -> Result<ChainSpec, String> {
-	let wasm_binary = opportunity_runtime::WASM_BINARY.ok_or("Development wasm not available")?;
 	let boot_nodes = vec![];
 
 	Ok(ChainSpec::from_genesis(
@@ -156,9 +153,10 @@ pub fn development_config() -> Result<ChainSpec, String> {
 		ChainType::Local,
 		move || {
 			opportunity_testnet_config_genesis(
-				wasm_binary,
 				// Initial authorities
 				vec![authority_keys_from_seed("Alice")],
+				// Initial nominators
+				vec![],
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
 				// Pre-funded accounts
@@ -184,7 +182,6 @@ pub fn development_config() -> Result<ChainSpec, String> {
 }
 
 pub fn local_testnet_config() -> Result<ChainSpec, String> {
-	let wasm_binary = opportunity_runtime::WASM_BINARY.ok_or("Development wasm not available")?;
 	let boot_nodes = vec![];
 
 	Ok(ChainSpec::from_genesis(
@@ -195,9 +192,10 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 		ChainType::Local,
 		move || {
 			opportunity_testnet_config_genesis(
-				wasm_binary,
 				// Initial authorities
 				vec![authority_keys_from_seed("Alice")],
+				// Initial nominators
+				vec![],
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
 				// Pre-funded accounts
@@ -231,7 +229,6 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 }
 
 fn opportunity_testnet_config_genesis(
-	wasm_binary: &[u8],
 	initial_authorities: Vec<(
 		AccountId,
 		AccountId,
@@ -240,13 +237,37 @@ fn opportunity_testnet_config_genesis(
 		ImOnlineId,
 		AuthorityDiscoveryId,
 	)>,
+	initial_nominators: Vec<AccountId>,
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
 ) -> opportunity_runtime::GenesisConfig {
+	const MILLICENTS: Balance = 1_000_000_000;
+	const CENTS: Balance = 1_000 * MILLICENTS; 
+	const DOLLARS: Balance = 100 * CENTS;
+	const ENDOWMENT: Balance = 10_000_000 * DOLLARS;
+	const STASH: Balance = ENDOWMENT / 1000;
+	// stakers: all validators and nominators.
+	let mut rng = rand::thread_rng();
+	let stakers = initial_authorities
+		.iter()
+		.map(|x| (x.0.clone(), x.1.clone(), STASH, StakerStatus::Validator))
+		.chain(initial_nominators.iter().map(|x| {
+			use rand::{seq::SliceRandom, Rng};
+			let limit = (MAX_NOMINATIONS as usize).min(initial_authorities.len());
+			let count = rng.gen::<usize>() % limit;
+			let nominations = initial_authorities
+				.as_slice()
+				.choose_multiple(&mut rng, count)
+				.into_iter()
+				.map(|choice| choice.0.clone())
+				.collect::<Vec<_>>();
+			(x.clone(), x.clone(), STASH, StakerStatus::Nominator(nominations))
+		}))
+		.collect::<Vec<_>>();
+
 	opportunity_runtime::GenesisConfig {
 		system: SystemConfig {
-			// Add Wasm runtime to storage.
-			code: wasm_binary.to_vec(),
+			code: wasm_binary_unwrap().to_vec(),
 			changes_trie_config: Default::default(),
 		},
 		balances: BalancesConfig {
@@ -274,21 +295,10 @@ fn opportunity_testnet_config_genesis(
 		},
 		staking: StakingConfig {
 			validator_count: initial_authorities.len() as u32,
-			minimum_validator_count: 1,
-			stakers: initial_authorities
-				.iter()
-				.map(|x| {
-					(
-						x.0.clone(),
-						x.1.clone(),
-						100_000_000_000_000_000_u128,
-						StakerStatus::Validator,
-					)
-				})
-				.collect(),
+			minimum_validator_count: initial_authorities.len() as u32,
 			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
-			force_era: Forcing::NotForcing,
 			slash_reward_fraction: Perbill::from_percent(10),
+			stakers,
 			..Default::default()
 		},
 		asset_registry: AssetRegistryConfig {
