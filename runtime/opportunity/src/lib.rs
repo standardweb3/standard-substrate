@@ -876,7 +876,6 @@ construct_runtime!(
 		Indices: pallet_indices::{Pallet, Call, Storage, Event<T>},
 		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>},
 		Historical: pallet_session_historical::{Pallet},
-		BagsList: pallet_bags_list::{Pallet, Call, Storage, Event<T>},
 		// Governance pallets
 		Democracy: pallet_democracy::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Council: pallet_collective::<Instance1>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
@@ -896,6 +895,8 @@ construct_runtime!(
 		Vault: pallet_standard_vault::{Pallet, Call, Storage, Event<T>},
 		// Chainbridge pallets
 		ChainBridge: pallet_standard_chainbridge::{Pallet, Call, Storage, Event<T>},
+		// Bag pallet
+		BagsList: pallet_bags_list::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
