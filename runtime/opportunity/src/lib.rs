@@ -106,7 +106,12 @@ pub type Executive = frame_executive::Executive<
 	AllPallets,
 	(
 		MigratePalletVersionToStorageVersion,
-		StakingBagsListMigrationV8
+		CouncilStoragePrefixMigration,
+		TechnicalCommitteeStoragePrefixMigration,
+		TechnicalMembershipStoragePrefixMigration,
+		MigrateTipsPalletPrefix,
+		BountiesPrefixMigration,
+		StakingBagsListMigrationV8,
 	)
 >;
 
@@ -911,6 +916,67 @@ pub struct StakingBagsListMigrationV8;
 impl OnRuntimeUpgrade for StakingBagsListMigrationV8 {
 	fn on_runtime_upgrade() -> frame_support::weights::Weight {
 		pallet_staking::migrations::v8::migrate::<Runtime>()
+	}
+}
+
+const BOUNTIES_OLD_PREFIX: &str = "Treasury";
+/// Migrate from 'Treasury' to the new prefix 'Bounties'
+pub struct BountiesPrefixMigration;
+
+impl OnRuntimeUpgrade for BountiesPrefixMigration {
+	fn on_runtime_upgrade() -> frame_support::weights::Weight {
+		use frame_support::traits::PalletInfo;
+		let name = <Runtime as frame_system::Config>::PalletInfo::name::<Bounties>()
+			.expect("Bounties is part of runtime, so it has a name; qed");
+		pallet_bounties::migrations::v4::migrate::<Runtime, Bounties, _>(BOUNTIES_OLD_PREFIX, name)
+	}
+}
+
+const COUNCIL_OLD_PREFIX: &str = "Instance1Collective";
+/// Migrate from `Instance1Collective` to the new pallet prefix `Council`
+pub struct CouncilStoragePrefixMigration;
+
+impl OnRuntimeUpgrade for CouncilStoragePrefixMigration {
+	fn on_runtime_upgrade() -> frame_support::weights::Weight {
+		pallet_collective::migrations::v4::migrate::<Runtime, Council, _>(COUNCIL_OLD_PREFIX)
+	}
+}
+
+const TECHNICAL_COMMITTEE_OLD_PREFIX: &str = "Instance2Collective";
+/// Migrate from `Instance2Collective` to the new pallet prefix `TechnicalCommittee`
+pub struct TechnicalCommitteeStoragePrefixMigration;
+
+impl OnRuntimeUpgrade for TechnicalCommitteeStoragePrefixMigration {
+	fn on_runtime_upgrade() -> frame_support::weights::Weight {
+		pallet_collective::migrations::v4::migrate::<Runtime, TechnicalCommittee, _>(
+			TECHNICAL_COMMITTEE_OLD_PREFIX,
+		)
+	}
+}
+
+const TECHNICAL_MEMBERSHIP_OLD_PREFIX: &str = "Instance1Membership";
+/// Migrate from `Instance1Membership` to the new pallet prefix `TechnicalMembership`
+pub struct TechnicalMembershipStoragePrefixMigration;
+
+impl OnRuntimeUpgrade for TechnicalMembershipStoragePrefixMigration {
+	fn on_runtime_upgrade() -> frame_support::weights::Weight {
+		use frame_support::traits::PalletInfo;
+		let name = <Runtime as frame_system::Config>::PalletInfo::name::<TechnicalMembership>()
+			.expect("TechnialMembership is part of runtime, so it has a name; qed");
+		pallet_membership::migrations::v4::migrate::<Runtime, TechnicalMembership, _>(
+			TECHNICAL_MEMBERSHIP_OLD_PREFIX,
+			name,
+		)
+	}
+}
+
+const TIPS_OLD_PREFIX: &str = "Treasury";
+/// Migrate pallet-tips from `Treasury` to the new pallet prefix `Tips`
+pub struct MigrateTipsPalletPrefix;
+
+impl OnRuntimeUpgrade for MigrateTipsPalletPrefix {
+	fn on_runtime_upgrade() -> frame_support::weights::Weight {
+		pallet_tips::migrations::v4::migrate::<Runtime, Tips, _>(TIPS_OLD_PREFIX)
 	}
 }
 
