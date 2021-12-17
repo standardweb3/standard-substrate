@@ -32,7 +32,7 @@ runtime-benchmarks = ['standard-runtime/runtime-benchmarks']
 
 [dependencies]
 codec = { package = "parity-scale-codec", version = "2.0" }
-serde = { version = '1.0.130', features = ['derive'] }
+serde = { version = '1.0.132', features = ['derive'] }
 serde_json = { version = "1.0" }
 structopt = { version = "0.3.8" }
 hex-literal = "0.3.3"
