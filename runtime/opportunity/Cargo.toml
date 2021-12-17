@@ -15,9 +15,10 @@ targets = [ 'x86_64-unknown-linux-gnu' ]
 substrate-wasm-builder = { version = '5.0.0-dev', git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 
 [dependencies]
+getrandom = { version = "0.2.3", features = ["js"] }
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
 serde = { version = '1.0.130', optional = true, features = ['derive'] }
-hex-literal = { version = '0.3.1', optional = true }
+hex-literal = { version = '0.3.4', optional = true }
 smallvec = "1.7.0"
 static_assertions = "1.1.0"
 scale-info = { version = "1.0.0", default-features = false, features = ["derive"] }
@@ -30,9 +31,6 @@ pallet-standard-market = { path = '../../pallets/market', default_features = fal
 pallet-standard-oracle = { path = "../../pallets/oracle", default-features = false }
 pallet-standard-vault = { path = '../../pallets/vault', default_features = false }
 pallet-standard-chainbridge = { path = '../../pallets/chainbridge', default_features = false }
-
-# Chainbridge Dependencies
-# chainbridge = { package = 'chainbridge', git = "https://github.com/ChainSafe/chainbridge-substrate", rev = "39990274866fd3b759aa9aa9d883da499ff3d6ea", default-features = false }
 
 ## Substrate FRAME Dependencies
 frame-election-provider-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
@@ -91,6 +89,16 @@ pallet-tips = { version = "4.0.0-dev", default-features = false, git = 'https://
 pallet-treasury = { version = "4.0.0-dev", default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.12" }
 pallet-bags-list = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 
+# EVM Dependencies
+# pallet-base-fee = { version = "1.0.0", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-dynamic-fee = { version = "4.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-ethereum = { version = "4.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-evm = { version = "6.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-evm-precompile-modexp = { version = "2.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-evm-precompile-sha3fips = { version = "2.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-evm-precompile-simple = { version = "2.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+fp-rpc = { version = "3.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+
 [features]
 default = [ 'std' ]
 
@@ -148,6 +156,13 @@ std = [
 	'pallet-bags-list/std',
 	'babe-primitives/std',
 	'log/std',
+	'pallet-ethereum/std',
+	'pallet-dynamic-fee/std',
+	'pallet-evm/std',
+	'fp-rpc/std',
+	'pallet-evm-precompile-simple/std',
+	'pallet-evm-precompile-sha3fips/std',
+	'pallet-evm-precompile-modexp/std',
 ]
 
 runtime-benchmarks = [
