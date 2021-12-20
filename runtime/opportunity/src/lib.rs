@@ -9,7 +9,7 @@ use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use parity_scale_codec::{Decode, Encode};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_core::{
-	crypto::KeyTypeId,
+	crypto::{KeyTypeId, Public},
 	u32_trait::{_1, _2, _3, _4, _5},
 	OpaqueMetadata, H160, H256, U256,
 };
@@ -17,15 +17,17 @@ use sp_inherents::{CheckInherentsResult, InherentData};
 use sp_runtime::{
 	create_runtime_str,
 	curve::PiecewiseLinear,
-	generic, impl_opaque_keys,
+	generic,
+	generic::Era,
+	impl_opaque_keys,
 	traits::{
-		BlakeTwo256, Block as BlockT, Extrinsic, OpaqueKeys, SaturatedConversion,
-		StaticLookup, Verify, NumberFor,
+		BlakeTwo256, Block as BlockT, Extrinsic, NumberFor, OpaqueKeys, SaturatedConversion,
+		StaticLookup, Verify,
 	},
 	transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, Percent, Permill, Perbill, generic::Era,
+	ApplyExtrinsicResult, Perbill, Percent, Permill,
 };
-use sp_std::prelude::*;
+use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
@@ -40,12 +42,14 @@ pub use sp_runtime::BuildStorage;
 
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{KeyOwnerProofSystem, LockIdentifier, OnRuntimeUpgrade, U128CurrencyToVote},
+	traits::{
+		FindAuthor, KeyOwnerProofSystem, LockIdentifier, OnRuntimeUpgrade, U128CurrencyToVote,
+	},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
 		DispatchClass, IdentityFee, Weight,
 	},
-	PalletId,
+	ConsensusEngineId, PalletId,
 };
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
@@ -61,7 +65,7 @@ use pallet_evm::{Account as EVMAccount, EnsureAddressTruncated, HashedAddressMap
 mod precompiles;
 use precompiles::FrontierPrecompiles;
 
-use primitives::{AssetId, Balance, Signature, AccountId, Hash, Index};
+use primitives::{AccountId, AssetId, Balance, Hash, Index, Signature};
 
 pub mod constants;
 /// Constant values used within the runtime.
@@ -108,7 +112,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPallets,
-	()
+	(),
 >;
 
 /// We assume that ~10% of the block weight is consumed by `on_initalize` handlers.
@@ -835,7 +839,7 @@ impl pallet_standard_chainbridge::Config for Runtime {
 }
 
 parameter_types! {
-    pub const BagThresholds: &'static [u64] = &voter_bags::THRESHOLDS;
+	pub const BagThresholds: &'static [u64] = &voter_bags::THRESHOLDS;
 }
 
 impl pallet_bags_list::Config for Runtime {
@@ -845,8 +849,22 @@ impl pallet_bags_list::Config for Runtime {
 	type BagThresholds = BagThresholds;
 }
 
+pub struct FindAuthorTruncated<F>(PhantomData<F>);
+impl<F: FindAuthor<u32>> FindAuthor<H160> for FindAuthorTruncated<F> {
+	fn find_author<'a, I>(digests: I) -> Option<H160>
+	where
+		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
+	{
+		F::find_author(digests).map(|author_index| {
+			let authority_id = Babe::authorities()[author_index as usize].clone();
+
+			H160::from_slice(&authority_id.0.to_raw_vec()[4..24])
+		})
+	}
+}
+
 parameter_types! {
-	pub const ChainId: u64 = 42;
+	pub const ChainId: u64 = 100;
 	pub BlockGasLimit: U256 = U256::from(u32::max_value());
 	pub PrecompilesValue: FrontierPrecompiles<Runtime> = FrontierPrecompiles::<_>::new();
 }
@@ -866,8 +884,7 @@ impl pallet_evm::Config for Runtime {
 	type ChainId = ChainId;
 	type BlockGasLimit = BlockGasLimit;
 	type OnChargeTransaction = ();
-	// type FindAuthor = FindAuthorTruncated<Babe>;
-	type FindAuthor = ();
+	type FindAuthor = FindAuthorTruncated<Babe>;
 }
 
 impl pallet_ethereum::Config for Runtime {

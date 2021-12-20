@@ -42,7 +42,7 @@ use fc_rpc_core::types::FilterPool;
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use pallet_ethereum::EthereumStorageSchema;
 use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
-use primitives::{Balance, Block, AccountId, BlockNumber, Hash, Index};
+use primitives::{AccountId, Balance, Block, BlockNumber, Hash, Index};
 use sc_client_api::{AuxStore, BlockchainEvents, StorageProvider};
 use sc_consensus_babe::{Config, Epoch};
 use sc_consensus_babe_rpc::BabeRpcHandler;

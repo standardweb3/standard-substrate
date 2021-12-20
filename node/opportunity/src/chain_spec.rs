@@ -6,18 +6,20 @@ use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_babe::AuthorityId as BabeId;
 use sp_core::{sr25519, Pair, Public, H160, U256};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
-use sp_runtime::traits::{IdentifyAccount, Verify};
-use sp_runtime::{Perbill};
+use sp_runtime::{
+	traits::{IdentifyAccount, Verify},
+	Perbill,
+};
 use std::{collections::BTreeMap, str::FromStr};
 
 use opportunity_runtime::{
-	wasm_binary_unwrap, MAX_NOMINATIONS, AssetRegistryConfig, BabeConfig, BalancesConfig, Block, CouncilConfig,
-	DemocracyConfig, ElectionsConfig, GrandpaConfig, ImOnlineConfig, OracleConfig, 
-	SessionConfig, SessionKeys, StakerStatus, StakingConfig, SudoConfig, SystemConfig,
-	TechnicalCommitteeConfig, TechnicalMembershipConfig, TreasuryConfig, EVMConfig, EthereumConfig,
-
+	wasm_binary_unwrap, AssetRegistryConfig, BabeConfig, BalancesConfig, Block, CouncilConfig,
+	DemocracyConfig, EVMConfig, ElectionsConfig, EthereumConfig, GrandpaConfig, ImOnlineConfig,
+	OracleConfig, SessionConfig, SessionKeys, StakerStatus, StakingConfig, SudoConfig,
+	SystemConfig, TechnicalCommitteeConfig, TechnicalMembershipConfig, TreasuryConfig,
+	MAX_NOMINATIONS,
 };
-use primitives::{AssetId, Signature, AccountId, Balance};
+use primitives::{AccountId, AssetId, Balance, Signature};
 
 pub const CORE_ASSET_ID: AssetId = 1;
 
@@ -245,7 +247,7 @@ fn opportunity_testnet_config_genesis(
 	endowed_accounts: Vec<AccountId>,
 ) -> opportunity_runtime::GenesisConfig {
 	const MILLICENTS: Balance = 1_000_000_000;
-	const CENTS: Balance = 1_000 * MILLICENTS; 
+	const CENTS: Balance = 1_000 * MILLICENTS;
 	const DOLLARS: Balance = 100 * CENTS;
 	const ENDOWMENT: Balance = 10_000_000 * DOLLARS;
 	const STASH: Balance = ENDOWMENT / 1000;
