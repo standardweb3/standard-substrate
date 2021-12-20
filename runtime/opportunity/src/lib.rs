@@ -128,7 +128,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("opportunity"),
 	impl_name: create_runtime_str!("opportunity10"),
 	authoring_version: 1,
-	spec_version: 9122,
+	spec_version: 9123,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 6,
@@ -857,8 +857,7 @@ impl<F: FindAuthor<u32>> FindAuthor<H160> for FindAuthorTruncated<F> {
 	{
 		F::find_author(digests).map(|author_index| {
 			let authority_id = Babe::authorities()[author_index as usize].clone();
-
-			H160::from_slice(&authority_id.0.to_raw_vec()[4..24])
+			return Some(H160::from_slice(&authority_id.to_raw_vec()[4..24]));
 		})
 	}
 }
