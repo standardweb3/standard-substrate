@@ -4,17 +4,22 @@ use sc_client_api::{BadBlocks, ForkBlocks};
 use serde::{Deserialize, Serialize};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_babe::AuthorityId as BabeId;
-use sp_core::{sr25519, Pair, Public};
+use sp_core::{sr25519, Pair, Public, H160, U256};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
-use sp_runtime::traits::{IdentifyAccount, Verify};
+use sp_runtime::{
+	traits::{IdentifyAccount, Verify},
+	Perbill,
+};
+use std::{collections::BTreeMap, str::FromStr};
 
 use opportunity_runtime::{
-	wasm_binary_unwrap, MAX_NOMINATIONS, AssetRegistryConfig, BabeConfig, BalancesConfig, Block, CouncilConfig,
-	DemocracyConfig, ElectionsConfig, GrandpaConfig, ImOnlineConfig, OracleConfig, Perbill,
-	SessionConfig, SessionKeys, StakerStatus, StakingConfig, SudoConfig, SystemConfig,
-	TechnicalCommitteeConfig, TechnicalMembershipConfig, TreasuryConfig
+	wasm_binary_unwrap, AssetRegistryConfig, BabeConfig, BalancesConfig, Block, CouncilConfig,
+	DemocracyConfig, EVMConfig, ElectionsConfig, EthereumConfig, GrandpaConfig, ImOnlineConfig,
+	OracleConfig, SessionConfig, SessionKeys, StakerStatus, StakingConfig, SudoConfig,
+	SystemConfig, TechnicalCommitteeConfig, TechnicalMembershipConfig, TreasuryConfig,
+	MAX_NOMINATIONS,
 };
-use primitives::{AssetId, Signature, AccountId, Balance};
+use primitives::{AccountId, AssetId, Balance, Signature};
 
 pub const CORE_ASSET_ID: AssetId = 1;
 
@@ -242,7 +247,7 @@ fn opportunity_testnet_config_genesis(
 	endowed_accounts: Vec<AccountId>,
 ) -> opportunity_runtime::GenesisConfig {
 	const MILLICENTS: Balance = 1_000_000_000;
-	const CENTS: Balance = 1_000 * MILLICENTS; 
+	const CENTS: Balance = 1_000 * MILLICENTS;
 	const DOLLARS: Balance = 100 * CENTS;
 	const ENDOWMENT: Balance = 10_000_000 * DOLLARS;
 	const STASH: Balance = ENDOWMENT / 1000;
@@ -328,5 +333,30 @@ fn opportunity_testnet_config_genesis(
 		},
 		technical_membership: TechnicalMembershipConfig::default(),
 		treasury: TreasuryConfig::default(),
+		evm: EVMConfig {
+			accounts: {
+				let mut map = BTreeMap::new();
+				map.insert(
+					// H160 address of Alice dev account
+					// Derived from SS58 (42 prefix) address
+					// SS58: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+					// hex: 0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d
+					// Using the full hex key, truncating to the first 20 bytes (the first 40 hex
+					// chars)
+					H160::from_str("d43593c715fdd31c61141abd04a99fd6822c8558")
+						.expect("internal H160 is valid; qed"),
+					pallet_evm::GenesisAccount {
+						balance: U256::from_str("0xffffffffffffffffffffffffffffffff")
+							.expect("internal U256 is valid; qed"),
+						code: Default::default(),
+						nonce: Default::default(),
+						storage: Default::default(),
+					},
+				);
+				map
+			},
+		},
+		ethereum: EthereumConfig {},
+		dynamic_fee: Default::default(),
 	}
 }
