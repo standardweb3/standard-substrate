@@ -4,18 +4,17 @@ use sc_client_api::{BadBlocks, ForkBlocks};
 use serde::{Deserialize, Serialize};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_babe::AuthorityId as BabeId;
-use sp_core::{sr25519, Pair, Public, H160, U256};
+use sp_core::{sr25519, Pair, Public};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::{
 	traits::{IdentifyAccount, Verify},
 	Perbill,
 };
-use std::{collections::BTreeMap, str::FromStr};
 
 use opportunity_runtime::{
 	wasm_binary_unwrap, AssetRegistryConfig, BabeConfig, BalancesConfig, Block, CouncilConfig,
 	DemocracyConfig, EVMConfig, ElectionsConfig, EthereumConfig, GrandpaConfig, ImOnlineConfig,
-	OracleConfig, SessionConfig, SessionKeys, StakerStatus, StakingConfig, SudoConfig,
+	OracleConfig, Precompiles, SessionConfig, SessionKeys, StakerStatus, StakingConfig, SudoConfig,
 	SystemConfig, TechnicalCommitteeConfig, TechnicalMembershipConfig, TreasuryConfig,
 	MAX_NOMINATIONS,
 };
@@ -269,6 +268,11 @@ fn opportunity_testnet_config_genesis(
 			(x.clone(), x.clone(), STASH, StakerStatus::Nominator(nominations))
 		}))
 		.collect::<Vec<_>>();
+	// This is supposed the be the simplest bytecode to revert without returning any data.
+	// We will pre-deploy it under all of our precompiles to ensure they can be called from
+	// within contracts.
+	// (PUSH1 0x00 PUSH1 0x00 REVERT)
+	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
 
 	opportunity_runtime::GenesisConfig {
 		system: SystemConfig {
@@ -334,27 +338,22 @@ fn opportunity_testnet_config_genesis(
 		technical_membership: TechnicalMembershipConfig::default(),
 		treasury: TreasuryConfig::default(),
 		evm: EVMConfig {
-			accounts: {
-				let mut map = BTreeMap::new();
-				map.insert(
-					// H160 address of Alice dev account
-					// Derived from SS58 (42 prefix) address
-					// SS58: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
-					// hex: 0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d
-					// Using the full hex key, truncating to the first 20 bytes (the first 40 hex
-					// chars)
-					H160::from_str("d43593c715fdd31c61141abd04a99fd6822c8558")
-						.expect("internal H160 is valid; qed"),
-					pallet_evm::GenesisAccount {
-						balance: U256::from_str("0xffffffffffffffffffffffffffffffff")
-							.expect("internal U256 is valid; qed"),
-						code: Default::default(),
-						nonce: Default::default(),
-						storage: Default::default(),
-					},
-				);
-				map
-			},
+			// We need _some_ code inserted at the precompile address so that
+			// the evm will actually call the address.
+			accounts: Precompiles::used_addresses()
+				.iter()
+				.map(|addr| {
+					(
+						addr.clone(),
+						pallet_evm::GenesisAccount {
+							nonce: Default::default(),
+							balance: Default::default(),
+							storage: Default::default(),
+							code: revert_bytecode.clone(),
+						},
+					)
+				})
+				.collect(),
 		},
 		ethereum: EthereumConfig {},
 		dynamic_fee: Default::default(),

@@ -62,8 +62,10 @@ use pallet_transaction_payment::CurrencyAdapter;
 use fp_rpc::TransactionStatus;
 use pallet_ethereum::{Call::transact, Transaction as EthereumTransaction};
 use pallet_evm::{Account as EVMAccount, EnsureAddressTruncated, HashedAddressMapping, Runner};
-mod precompiles;
+
 use precompiles::FrontierPrecompiles;
+mod precompiles;
+pub type Precompiles = FrontierPrecompiles<Runtime>;
 
 use primitives::{AccountId, AssetId, Balance, Hash, Index, Signature};
 

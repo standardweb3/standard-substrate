@@ -8,6 +8,18 @@ use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripe
 
 pub struct FrontierPrecompiles<R>(PhantomData<R>);
 
+// impl<R> FrontierPrecompiles<R>
+// where
+// 	R: pallet_evm::Config,
+// {
+// 	pub fn new() -> Self {
+// 		Self(Default::default())
+// 	}
+// 	pub fn used_addresses() -> sp_std::vec::Vec<H160> {
+// 		sp_std::vec![1, 2, 3, 4, 5, 1024, 1025].into_iter().map(|x| hash(x)).collect()
+// 	}
+// }
+
 impl<R> FrontierPrecompiles<R>
 where
 	R: pallet_evm::Config,
@@ -15,10 +27,18 @@ where
 	pub fn new() -> Self {
 		Self(Default::default())
 	}
+	/// Return all addresses that contain precompiles. This can be used to populate dummy code
+	/// under the precompile.
+	// pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
+	// 	sp_std::vec![1, 2, 3, 4, 5, 1024, 1025]
+	// 	.into_iter()
+	// 	.map(|x| R::AddressMapping::into_account_id(hash(x)))
+	// }
 	pub fn used_addresses() -> sp_std::vec::Vec<H160> {
 		sp_std::vec![1, 2, 3, 4, 5, 1024, 1025].into_iter().map(|x| hash(x)).collect()
 	}
 }
+
 impl<R> PrecompileSet for FrontierPrecompiles<R>
 where
 	R: pallet_evm::Config,
