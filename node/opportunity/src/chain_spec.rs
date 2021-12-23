@@ -45,7 +45,7 @@ const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
 const OPPORTUNITY_PROPERTIES: &str = r#"
         {
             "ss58Format": 42,
-            "tokenDecimals": 15,
+            "tokenDecimals": 18,
             "tokenSymbol": "OPT"
         }"#;
 const OPPORTUNITY_PROTOCOL_ID: &str = "opt";

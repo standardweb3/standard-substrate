@@ -10,7 +10,7 @@
 	"protocolId": "standard_rococo",
 	"properties": {
 		"ss58Format": 42,
-		"tokenDecimals": 15,
+		"tokenDecimals": 18,
 		"tokenSymbol": "STND"
 	},
 	"relay_chain": "rococo",

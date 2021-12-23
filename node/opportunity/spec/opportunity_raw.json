@@ -10,7 +10,7 @@
 	"protocolId": "opt",
 	"properties": {
 		"ss58Format": 42,
-		"tokenDecimals": 15,
+		"tokenDecimals": 18,
 		"tokenSymbol": "OPT"
 	},
 	"forkBlocks": null,

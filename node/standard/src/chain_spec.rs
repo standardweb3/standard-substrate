@@ -25,7 +25,7 @@ const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
 const STANDARD_PROPERTIES: &str = r#"
         {
             "ss58Format": 42,
-            "tokenDecimals": 15,
+            "tokenDecimals": 18,
             "tokenSymbol": "STND"
         }"#;
 const STANDARD_PROTOCOL_ID: &str = "standard";
