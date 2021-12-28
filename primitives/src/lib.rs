@@ -3,7 +3,7 @@
 use sp_runtime::{
 	generic,
 	traits::{BlakeTwo256, IdentifyAccount, Verify},
-	MultiSignature, OpaqueExtrinsic,
+	MultiSignature,
 };
 
 /// Some way of identifying an account on the chain. We intentionally make it equivalent
@@ -21,8 +21,6 @@ pub type Amount = i128;
 pub type CurrencyId = u32;
 /// Header type.
 pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
-/// Block type.
-pub type Block = generic::Block<Header, OpaqueExtrinsic>;
 /// Counter for the number of eras that have passed.
 pub type EraIndex = u64;
 /// Index for oracle to provide information
@@ -35,3 +33,10 @@ pub type Signature = MultiSignature;
 pub type Index = u32;
 /// A hash of some data used by the chain.
 pub type Hash = sp_core::H256;
+/// The type for looking up accounts. We don't expect more than 4 billion of them, but you
+/// never know...
+pub type AccountIndex = u32;
+/// Type used for expressing timestamp.
+pub type Moment = u64;
+/// Block type.
+pub type Block = sp_runtime::generic::Block<Header, sp_runtime::OpaqueExtrinsic>;

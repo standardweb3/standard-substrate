@@ -3,19 +3,18 @@ use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
 use sp_core::{sr25519, Pair, Public};
-use standard_runtime::{
-	AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig, CollatorSelectionConfig,
-	GenesisConfig, ImOnlineConfig, ImOnlineId, OracleConfig, ParachainInfoConfig, SessionConfig,
-	SessionKeys, Signature, StakerStatus, StakingConfig, SudoConfig, SystemConfig, VestingConfig,
-	EXISTENTIAL_DEPOSIT, WASM_BINARY,
-};
-
 use sp_runtime::{
 	traits::{IdentifyAccount, Verify},
 	Perbill,
 };
+use standard_runtime::{
+	AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig, CollatorSelectionConfig, EVMConfig,
+	EthereumConfig, GenesisConfig, ImOnlineConfig, ImOnlineId, OracleConfig, ParachainInfoConfig,
+	Precompiles, SessionConfig, SessionKeys, StakerStatus, StakingConfig, SudoConfig, SystemConfig,
+	VestingConfig, EXISTENTIAL_DEPOSIT, WASM_BINARY,
+};
 
-use primitives::AssetId;
+use primitives::{AccountId, AssetId, Signature};
 
 pub const CORE_ASSET_ID: AssetId = 1;
 
@@ -251,6 +250,11 @@ fn testnet_genesis(
 	endowed_accounts: Vec<AccountId>,
 	id: ParaId,
 ) -> GenesisConfig {
+	// This is supposed the be the simplest bytecode to revert without returning any data.
+	// We will pre-deploy it under all of our precompiles to ensure they can be called from
+	// within contracts.
+	// (PUSH1 0x00 PUSH1 0x00 REVERT)
+	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
 	GenesisConfig {
 		system: SystemConfig {
 			code: WASM_BINARY.expect("WASM binary was not build, please build it!").to_vec(),
@@ -310,5 +314,25 @@ fn testnet_genesis(
 			oracles: [get_account_id_from_seed::<sr25519::Public>("Alice")].to_vec(),
 			provider_count: 5,
 		},
+		evm: EVMConfig {
+			// We need _some_ code inserted at the precompile address so that
+			// the evm will actually call the address.
+			accounts: Precompiles::used_addresses()
+				.iter()
+				.map(|addr| {
+					(
+						addr.clone(),
+						pallet_evm::GenesisAccount {
+							nonce: Default::default(),
+							balance: Default::default(),
+							storage: Default::default(),
+							code: revert_bytecode.clone(),
+						},
+					)
+				})
+				.collect(),
+		},
+		ethereum: EthereumConfig {},
+		dynamic_fee: Default::default(),
 	}
 }
