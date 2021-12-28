@@ -9,13 +9,14 @@ repository = 'https://github.com/digitalnativeinc/standard-substrate'
 description = 'Standard Parachain Runtime.'
 
 [build-dependencies]
-substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
+substrate-wasm-builder = { version = '5.0.0-dev', git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 
 [dependencies]
-codec = { package = 'parity-scale-codec', version = '2.0.0', default-features = false, features = ['derive']}
+parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
 log = { version = "0.4.14", default-features = false }
 serde = { version = '1.0.130', optional = true, features = ['derive'] }
 scale-info = { version = "1.0.0", default-features = false, features = ["derive"] }
+smallvec = "1.7.0"
 
 # Local Dependencies
 primitives = { default-features = false, path = "../../primitives" }
@@ -72,6 +73,7 @@ pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", 
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 pallet-vesting = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 pallet-scheduler = { version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.12", default-features = false }
+pallet-indices = { default-features = false, version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.12" }
 
 # Cumulus Dependencies
 cumulus-pallet-aura-ext = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.12", default-features = false }
@@ -93,6 +95,16 @@ xcm-executor = { git = "https://github.com/paritytech/polkadot", default-feature
 pallet-xcm = { git = 'https://github.com/paritytech/polkadot', branch = 'release-v0.9.12', default-features = false }
 runtime-common = { package = "polkadot-runtime-common", git = 'https://github.com/paritytech/polkadot.git', default-features = false, branch = "release-v0.9.12" }
 
+# EVM Dependencies
+# pallet-base-fee = { version = "1.0.0", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-dynamic-fee = { version = "4.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-ethereum = { version = "4.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-evm = { version = "6.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-evm-precompile-modexp = { version = "2.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-evm-precompile-sha3fips = { version = "2.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-evm-precompile-simple = { version = "2.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+fp-rpc = { version = "3.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+
 [features]
 default = [ "std" ]
 runtime-benchmarks = [
@@ -107,7 +119,7 @@ runtime-benchmarks = [
 ]
 std = [
     "serde",
-    "codec/std",
+	'parity-scale-codec/std',
 	"log/std",
     "sp-std/std",
     "sp-api/std",
@@ -131,6 +143,7 @@ std = [
     "pallet-im-online/std",
     "pallet-offences/std",
     "pallet-scheduler/std",
+	'pallet-indices/std',
     "frame-election-provider-support/std",
     "pallet-election-provider-multi-phase/std",
     "pallet-vesting/std",
@@ -162,4 +175,11 @@ std = [
     'pallet-standard-market/std',
     'pallet-standard-vault/std',
 	'pallet-standard-chainbridge/std',
+	'pallet-ethereum/std',
+	'pallet-dynamic-fee/std',
+	'pallet-evm/std',
+	'fp-rpc/std',
+	'pallet-evm-precompile-simple/std',
+	'pallet-evm-precompile-sha3fips/std',
+	'pallet-evm-precompile-modexp/std',
 ]

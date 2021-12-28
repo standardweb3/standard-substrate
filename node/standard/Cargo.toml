@@ -16,9 +16,6 @@ path = "src/main.rs"
 [package.metadata.docs.rs]
 targets = [ 'x86_64-unknown-linux-gnu' ]
 
-[lib]
-crate-type = [ "cdylib", "rlib" ]
-
 [build-dependencies]
 substrate-build-script-utils = { version = "3.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 
@@ -39,9 +36,11 @@ hex-literal = "0.3.3"
 hex = "0.4.3"
 lazy_static = "1.4"
 log = "0.4.14"
+futures = { version = "0.3.4", features = ["compat"] }
 
 # RPC related Dependencies
 jsonrpc-core = "18.0.0"
+jsonrpc-pubsub = "18.0.0"
 
 # Local Dependencies
 standard-runtime = { path = "../../runtime/standard" }
@@ -106,3 +105,14 @@ polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "relea
 polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.12" }
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.12" }
 polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.12" }
+
+# Frontier Dependencies
+pallet-dynamic-fee = { version = "4.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-ethereum = { version = "4.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+pallet-evm = { version = "6.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+fc-db = { version = "2.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+fc-rpc = { version = "2.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+fc-rpc-core = { version = "1.1.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+fc-mapping-sync = { version = "2.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+fc-consensus = { version = "2.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
+fp-rpc = { version = "3.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }

@@ -4,30 +4,39 @@
 
 use frame_support::{
 	construct_runtime, match_type, parameter_types,
-	traits::{Everything, Nothing, U128CurrencyToVote},
+	traits::{Everything, FindAuthor, Nothing, U128CurrencyToVote},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, WEIGHT_PER_SECOND},
 		DispatchClass, IdentityFee, Weight,
 	},
-	PalletId,
+	ConsensusEngineId, PalletId,
 };
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot,
 };
 use pallet_session::historical as pallet_session_historical;
+use parity_scale_codec::{Decode, Encode};
 use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
+use sp_core::{
+	crypto::{KeyTypeId, Public},
+	OpaqueMetadata, H160, H256, U256,
+};
 use sp_inherents::InherentData;
 use sp_runtime::{
 	create_runtime_str,
 	curve::PiecewiseLinear,
-	generic, impl_opaque_keys,
-	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto, Verify},
+	generic,
+	generic::Era,
+	impl_opaque_keys,
+	traits::{
+		BlakeTwo256, Block as BlockT, ConvertInto, Extrinsic, SaturatedConversion, StaticLookup,
+		Verify,
+	},
 	transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, Perbill,
 };
-use sp_std::prelude::*;
+use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(any(feature = "std", test))]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
@@ -54,11 +63,21 @@ pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
-use primitives::{AssetId, Balance};
+use fp_rpc::TransactionStatus;
+use pallet_ethereum::{Call::transact, Transaction as EthereumTransaction};
+use pallet_evm::{Account as EVMAccount, EnsureAddressTruncated, HashedAddressMapping, Runner};
+
+use primitives::{
+	AccountId, AccountIndex, AssetId, Balance, BlockNumber, Hash, Header, Index, Signature,
+};
 
 /// Constant values used within the runtime.
 pub mod constants;
 use constants::{currency::*, time::*};
+
+use precompiles::FrontierPrecompiles;
+mod precompiles;
+pub type Precompiles = FrontierPrecompiles<Runtime>;
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]
@@ -91,28 +110,10 @@ pub fn native_version() -> NativeVersion {
 	NativeVersion { runtime_version: VERSION, can_author_with: Default::default() }
 }
 
-/// Alias to 512-bit hash when used in the context of a transaction signature on the chain.
-pub type Signature = sp_runtime::MultiSignature;
-/// Some way of identifying an account on the chain. We intentionally make it equivalent
-/// to the public key of our transaction signing scheme.
-pub type AccountId =
-	<<Signature as Verify>::Signer as sp_runtime::traits::IdentifyAccount>::AccountId;
-/// Index of a transaction in the chain.
-pub type Index = u32;
-/// Type used for expressing timestamp.
-pub type Moment = u64;
-/// A hash of some data used by the chain.
-pub type Hash = sp_core::H256;
-/// An index to a block.
-pub type BlockNumber = u32;
 /// The address format for describing accounts.
-pub type Address = sp_runtime::MultiAddress<AccountId, ()>;
-/// Block header type as expected by this runtime.
-pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
-/// Block type as expected by this runtime.
+pub type Address = <Indices as StaticLookup>::Source;
+/// Opaque block type.
 pub type Block = generic::Block<Header, UncheckedExtrinsic>;
-pub type NodeBlock = generic::Block<Header, sp_runtime::OpaqueExtrinsic>;
-
 /// A Block signed with a Justification
 pub type SignedBlock = generic::SignedBlock<Block>;
 /// BlockId type as expected by this runtime.
@@ -141,23 +142,6 @@ pub type Executive = frame_executive::Executive<
 	Runtime,
 	AllPallets,
 >;
-
-/// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
-/// the specifics of the runtime. They can then be made to be agnostic over specific formats
-/// of data like extrinsics, allowing for them to continue syncing the network through upgrades
-/// to even the core data structures.
-pub mod opaque {
-	use super::*;
-	use sp_runtime::{generic, traits::BlakeTwo256};
-
-	pub use sp_runtime::OpaqueExtrinsic as UncheckedExtrinsic;
-	/// Opaque block header type.
-	pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
-	/// Opaque block type.
-	pub type Block = generic::Block<Header, UncheckedExtrinsic>;
-	/// Opaque block identifier type.
-	pub type BlockId = generic::BlockId<Block>;
-}
 
 impl_opaque_keys! {
 	pub struct SessionKeys {
@@ -209,7 +193,7 @@ impl frame_system::Config for Runtime {
 	/// The aggregated dispatch type that is available for extrinsics.
 	type Call = Call;
 	/// The lookup mechanism to get account ID from whatever is passed in dispatchers.
-	type Lookup = AccountIdLookup<AccountId, ()>;
+	type Lookup = Indices;
 	/// The index type for storing how many extrinsics an account has signed.
 	type Index = Index;
 	/// The index type for blocks.
@@ -440,6 +424,18 @@ impl pallet_staking::Config for Runtime {
 	// to bags-list is a no-op, but the storage version will be updated.
 	type SortedListProvider = pallet_staking::UseNominatorsMap<Runtime>;
 	type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
+}
+
+parameter_types! {
+	pub const IndexDeposit: Balance = 1 * DOLLARS;
+}
+
+impl pallet_indices::Config for Runtime {
+	type AccountIndex = AccountIndex;
+	type Currency = Balances;
+	type Deposit = IndexDeposit;
+	type Event = Event;
+	type WeightInfo = pallet_indices::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -745,6 +741,11 @@ parameter_types! {
 	pub const StakingUnsignedPriority: TransactionPriority = TransactionPriority::max_value() / 2;
 }
 
+impl frame_system::offchain::SigningTypes for Runtime {
+	type Public = <Signature as sp_runtime::traits::Verify>::Signer;
+	type Signature = Signature;
+}
+
 impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime
 where
 	Call: From<C>,
@@ -794,10 +795,61 @@ impl pallet_collator_selection::Config for Runtime {
 	type WeightInfo = ();
 }
 
+pub struct FindAuthorTruncated<F>(PhantomData<F>);
+impl<F: FindAuthor<u32>> FindAuthor<H160> for FindAuthorTruncated<F> {
+	fn find_author<'a, I>(digests: I) -> Option<H160>
+	where
+		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
+	{
+		if let Some(author_index) = F::find_author(digests) {
+			let authority_id = Aura::authorities()[author_index as usize].clone();
+			return Some(H160::from_slice(&authority_id.to_raw_vec()[4..24]))
+		}
+		None
+	}
+}
+
+parameter_types! {
+	pub const ChainId: u64 = 100;
+	pub BlockGasLimit: U256 = U256::from(u32::max_value());
+	pub PrecompilesValue: FrontierPrecompiles<Runtime> = FrontierPrecompiles::<_>::new();
+}
+
+impl pallet_evm::Config for Runtime {
+	type FeeCalculator = pallet_dynamic_fee::Pallet<Self>;
+	type GasWeightMapping = ();
+	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping<Self>;
+	type CallOrigin = EnsureAddressTruncated;
+	type WithdrawOrigin = EnsureAddressTruncated;
+	type AddressMapping = HashedAddressMapping<BlakeTwo256>;
+	type Currency = Balances;
+	type Event = Event;
+	type Runner = pallet_evm::runner::stack::Runner<Self>;
+	type PrecompilesType = FrontierPrecompiles<Self>;
+	type PrecompilesValue = PrecompilesValue;
+	type ChainId = ChainId;
+	type BlockGasLimit = BlockGasLimit;
+	type OnChargeTransaction = ();
+	type FindAuthor = FindAuthorTruncated<Aura>;
+}
+
+impl pallet_ethereum::Config for Runtime {
+	type Event = Event;
+	type StateRoot = pallet_ethereum::IntermediateStateRoot;
+}
+
+frame_support::parameter_types! {
+	pub BoundDivision: U256 = U256::from(1024);
+}
+
+impl pallet_dynamic_fee::Config for Runtime {
+	type MinGasPriceBoundDivisor = BoundDivision;
+}
+
 construct_runtime!(
 	pub enum Runtime where
 		Block = Block,
-		NodeBlock = generic::Block<Header, sp_runtime::OpaqueExtrinsic>,
+		NodeBlock = Block,
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
 		// System pallets
@@ -816,15 +868,16 @@ construct_runtime!(
 		// Staking pallets
 		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>} = 40,
 		Staking: pallet_staking::{Pallet, Call, Config<T>, Storage, Event<T>} = 41,
+		Indices: pallet_indices::{Pallet, Call, Storage, Event<T>} = 42,
 		// Consensus pallets
-		Aura: pallet_aura::{Pallet, Config<T>} = 42,
-		AuraExt: cumulus_pallet_aura_ext::{Pallet, Config} = 43,
-		Authorship: pallet_authorship::{Pallet, Call, Storage, Inherent} = 44,
-		ImOnline: pallet_im_online::{Pallet, Call, Storage, Event<T>, ValidateUnsigned, Config<T>} = 45,
-		ElectionProviderMultiPhase: pallet_election_provider_multi_phase::{Pallet, Call, Storage, Event<T>, ValidateUnsigned} = 46,
-		Offences: pallet_offences::{Pallet, Storage, Event} = 47,
-		Historical: pallet_session_historical::{Pallet} = 48,
-		CollatorSelection: pallet_collator_selection::{Pallet, Call, Storage, Event<T>, Config<T>} = 49,
+		Aura: pallet_aura::{Pallet, Config<T>} = 50,
+		AuraExt: cumulus_pallet_aura_ext::{Pallet, Config} = 51,
+		Authorship: pallet_authorship::{Pallet, Call, Storage, Inherent} = 52,
+		ImOnline: pallet_im_online::{Pallet, Call, Storage, Event<T>, ValidateUnsigned, Config<T>} = 53,
+		ElectionProviderMultiPhase: pallet_election_provider_multi_phase::{Pallet, Call, Storage, Event<T>, ValidateUnsigned} = 54,
+		Offences: pallet_offences::{Pallet, Storage, Event} = 55,
+		Historical: pallet_session_historical::{Pallet} = 56,
+		CollatorSelection: pallet_collator_selection::{Pallet, Call, Storage, Event<T>, Config<T>} = 57,
 		// XCM pallets
 		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>} = 60,
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin} = 61,
@@ -837,8 +890,77 @@ construct_runtime!(
 		Vault: pallet_standard_vault::{Pallet, Call, Storage, Event<T>} = 73,
 		// Chainbridge pallets
 		ChainBridge: pallet_standard_chainbridge::{Pallet, Call, Storage, Event<T>}= 74,
+		// EVM pallets
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = 80,
+		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 81,
+		DynamicFee: pallet_dynamic_fee::{Pallet, Call, Storage, Config, Inherent} = 82,
 	}
 );
+
+pub struct TransactionConverter;
+
+impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
+	fn convert_transaction(&self, transaction: pallet_ethereum::Transaction) -> UncheckedExtrinsic {
+		UncheckedExtrinsic::new_unsigned(
+			pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
+		)
+	}
+}
+
+impl fp_rpc::ConvertTransaction<sp_runtime::OpaqueExtrinsic> for TransactionConverter {
+	fn convert_transaction(
+		&self,
+		transaction: pallet_ethereum::Transaction,
+	) -> sp_runtime::OpaqueExtrinsic {
+		let extrinsic = UncheckedExtrinsic::new_unsigned(
+			pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
+		);
+		let encoded = extrinsic.encode();
+		sp_runtime::OpaqueExtrinsic::decode(&mut &encoded[..])
+			.expect("Encoded extrinsic is always valid")
+	}
+}
+
+impl<LocalCall> frame_system::offchain::CreateSignedTransaction<LocalCall> for Runtime
+where
+	Call: From<LocalCall>,
+{
+	fn create_transaction<C: frame_system::offchain::AppCrypto<Self::Public, Self::Signature>>(
+		call: Call,
+		public: <Signature as Verify>::Signer,
+		account: AccountId,
+		nonce: Index,
+	) -> Option<(Call, <UncheckedExtrinsic as Extrinsic>::SignaturePayload)> {
+		let tip = 0;
+		// take the biggest period possible.
+		let period =
+			BlockHashCount::get().checked_next_power_of_two().map(|c| c / 2).unwrap_or(2) as u64;
+		let current_block = System::block_number()
+			.saturated_into::<u64>()
+			// The `System::block_number` is initialized with `n+1`,
+			// so the actual block number is `n`.
+			.saturating_sub(1);
+		let era = Era::mortal(period, current_block);
+		let extra = (
+			frame_system::CheckSpecVersion::<Runtime>::new(),
+			frame_system::CheckTxVersion::<Runtime>::new(),
+			frame_system::CheckGenesis::<Runtime>::new(),
+			frame_system::CheckEra::<Runtime>::from(era),
+			frame_system::CheckNonce::<Runtime>::from(nonce),
+			frame_system::CheckWeight::<Runtime>::new(),
+			pallet_transaction_payment::ChargeTransactionPayment::<Runtime>::from(tip),
+		);
+		let raw_payload = SignedPayload::new(call, extra)
+			.map_err(|e| {
+				log::warn!("Unable to create signed payload: {:?}", e);
+			})
+			.ok()?;
+		let signature = raw_payload.using_encoded(|payload| C::sign(payload, public))?;
+		let address = Indices::unlookup(account);
+		let (call, extra, _) = raw_payload.deconstruct();
+		Some((call, (address, signature.into(), extra)))
+	}
+}
 
 impl_runtime_apis! {
 	impl sp_api::Core<Block> for Runtime {
@@ -946,6 +1068,131 @@ impl_runtime_apis! {
 			len: u32,
 		) -> pallet_transaction_payment::FeeDetails<Balance> {
 			TransactionPayment::query_fee_details(uxt, len)
+		}
+	}
+
+	impl fp_rpc::EthereumRuntimeRPCApi<Block> for Runtime {
+		fn chain_id() -> u64 {
+			<Runtime as pallet_evm::Config>::ChainId::get()
+		}
+
+		fn account_basic(address: H160) -> EVMAccount {
+			EVM::account_basic(&address)
+		}
+
+		fn gas_price() -> U256 {
+			<Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price()
+		}
+
+		fn account_code_at(address: H160) -> Vec<u8> {
+			EVM::account_codes(address)
+		}
+
+		fn author() -> H160 {
+			<pallet_evm::Pallet<Runtime>>::find_author()
+		}
+
+		fn storage_at(address: H160, index: U256) -> H256 {
+			let mut tmp = [0u8; 32];
+			index.to_big_endian(&mut tmp);
+			EVM::account_storages(address, H256::from_slice(&tmp[..]))
+		}
+
+		fn call(
+			from: H160,
+			to: H160,
+			data: Vec<u8>,
+			value: U256,
+			gas_limit: U256,
+			max_fee_per_gas: Option<U256>,
+			max_priority_fee_per_gas: Option<U256>,
+			nonce: Option<U256>,
+			estimate: bool,
+		) -> Result<pallet_evm::CallInfo, sp_runtime::DispatchError> {
+			let config = if estimate {
+				let mut config = <Runtime as pallet_evm::Config>::config().clone();
+				config.estimate = true;
+				Some(config)
+			} else {
+				None
+			};
+
+			<Runtime as pallet_evm::Config>::Runner::call(
+				from,
+				to,
+				data,
+				value,
+				gas_limit.low_u64(),
+				max_fee_per_gas,
+				max_priority_fee_per_gas,
+				nonce,
+				Vec::new(),
+				config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
+			).map_err(|err| err.into())
+		}
+
+		fn create(
+			from: H160,
+			data: Vec<u8>,
+			value: U256,
+			gas_limit: U256,
+			max_fee_per_gas: Option<U256>,
+			max_priority_fee_per_gas: Option<U256>,
+			nonce: Option<U256>,
+			estimate: bool,
+		) -> Result<pallet_evm::CreateInfo, sp_runtime::DispatchError> {
+			let config = if estimate {
+				let mut config = <Runtime as pallet_evm::Config>::config().clone();
+				config.estimate = true;
+				Some(config)
+			} else {
+				None
+			};
+
+			<Runtime as pallet_evm::Config>::Runner::create(
+				from,
+				data,
+				value,
+				gas_limit.low_u64(),
+				max_fee_per_gas,
+				max_priority_fee_per_gas,
+				nonce,
+				Vec::new(),
+				config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
+			).map_err(|err| err.into())
+		}
+
+		fn current_transaction_statuses() -> Option<Vec<TransactionStatus>> {
+			Ethereum::current_transaction_statuses()
+		}
+
+		fn current_block() -> Option<pallet_ethereum::Block> {
+			Ethereum::current_block()
+		}
+
+		fn current_receipts() -> Option<Vec<pallet_ethereum::Receipt>> {
+			Ethereum::current_receipts()
+		}
+
+		fn current_all() -> (
+			Option<pallet_ethereum::Block>,
+			Option<Vec<pallet_ethereum::Receipt>>,
+			Option<Vec<TransactionStatus>>
+		) {
+			(
+				Ethereum::current_block(),
+				Ethereum::current_receipts(),
+				Ethereum::current_transaction_statuses()
+			)
+		}
+
+		fn extrinsic_filter(
+			xts: Vec<<Block as BlockT>::Extrinsic>,
+		) -> Vec<EthereumTransaction> {
+			xts.into_iter().filter_map(|xt| match xt.function {
+				Call::Ethereum(transact{ transaction }) => Some(transaction),
+				_ => None
+			}).collect::<Vec<EthereumTransaction>>()
 		}
 	}
 }

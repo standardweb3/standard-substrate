@@ -116,7 +116,7 @@ pub struct FullDeps<C, P, SC, B, T, A: ChainApi> {
 	/// EthFilterApi pool.
 	pub filter_pool: FilterPool,
 	/// Backend.
-	pub backend: Arc<fc_db::Backend<Block>>,
+	pub frontier_backend: Arc<fc_db::Backend<Block>>,
 	/// The Node authority flag
 	pub is_authority: bool,
 	/// Network service
@@ -167,7 +167,7 @@ where
 		grandpa,
 		network,
 		filter_pool,
-		backend,
+		frontier_backend,
 		transaction_converter,
 		is_authority,
 	} = deps;
@@ -237,7 +237,7 @@ where
 		network.clone(),
 		Default::default(),
 		overrides.clone(),
-		backend.clone(),
+		frontier_backend.clone(),
 		is_authority,
 		max_past_logs,
 		block_data_cache.clone(),
@@ -245,7 +245,7 @@ where
 
 	io.extend_with(EthFilterApiServer::to_delegate(EthFilterApi::new(
 		client.clone(),
-		backend,
+		frontier_backend,
 		filter_pool,
 		max_stored_filters,
 		overrides.clone(),

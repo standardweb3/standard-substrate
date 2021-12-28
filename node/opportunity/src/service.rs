@@ -137,8 +137,6 @@ pub fn new_partial(
 		client.clone(),
 	);
 
-	let frontier_backend = open_frontier_backend(config)?;
-
 	let (grandpa_block_import, grandpa_link) = sc_finality_grandpa::block_import(
 		client.clone(),
 		&(client.clone() as Arc<_>),
@@ -147,6 +145,8 @@ pub fn new_partial(
 	)?;
 
 	let justification_import = grandpa_block_import.clone();
+
+	let frontier_backend = open_frontier_backend(config)?;
 
 	let frontier_block_import = FrontierBlockImport::new(
 		grandpa_block_import.clone(),
@@ -159,12 +159,6 @@ pub fn new_partial(
 		frontier_block_import,
 		client.clone(),
 	)?;
-
-	// let (babe_import, babe_link) = sc_consensus_babe::block_import(
-	// 	sc_consensus_babe::Config::get_or_compute(&*client)?,
-	// 	grandpa_block_import,
-	// 	client.clone(),
-	// )?;
 
 	let slot_duration = babe_link.config().slot_duration();
 
@@ -215,8 +209,6 @@ pub fn new_partial(
 		let chain_spec = config.chain_spec.cloned_box();
 		let backend = frontier_backend.clone();
 		let filter_pool: FilterPool = Arc::new(std::sync::Mutex::new(BTreeMap::new()));
-		// let filter_pool = filter_pool.clone();
-		// let pending_transactions = pending_transactions.clone();
 		move |deny_unsafe, is_authority, network, subscription_executor| -> RpcResult {
 			let deps = FullDeps {
 				client: client.clone(),
@@ -227,7 +219,7 @@ pub fn new_partial(
 				deny_unsafe,
 				transaction_converter: opportunity_runtime::TransactionConverter,
 				filter_pool: filter_pool.clone(),
-				backend: backend.clone(),
+				frontier_backend: backend.clone(),
 				is_authority,
 				network,
 				babe: BabeDeps {
@@ -334,6 +326,8 @@ pub fn new_full_base(
 	let prometheus_registry = config.prometheus_registry().cloned();
 	let chain_spec = config.chain_spec.cloned_box();
 
+	// Frontier offchain DB task. Essential.
+	// Maps emulated ethereum data to substrate native data.
 	task_manager.spawn_essential_handle().spawn(
 		"frontier-mapping-sync-worker",
 		MappingSyncWorker::new(
