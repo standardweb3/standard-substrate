@@ -81,11 +81,7 @@ pub fn new_partial(
 				sc_rpc::SubscriptionTaskExecutor,
 			) -> RpcResult,
 			(
-				sc_consensus_babe::BabeBlockImport<
-					Block,
-					FullClient,
-					FullGrandpaBlockImport,
-				>,
+				sc_consensus_babe::BabeBlockImport<Block, FullClient, FullGrandpaBlockImport>,
 				sc_finality_grandpa::LinkHalf<Block, FullClient, FullSelectChain>,
 				sc_consensus_babe::BabeLink<Block>,
 			),
@@ -256,11 +252,7 @@ pub fn new_partial(
 pub fn new_full_base(
 	mut config: Configuration,
 	with_startup_data: impl FnOnce(
-		&sc_consensus_babe::BabeBlockImport<
-			Block,
-			FullClient,
-			FullGrandpaBlockImport,
-		>,
+		&sc_consensus_babe::BabeBlockImport<Block, FullClient, FullGrandpaBlockImport>,
 		&sc_consensus_babe::BabeLink<Block>,
 	),
 ) -> Result<
