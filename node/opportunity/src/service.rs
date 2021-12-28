@@ -84,7 +84,7 @@ pub fn new_partial(
 				sc_consensus_babe::BabeBlockImport<
 					Block,
 					FullClient,
-					FrontierBlockImport<Block, FullGrandpaBlockImport, FullClient>,
+					FullGrandpaBlockImport,
 				>,
 				sc_finality_grandpa::LinkHalf<Block, FullClient, FullSelectChain>,
 				sc_consensus_babe::BabeLink<Block>,
@@ -156,7 +156,7 @@ pub fn new_partial(
 
 	let (babe_import, babe_link) = sc_consensus_babe::block_import(
 		sc_consensus_babe::Config::get_or_compute(&*client)?,
-		frontier_block_import,
+		grandpa_block_import,
 		client.clone(),
 	)?;
 
@@ -259,7 +259,7 @@ pub fn new_full_base(
 		&sc_consensus_babe::BabeBlockImport<
 			Block,
 			FullClient,
-			FrontierBlockImport<Block, FullGrandpaBlockImport, FullClient>,
+			FullGrandpaBlockImport,
 		>,
 		&sc_consensus_babe::BabeLink<Block>,
 	),
@@ -349,6 +349,11 @@ pub fn new_full_base(
 	task_manager.spawn_essential_handle().spawn(
 		"frontier-filter-pool",
 		EthTask::filter_pool_task(client.clone(), filter_pool.clone(), FILTER_RETAIN_THRESHOLD),
+	);
+
+	task_manager.spawn_essential_handle().spawn(
+		"frontier-schema-cache-task",
+		EthTask::ethereum_schema_cache_task(client.clone(), frontier_backend.clone()),
 	);
 
 	let rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
