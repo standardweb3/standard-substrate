@@ -32,10 +32,7 @@ pub mod currency {
 
 /// Time.
 pub mod time {
-	// Moment/BlockNumber type created directly here instead of importing the whole node_primitives
-	// module
-	type Moment = u64;
-	type BlockNumber = u32;
+	use primitives::{BlockNumber, Moment};
 
 	pub const MILLISECS_PER_BLOCK: Moment = 6000;
 	pub const SECS_PER_BLOCK: Moment = MILLISECS_PER_BLOCK / 1000;

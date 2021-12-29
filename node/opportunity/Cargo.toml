@@ -11,6 +11,7 @@ description = 'Opportunity Node Client.'
 
 [[bin]]
 name = 'opportunity-standalone'
+path = "src/main.rs"
 
 [package.metadata.docs.rs]
 targets = [ 'x86_64-unknown-linux-gnu' ]
