@@ -1,6 +1,6 @@
 .PHONY: init
 init:
-	./scripts/init.sh
+	./scripts/rust-init.sh
 
 .PHONY: format
 format:

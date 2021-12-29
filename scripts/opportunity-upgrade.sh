@@ -1,7 +1,11 @@
 #!/bin/bash
 set -e
 
-FILE="/usr/local/bin/opportunity-standalone"
+FILE="opportunity-standalone"
+SERVICE="opportunity-standalone"
+INSTALL_PATH="/usr/local/bin"
+FULL_PATH="${INSTALL_PATH}/${FILE}"
+
 if [[ $(whoami) == "root" ]]; then
     MAKE_ME_ROOT=
     echo "root already, continuing"
@@ -10,16 +14,16 @@ else
     echo "will use sudo"
 fi
 
-
 echo "stopping systemd service"
-$MAKE_ME_ROOT systemctl stop standard-validator
+$MAKE_ME_ROOT systemctl stop $SERVICE
 
 # moves binary to be a backup
-if [ -f "$FILE" ]; then
-  echo "$FILE exists, moving"
-  $MAKE_ME_ROOT mv $FILE $FILE-backup
+if [ -f "$FULL_PATH" ]; then
+  echo "$FULL_PATH exists, moving"
+  $MAKE_ME_ROOT mv $FULL_PATH $FULL_PATH-backup
 else 
-    echo "$FILE does not exist."
+    echo "$FULL_PATH does not exist."
+    exit 3
 fi
 
 echo "pulling latest release tag and setting it as var"
@@ -27,13 +31,13 @@ LATEST_RELEASE=`curl --silent "https://api.github.com/repos/digitalnativeinc/sta
 echo "$LATEST_RELEASE"
 
 echo "downloading binary based on latest tag set"
-$MAKE_ME_ROOT wget -O $FILE https://github.com/digitalnativeinc/standard-substrate/releases/download/$LATEST_RELEASE/opportunity-standalone-linux-x86_64
+$MAKE_ME_ROOT wget -O $FULL_PATH https://github.com/digitalnativeinc/standard-substrate/releases/download/$LATEST_RELEASE/$FILE-linux-x86_64
 
 echo "making binary executable"
-$MAKE_ME_ROOT chmod +x $FILE
+$MAKE_ME_ROOT chmod +x $FULL_PATH
 
 echo "starting up the service"
-$MAKE_ME_ROOT systemctl start standard-validator
+$MAKE_ME_ROOT systemctl start $SERVICE
 
 echo "checking if service started up correctly"
-$MAKE_ME_ROOT systemctl status standard-validator --no-pager -o cat
+$MAKE_ME_ROOT systemctl status $SERVICE --no-pager -o cat

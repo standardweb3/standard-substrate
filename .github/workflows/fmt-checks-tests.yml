@@ -2,7 +2,7 @@ name: Tests run
 
 permissions:
   contents: read
-  discussion: write
+  discussions: write
 
 env:
   TOOLCHAIN_BUILD: "nightly-2021-11-07"

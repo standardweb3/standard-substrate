@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+FILE="standard-collator"
+SERVICE="standard-collator"
+INSTALL_PATH="/usr/local/bin"
+FULL_PATH="${INSTALL_PATH}/${FILE}"
+
 # if no arguments are provided, return usage function
 if [ $# -ne 2 ]; then
   echo 1>&2 "Usage: $0 <data-dir> <name>"
@@ -53,24 +58,24 @@ fi
 # pulls latest release tag and sets it as var
 LATEST_RELEASE=`curl --silent "https://api.github.com/repos/digitalnativeinc/standard-substrate/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`
 
-wget -O opportunity-standalone https://github.com/digitalnativeinc/standard-substrate/releases/download/$LATEST_RELEASE/opportunity-standalone-linux-x86_64
+wget -O $FILE https://github.com/digitalnativeinc/standard-substrate/releases/download/$LATEST_RELEASE/$FILE-linux-x86_64
 
 # ensure binary is executable
-$MAKE_ME_ROOT chmod +x ./opportunity-standalone
+$MAKE_ME_ROOT chmod +x ./$FILE
 
 # move binary to the bin folder
-$MAKE_ME_ROOT mv opportunity-standalone /usr/local/bin
+$MAKE_ME_ROOT mv $FILE $FULL_PATH
 
 # create systemd unit file
-$MAKE_ME_ROOT touch /etc/systemd/system/standard-validator.service
+$MAKE_ME_ROOT touch /etc/systemd/system/$SERVICE.service
 
 # paste content into the file
-$MAKE_ME_ROOT cat > /etc/systemd/system/standard-validator.service << EOF
+$MAKE_ME_ROOT cat > /etc/systemd/system/$SERVICE.service << EOF
 [Unit]
-Description=Standard Validator
+Description=Standard Unorthodox Collator
 
 [Service]
-ExecStart=/usr/local/bin/opportunity-standalone \
+ExecStart=$FULL_PATH \
 --base-path $1 \
 --chain opportunity \
 --port 30333 \
@@ -87,10 +92,10 @@ EOF
 $MAKE_ME_ROOT systemctl daemon-reload
 
 # enable validator service to run on boot
-$MAKE_ME_ROOT systemctl enable standard-validator
+$MAKE_ME_ROOT systemctl enable $SERVICE
 
 # start the service
-$MAKE_ME_ROOT systemctl start standard-validator
+$MAKE_ME_ROOT systemctl start $SERVICE
 
 # check status of the service
-$MAKE_ME_ROOT systemctl status standard-validator
+$MAKE_ME_ROOT systemctl status $SERVICE --no-pager -o cat

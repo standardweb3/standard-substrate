@@ -60,7 +60,7 @@ jobs:
         with:
           context: .
           builder: ${{ steps.buildx.outputs.name }}
-          file: ./docker/Dockerfile.release
+          file: ./docker/${{ matrix.release }}.release
           platforms: ${{ matrix.platform }}
           tags: |
             standardprotocol/${{ matrix.release }}:${{ github.event.release.tag_name != null && github.event.release.tag_name || github.event.inputs.tag }}
