@@ -111,7 +111,7 @@ fp-rpc = { version = "3.0.0-dev", default-features = false, git = "https://githu
 # WASM-specific dependencies
 wasm-bindgen = { version = "0.2.73", optional = true }
 wasm-bindgen-futures = { version = "0.4.18", optional = true }
-libp2p-wasm-ext = { version = "0.28", features = ["websocket"], optional = true }
+libp2p-wasm-ext = { version = "0.30", features = ["websocket"], optional = true }
 
 # External Crates
 serde = { version = "1.0.133", features = ["derive"] }
