@@ -29,7 +29,7 @@ runtime-benchmarks = ['standard-runtime/runtime-benchmarks']
 
 [dependencies]
 codec = { package = "parity-scale-codec", version = "2.0" }
-serde = { version = '1.0.130', features = ['derive'] }
+serde = { version = "1.0.133", features = ["derive"] }
 serde_json = { version = "1.0" }
 structopt = { version = "0.3.8" }
 hex-literal = "0.3.3"
@@ -51,7 +51,6 @@ frame-benchmarking = { version = "4.0.0-dev", git = 'https://github.com/parityte
 frame-benchmarking-cli = { version = "4.0.0-dev", git = 'https://github.com/paritytech/substrate', branch = 'polkadot-v0.9.12' }
 pallet-transaction-payment-rpc = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 substrate-frame-rpc-system = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
-substrate-prometheus-endpoint = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 
 ## Substrate Client Dependencies
 sc-basic-authorship = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
@@ -73,6 +72,7 @@ sc-transaction-pool = { git = "https://github.com/paritytech/substrate", branch 
 sc-transaction-pool-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 sc-finality-grandpa = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 sc-finality-grandpa-rpc = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
+substrate-prometheus-endpoint = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 
 ## Substrate Primitive Dependencies
 sp-api = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
