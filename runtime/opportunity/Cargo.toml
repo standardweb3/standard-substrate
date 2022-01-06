@@ -17,7 +17,7 @@ substrate-wasm-builder = { version = '5.0.0-dev', git = "https://github.com/pari
 [dependencies]
 getrandom = { version = "0.2.3", features = ["js"] }
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
-serde = { version = '1.0.130', optional = true, features = ['derive'] }
+serde = { version = '1.0.133', optional = true, features = ['derive'] }
 hex-literal = { version = '0.3.4', optional = true }
 smallvec = "1.7.0"
 static_assertions = "1.1.0"
@@ -90,7 +90,6 @@ pallet-treasury = { version = "4.0.0-dev", default-features = false, git = 'http
 pallet-bags-list = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 
 # EVM Dependencies
-# pallet-base-fee = { version = "1.0.0", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
 pallet-dynamic-fee = { version = "4.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
 pallet-ethereum = { version = "4.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
 pallet-evm = { version = "6.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "feature/opportunity-integration" }
