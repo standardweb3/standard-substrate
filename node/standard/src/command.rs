@@ -22,14 +22,14 @@ use std::{io::Write, net::SocketAddr};
 
 fn load_spec(id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	Ok(match id {
-		"" | "standard-rococo-genesis" => Box::new(chain_spec::standard_rococo_genesis_config()),
+		"standard-rococo-genesis" => Box::new(chain_spec::standard_rococo_genesis_config()),
 		"standard-kusama-genesis" => Box::new(chain_spec::standard_kusama_genesis_config()),
 		"dev" => Box::new(chain_spec::development_config()),
 		"local" => Box::new(chain_spec::local_config()),
 		"standard-kusama" => Box::new(StandardChainSpec::from_json_bytes(
 			&include_bytes!("../spec/standard_kusama_raw.json")[..],
 		)?),
-		"standard-rococo" => Box::new(StandardChainSpec::from_json_bytes(
+		"" |"standard-rococo" => Box::new(StandardChainSpec::from_json_bytes(
 			&include_bytes!("../spec/standard_rococo_raw.json")[..],
 		)?),
 		"standard-barocco" => Box::new(StandardChainSpec::from_json_bytes(
