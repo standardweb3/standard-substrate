@@ -29,7 +29,7 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, St
 		"standard-kusama" => Box::new(StandardChainSpec::from_json_bytes(
 			&include_bytes!("../spec/standard_kusama_raw.json")[..],
 		)?),
-		"" |"standard-rococo" => Box::new(StandardChainSpec::from_json_bytes(
+		"" | "standard-rococo" => Box::new(StandardChainSpec::from_json_bytes(
 			&include_bytes!("../spec/standard_rococo_raw.json")[..],
 		)?),
 		"standard-barocco" => Box::new(StandardChainSpec::from_json_bytes(
