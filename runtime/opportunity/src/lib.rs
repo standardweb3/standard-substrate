@@ -43,7 +43,8 @@ pub use sp_runtime::BuildStorage;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		FindAuthor, KeyOwnerProofSystem, LockIdentifier, OnRuntimeUpgrade, U128CurrencyToVote,
+		EqualPrivilegeOnly, FindAuthor, KeyOwnerProofSystem, LockIdentifier, OnRuntimeUpgrade,
+		U128CurrencyToVote,
 	},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
@@ -123,7 +124,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("opportunity"),
 	impl_name: create_runtime_str!("opportunity10"),
 	authoring_version: 1,
-	spec_version: 9124,
+	spec_version: 9130,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 6,
@@ -561,6 +562,7 @@ impl pallet_scheduler::Config for Runtime {
 	type ScheduleOrigin = ScheduleOrigin;
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
 	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
+	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 }
 
 impl pallet_babe::Config for Runtime {

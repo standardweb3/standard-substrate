@@ -275,10 +275,7 @@ fn opportunity_testnet_config_genesis(
 	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
 
 	opportunity_runtime::GenesisConfig {
-		system: SystemConfig {
-			code: wasm_binary_unwrap().to_vec(),
-			changes_trie_config: Default::default(),
-		},
+		system: SystemConfig { code: wasm_binary_unwrap().to_vec() },
 		balances: BalancesConfig {
 			balances: endowed_accounts.iter().cloned().map(|k| (k, 1 << 60)).collect(),
 		},

@@ -119,7 +119,7 @@ pub fn new_partial(
 	let client = Arc::new(client);
 
 	let telemetry = telemetry.map(|(worker, telemetry)| {
-		task_manager.spawn_handle().spawn("telemetry", worker.run());
+		task_manager.spawn_handle().spawn("telemetry", None, worker.run());
 		telemetry
 	});
 
@@ -295,7 +295,6 @@ pub fn new_full_base(
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue,
-			on_demand: None,
 			block_announce_validator_builder: None,
 			warp_sync: Some(warp_sync),
 		})?;
@@ -322,6 +321,7 @@ pub fn new_full_base(
 	// Maps emulated ethereum data to substrate native data.
 	task_manager.spawn_essential_handle().spawn(
 		"frontier-mapping-sync-worker",
+		Some("frontier"),
 		MappingSyncWorker::new(
 			client.import_notification_stream(),
 			Duration::new(6, 0),
@@ -340,11 +340,13 @@ pub fn new_full_base(
 	const FILTER_RETAIN_THRESHOLD: u64 = 100;
 	task_manager.spawn_essential_handle().spawn(
 		"frontier-filter-pool",
+		Some("frontier"),
 		EthTask::filter_pool_task(client.clone(), filter_pool.clone(), FILTER_RETAIN_THRESHOLD),
 	);
 
 	task_manager.spawn_essential_handle().spawn(
 		"frontier-schema-cache-task",
+		Some("frontier"),
 		EthTask::ethereum_schema_cache_task(client.clone(), frontier_backend.clone()),
 	);
 
@@ -372,8 +374,6 @@ pub fn new_full_base(
 		},
 		transaction_pool: transaction_pool.clone(),
 		task_manager: &mut task_manager,
-		on_demand: None,
-		remote_blockchain: None,
 		system_rpc_tx,
 		telemetry: telemetry.as_mut(),
 	})?;
@@ -439,7 +439,11 @@ pub fn new_full_base(
 		};
 
 		let babe = sc_consensus_babe::start_babe(babe_config)?;
-		task_manager.spawn_essential_handle().spawn_blocking("babe-proposer", babe);
+		task_manager.spawn_essential_handle().spawn_blocking(
+			"babe-proposer",
+			Some("block-authoring"),
+			babe,
+		);
 	}
 
 	// Spawn authority discovery module.
@@ -461,9 +465,11 @@ pub fn new_full_base(
 			prometheus_registry.clone(),
 		);
 
-		task_manager
-			.spawn_handle()
-			.spawn("authority-discovery-worker", authority_discovery_worker.run());
+		task_manager.spawn_handle().spawn(
+			"authority-discovery-worker",
+			None,
+			authority_discovery_worker.run(),
+		);
 	}
 
 	// if the node isn't actively participating in consensus then it doesn't
@@ -503,6 +509,7 @@ pub fn new_full_base(
 		// if it fails we take down the service with it.
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"grandpa-voter",
+			None,
 			sc_finality_grandpa::run_grandpa_voter(grandpa_config)?,
 		);
 	}

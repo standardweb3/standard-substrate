@@ -160,7 +160,7 @@ pub fn standard_rococo_genesis_config() -> StandardChainSpec {
 					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
 					get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
 				],
-				2000.into(),
+				2012.into(),
 			)
 		},
 		// Bootnodes
@@ -287,7 +287,6 @@ fn testnet_genesis(
 	GenesisConfig {
 		system: SystemConfig {
 			code: WASM_BINARY.expect("WASM binary was not build, please build it!").to_vec(),
-			changes_trie_config: Default::default(),
 		},
 		sudo: SudoConfig { key: root_key },
 		parachain_system: Default::default(),
