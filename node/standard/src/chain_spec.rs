@@ -287,7 +287,6 @@ fn testnet_genesis(
 	GenesisConfig {
 		system: SystemConfig {
 			code: WASM_BINARY.expect("WASM binary was not build, please build it!").to_vec(),
-			changes_trie_config: Default::default(),
 		},
 		sudo: SudoConfig { key: root_key },
 		parachain_system: Default::default(),
