@@ -17,7 +17,7 @@ parity-scale-codec = { version = "2.0.0", default-features = false, features = [
 log = { version = "0.4.14", default-features = false }
 serde = { version = '1.0.133', optional = true, features = ['derive'] }
 scale-info = { version = "1.0.0", default-features = false, features = ["derive"] }
-smallvec = "1.7.0"
+smallvec = "1.8.0"
 
 # Local Dependencies
 primitives = { default-features = false, path = "../../primitives" }
