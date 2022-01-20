@@ -15,7 +15,7 @@ targets = [ 'x86_64-unknown-linux-gnu' ]
 substrate-wasm-builder = { version = '5.0.0-dev', git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.15" }
 
 [dependencies]
-getrandom = { version = "0.2.3", features = ["js"] }
+getrandom = { version = "0.2.4", features = ["js"] }
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
 serde = { version = '1.0.133', optional = true, features = ['derive'] }
 hex-literal = { version = '0.3.4', optional = true }
