@@ -124,4 +124,4 @@ sc-service-test = { version = "2.0.0", git = "https://github.com/paritytech/subs
 sc-keystore = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.15" }
 sp-keyring = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.15" }
 sp-tracing = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.15" }
-tempfile = "3.1.0"
+tempfile = "3.3.0"
