@@ -160,7 +160,7 @@ pub fn standard_rococo_genesis_config() -> StandardChainSpec {
 					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
 					get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
 				],
-				2012.into(),
+				2000.into(),
 			)
 		},
 		// Bootnodes
