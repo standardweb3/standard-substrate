@@ -31,6 +31,8 @@ pub mod pallet {
 	}
 
 	#[pallet::pallet]
+	#[pallet::generate_store(pub(super) trait Store)]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(_);
 
 	#[pallet::hooks]
@@ -74,6 +76,7 @@ pub mod pallet {
 			}
 		}
 	}
+
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
