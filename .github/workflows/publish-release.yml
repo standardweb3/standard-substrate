@@ -61,7 +61,7 @@ jobs:
 
       - name: Build Changelog
         id: build-changelog
-        uses: mikepenz/release-changelog-builder-action@v2.2.0
+        uses: mikepenz/release-changelog-builder-action@v2.8.2
         if: github.ref == 'refs/heads/master'
         with:
           configuration: ".github/release_notes_config.json"
@@ -88,23 +88,6 @@ jobs:
         if: ${{ github.event.inputs.pre-release == 'false' && github.ref == 'refs/heads/master' }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          # DISCORD_EMBEDS: {
-          #   "embeds": [
-          #   {
-          #   "title": "Priority: **${{ github.event.inputs.priority }}**",
-          #   "color": ""
-          #   },
-          #   {
-          #   "title": "Information: ${{ github.event.inputs.message }},
-          #   "color": ""
-          #   },
-          #   {
-          #   "title": "Release URL",
-          #   "url": "${{ steps.release-step.outputs.html_url }}",
-          #   "color": ""
-          #   },
-          #   ]
-          # }
         with:
           args: |
             "<@&808602414138654752> - New release in ${{ github.repository }} - **${{ github.event.inputs.release-name }}**.
