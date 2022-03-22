@@ -253,9 +253,6 @@ where
 		finality_provider,
 	)));
 
-	let max_past_logs: u32 = 10_000;
-	let max_stored_filters: usize = 500;
-
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
 		client.clone(),
 		pool.clone(),
@@ -277,7 +274,7 @@ where
 			client.clone(),
 			frontier_backend,
 			filter_pool.clone(),
-			max_stored_filters,
+			500 as usize, // max stored filters
 			max_past_logs,
 			block_data_cache.clone(),
 		)));
