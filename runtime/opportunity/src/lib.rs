@@ -9,7 +9,7 @@ use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use parity_scale_codec::{Decode, Encode};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_core::{
-	crypto::{KeyTypeId},
+	crypto::KeyTypeId,
 	u32_trait::{_1, _2, _3, _4, _5},
 	OpaqueMetadata, H160, H256, U256,
 };
@@ -28,7 +28,7 @@ use sp_runtime::{
 	ApplyExtrinsicResult, Perbill, Percent, Permill, RuntimeAppPublic,
 };
 // use sp_std::prelude::*;
-use sp_std::{prelude::*, marker::PhantomData};
+use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
@@ -44,8 +44,8 @@ pub use sp_runtime::BuildStorage;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		ConstU32, ConstU128, EqualPrivilegeOnly, FindAuthor, KeyOwnerProofSystem,
-		LockIdentifier, OnRuntimeUpgrade, U128CurrencyToVote, EnsureOneOf
+		ConstU128, ConstU32, EnsureOneOf, EqualPrivilegeOnly, FindAuthor, KeyOwnerProofSystem,
+		LockIdentifier, OnRuntimeUpgrade, U128CurrencyToVote,
 	},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
@@ -53,7 +53,10 @@ use frame_support::{
 	},
 	ConsensusEngineId, PalletId,
 };
-use frame_system::{limits::{BlockLength, BlockWeights}, EnsureRoot};
+use frame_system::{
+	limits::{BlockLength, BlockWeights},
+	EnsureRoot,
+};
 use pallet_session::historical as pallet_session_historical;
 pub use pallet_staking::StakerStatus;
 use pallet_transaction_payment::CurrencyAdapter;
@@ -1253,6 +1256,14 @@ sp_api::impl_runtime_apis! {
 	impl frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Index> for Runtime {
 		fn account_nonce(account: AccountId) -> Index {
 			System::account_nonce(account)
+		}
+	}
+
+	impl fp_rpc::ConvertTransactionRuntimeApi<Block> for Runtime {
+		fn convert_transaction(transaction: EthereumTransaction) -> <Block as BlockT>::Extrinsic {
+			UncheckedExtrinsic::new_unsigned(
+				pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
+			)
 		}
 	}
 

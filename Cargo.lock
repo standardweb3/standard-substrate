@@ -5808,12 +5808,14 @@ dependencies = [
 name = "opportunity-standalone"
 version = "0.9.17"
 dependencies = [
+ "clap 3.1.6",
  "fc-consensus 2.0.0-dev (git+https://github.com/digitalnativeinc/frontier?branch=release-v0.9.17)",
  "fc-db 2.0.0-dev (git+https://github.com/digitalnativeinc/frontier?branch=release-v0.9.17)",
  "fc-mapping-sync 2.0.0-dev (git+https://github.com/digitalnativeinc/frontier?branch=release-v0.9.17)",
  "fc-rpc 2.0.0-dev (git+https://github.com/digitalnativeinc/frontier?branch=release-v0.9.17)",
  "fc-rpc-core 1.1.0-dev (git+https://github.com/digitalnativeinc/frontier?branch=release-v0.9.17)",
  "fp-rpc 3.0.0-dev (git+https://github.com/digitalnativeinc/frontier?branch=release-v0.9.17)",
+ "fp-storage 2.0.0 (git+https://github.com/digitalnativeinc/frontier?branch=release-v0.9.17)",
  "frame-benchmarking 4.0.0-dev (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.17)",
  "frame-benchmarking-cli 4.0.0-dev (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.17)",
  "frame-system 4.0.0-dev (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.17)",

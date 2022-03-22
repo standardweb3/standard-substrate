@@ -14,9 +14,9 @@ use sp_runtime::{
 use opportunity_runtime::{
 	wasm_binary_unwrap, AssetRegistryConfig, BabeConfig, BalancesConfig, Block, CouncilConfig,
 	DemocracyConfig, EVMConfig, ElectionsConfig, EthereumConfig, GrandpaConfig, ImOnlineConfig,
-	OracleConfig, Precompiles, SessionConfig, SessionKeys, StakerStatus, StakingConfig, SudoConfig,
-	SystemConfig, TechnicalCommitteeConfig, TechnicalMembershipConfig, TreasuryConfig,
-	MAX_NOMINATIONS,
+	MaxNominations, OracleConfig, Precompiles, SessionConfig, SessionKeys, StakerStatus,
+	StakingConfig, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TechnicalMembershipConfig,
+	TreasuryConfig,
 };
 use primitives::{AccountId, AssetId, Balance, Signature};
 
@@ -138,6 +138,8 @@ pub fn opportunity_standalone_config() -> Result<ChainSpec, String> {
 		),
 		// Protocol ID
 		Some(OPPORTUNITY_PROTOCOL_ID),
+		// Fork ID
+		None,
 		// Properties
 		serde_json::from_str(OPPORTUNITY_PROPERTIES).unwrap(),
 		// Extensions
@@ -177,6 +179,8 @@ pub fn development_config() -> Result<ChainSpec, String> {
 		// Telemetry
 		None,
 		// Protocol ID
+		None,
+		// Fork ID
 		None,
 		// Properties
 		None,
@@ -225,6 +229,8 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 		None,
 		// Protocol ID
 		None,
+		// Fork ID
+		None,
 		// Properties
 		None,
 		// Extensions
@@ -257,7 +263,7 @@ fn opportunity_testnet_config_genesis(
 		.map(|x| (x.0.clone(), x.1.clone(), STASH, StakerStatus::Validator))
 		.chain(initial_nominators.iter().map(|x| {
 			use rand::{seq::SliceRandom, Rng};
-			let limit = (MAX_NOMINATIONS as usize).min(initial_authorities.len());
+			let limit = (MaxNominations::get() as usize).min(initial_authorities.len());
 			let count = rng.gen::<usize>() % limit;
 			let nominations = initial_authorities
 				.as_slice()
@@ -280,7 +286,7 @@ fn opportunity_testnet_config_genesis(
 			balances: endowed_accounts.iter().cloned().map(|k| (k, 1 << 60)).collect(),
 		},
 		grandpa: GrandpaConfig::default(),
-		sudo: SudoConfig { key: root_key },
+		sudo: SudoConfig { key: Some(root_key) },
 		babe: BabeConfig {
 			authorities: Default::default(),
 			epoch_config: Some(opportunity_runtime::BABE_GENESIS_EPOCH_CONFIG),
@@ -354,5 +360,6 @@ fn opportunity_testnet_config_genesis(
 		},
 		ethereum: EthereumConfig {},
 		dynamic_fee: Default::default(),
+		base_fee: Default::default(),
 	}
 }
