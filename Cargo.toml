@@ -1,18 +1,18 @@
 [profile.release]
-panic = 'unwind'
+panic = "unwind"
 
 [workspace]
 resolver = "2"
 
 members = [
-    'node/standard',
-    'node/opportunity',
-    'pallets/asset-registry',
-    'pallets/market',
-    'pallets/oracle',
-    'pallets/vault',
-    'pallets/chainbridge',
-    'runtime/standard',
-    'runtime/opportunity',
-    'primitives'
+    "node/standard",
+    "node/opportunity",
+    "pallets/asset-registry",
+    "pallets/market",
+    "pallets/oracle",
+    "pallets/vault",
+    "pallets/chainbridge",
+    "runtime/standard",
+    "runtime/opportunity",
+    "primitives"
 ]

@@ -4,7 +4,7 @@
 
 use frame_support::{
 	construct_runtime, match_type, parameter_types,
-	traits::{EqualPrivilegeOnly, Everything, FindAuthor, Nothing},
+	traits::{ConstU128, ConstU32, EqualPrivilegeOnly, Everything, FindAuthor, Nothing},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, WEIGHT_PER_SECOND},
 		DispatchClass, IdentityFee, Weight,
@@ -16,11 +16,7 @@ use frame_system::{
 	EnsureRoot,
 };
 use parity_scale_codec::{Decode, Encode};
-use sp_api::impl_runtime_apis;
-use sp_core::{
-	crypto::{KeyTypeId},
-	OpaqueMetadata, H160, H256, U256,
-};
+use sp_core::{crypto::KeyTypeId, OpaqueMetadata, H160, H256, U256};
 use sp_inherents::InherentData;
 use sp_runtime::{
 	create_runtime_str, generic,
@@ -31,7 +27,7 @@ use sp_runtime::{
 		Verify,
 	},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, Perbill, RuntimeAppPublic,
+	ApplyExtrinsicResult, Perbill, Permill, RuntimeAppPublic,
 };
 use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(any(feature = "std", test))]
@@ -249,11 +245,6 @@ parameter_types! {
   pub const MaxScheduledPerBlock: u32 = 50;
 	pub const NoPreimagePostponement: Option<u32> = Some(10);
 }
-
-type ScheduleOrigin = EnsureOneOf<
-	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilCollective>,
->;
 
 // Configure the runtime's implementation of the Scheduler pallet.
 impl pallet_scheduler::Config for Runtime {
@@ -716,6 +707,31 @@ impl pallet_dynamic_fee::Config for Runtime {
 	type MinGasPriceBoundDivisor = BoundDivision;
 }
 
+frame_support::parameter_types! {
+	pub IsActive: bool = true;
+	pub DefaultBaseFeePerGas: U256 = U256::from(1_000_000_000);
+}
+
+pub struct BaseFeeThreshold;
+impl pallet_base_fee::BaseFeeThreshold for BaseFeeThreshold {
+	fn lower() -> Permill {
+		Permill::zero()
+	}
+	fn ideal() -> Permill {
+		Permill::from_parts(500_000)
+	}
+	fn upper() -> Permill {
+		Permill::from_parts(1_000_000)
+	}
+}
+
+impl pallet_base_fee::Config for Runtime {
+	type Event = Event;
+	type Threshold = BaseFeeThreshold;
+	type IsActive = IsActive;
+	type DefaultBaseFeePerGas = DefaultBaseFeePerGas;
+}
+
 construct_runtime!(
 	pub enum Runtime where
 		Block = Block,
@@ -758,6 +774,7 @@ construct_runtime!(
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = 60,
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 61,
 		DynamicFee: pallet_dynamic_fee::{Pallet, Call, Storage, Config, Inherent} = 62,
+		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event} = 63,
 	}
 );
 
@@ -826,7 +843,7 @@ where
 	}
 }
 
-impl_runtime_apis! {
+sp_api::impl_runtime_apis! {
 	impl sp_consensus_aura::AuraApi<Block, AuraId> for Runtime {
 		fn slot_duration() -> sp_consensus_aura::SlotDuration {
 			sp_consensus_aura::SlotDuration::from_millis(Aura::slot_duration())
@@ -913,7 +930,7 @@ impl_runtime_apis! {
 			System::account_nonce(account)
 		}
 	}
-RuntimeAppPublic,
+
 	impl cumulus_primitives_core::CollectCollationInfo<Block> for Runtime {
 		fn collect_collation_info(header: &<Block as BlockT>::Header) -> cumulus_primitives_core::CollationInfo {
 			ParachainSystem::collect_collation_info(header)
@@ -991,7 +1008,7 @@ RuntimeAppPublic,
 				max_fee_per_gas,
 				max_priority_fee_per_gas,
 				nonce,
-				Vec::new(),
+				access_list.unwrap_or_default(),
 				config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 			).map_err(|err| err.into())
 		}
@@ -1023,7 +1040,7 @@ RuntimeAppPublic,
 				max_fee_per_gas,
 				max_priority_fee_per_gas,
 				nonce,
-				Vec::new(),
+				access_list.unwrap_or_default(),
 				config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 			).map_err(|err| err.into())
 		}
@@ -1059,6 +1076,18 @@ RuntimeAppPublic,
 				Call::Ethereum(transact{ transaction }) => Some(transaction),
 				_ => None
 			}).collect::<Vec<EthereumTransaction>>()
+		}
+
+		fn elasticity() -> Option<Permill> {
+			Some(BaseFee::elasticity())
+		}
+	}
+
+	impl fp_rpc::ConvertTransactionRuntimeApi<Block> for Runtime {
+		fn convert_transaction(transaction: EthereumTransaction) -> <Block as BlockT>::Extrinsic {
+			UncheckedExtrinsic::new_unsigned(
+				pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
+			)
 		}
 	}
 }

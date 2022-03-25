@@ -120,6 +120,8 @@ pub fn standard_kusama_genesis_config() -> StandardChainSpec {
 		),
 		// Protocol ID
 		Some(STANDARD_PROTOCOL_ID),
+		// Fork ID
+		None,
 		// Properties
 		serde_json::from_str(STANDARD_PROPERTIES).unwrap(),
 		// Extensions
@@ -172,6 +174,8 @@ pub fn standard_rococo_genesis_config() -> StandardChainSpec {
 		),
 		// Protocol ID
 		Some(STANDARD_PROTOCOL_ID),
+		// Fork ID
+		None,
 		// Properties
 		serde_json::from_str(STANDARD_PROPERTIES).unwrap(),
 		// Extensions
@@ -215,6 +219,8 @@ pub fn development_config() -> StandardChainSpec {
 		// Telemetry
 		None,
 		// Protocol ID
+		None,
+		// Fork ID
 		None,
 		// Properties
 		None,
@@ -266,6 +272,8 @@ pub fn local_config() -> StandardChainSpec {
 		None,
 		// Protocol ID
 		None,
+		// Fork ID
+		None,
 		// Properties
 		None,
 		// Extensions
@@ -288,7 +296,7 @@ fn testnet_genesis(
 		system: SystemConfig {
 			code: WASM_BINARY.expect("WASM binary was not build, please build it!").to_vec(),
 		},
-		sudo: SudoConfig { key: root_key },
+		sudo: SudoConfig { key: Some(root_key) },
 		parachain_system: Default::default(),
 		parachain_info: ParachainInfoConfig { parachain_id: id },
 		balances: BalancesConfig {
@@ -349,5 +357,6 @@ fn testnet_genesis(
 		},
 		ethereum: EthereumConfig {},
 		dynamic_fee: Default::default(),
+		base_fee: Default::default(),
 	}
 }

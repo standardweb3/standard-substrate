@@ -357,8 +357,6 @@ pub fn new_full(mut config: Configuration, cli: &Cli) -> Result<TaskManager, Ser
 		),
 	);
 
-	// let (block_import, grandpa_link, babe_link) = import_setup;
-
 	// Spawn Frontier EthFilterApi maintenance task.
 	if let Some(filter_pool) = filter_pool {
 		// Each filter is allowed to stay in the pool for 100 blocks.

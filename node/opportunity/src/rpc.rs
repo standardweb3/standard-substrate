@@ -273,10 +273,10 @@ where
 		io.extend_with(EthFilterApiServer::to_delegate(EthFilterApi::new(
 			client.clone(),
 			frontier_backend,
-			filter_pool.clone(),
+			filter_pool,
 			500 as usize, // max stored filters
 			max_past_logs,
-			block_data_cache.clone(),
+			block_data_cache,
 		)));
 	}
 
