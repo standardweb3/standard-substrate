@@ -4,7 +4,7 @@ permissions:
   contents: read
 
 env:
-  TOOLCHAIN_BUILD: "nightly-2021-11-07"
+  TOOLCHAIN_BUILD: "nightly-2022-01-27"
   TOOLCHAIN_OVERRIDE: false
 
 # Controls when the action will run.
@@ -23,7 +23,7 @@ on:
     inputs:
       toolchain-build:
         description: "Rust toolchain to use"
-        default: "nightly-2021-11-07"
+        default: "nightly-2022-01-27"
         required: false
       toolchain-override:
         description: "Set installed toolchain as an override for the current directory"
