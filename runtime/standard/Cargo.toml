@@ -18,10 +18,9 @@ substrate-wasm-builder = { version = "5.0.0-dev", git = "https://github.com/pari
 hex-literal = { version = "0.3.4", optional = true }
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
 log = { version = "0.4.14", default-features = false }
-serde = { version = "1.0.136", optional = true, features = ["derive"] }
+serde = { version = "1.0.132", optional = true, features = ["derive"] }
 scale-info = { version = "1.0.0", default-features = false, features = ["derive"] }
-smallvec = "1.7.0"
-static_assertions = "1.1.0"
+smallvec = "1.6.1"
 
 # Local Dependencies
 primitives = { default-features = false, path = "../../primitives" }
@@ -71,6 +70,9 @@ pallet-vesting = { git = "https://github.com/paritytech/substrate", branch = "po
 pallet-scheduler = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.17", default-features = false }
 pallet-indices = { default-features = false, version = "4.0.0-dev", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.17" }
 pallet-preimage = { default-features = false, version = "4.0.0-dev", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.17" }
+pallet-mmr = { default-features = false, version = "4.0.0-dev", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.17" }
+pallet-babe = { default-features = false, version = "4.0.0-dev", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.17" }
+pallet-staking = { default-features = false, version = "4.0.0-dev", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.17" }
 
 # Cumulus Dependencies
 cumulus-pallet-aura-ext = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.17", default-features = false }
@@ -83,6 +85,7 @@ cumulus-primitives-timestamp = { git = "https://github.com/paritytech/cumulus", 
 cumulus-primitives-utility = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.17", default-features = false }
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.17", default-features = false }
 parachain-info = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.17", default-features = false }
+beefy-primitives =  { git = "https://github.com/paritytech/substrate.git", default-features = false, branch = "polkadot-v0.9.17" }
 
 # Polkadot Dependencies
 polkadot-parachain = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.17" }
@@ -104,7 +107,10 @@ fp-rpc = { version = "3.0.0-dev", default-features = false, git = "https://githu
 fp-storage = { version = "2.0.0", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "release-v0.9.17" }
 
 [features]
-default = [ "std" ]
+default = [
+	"std",
+]
+
 runtime-benchmarks = [
 	"sp-runtime/runtime-benchmarks",
 	"frame-benchmarking",
@@ -115,10 +121,13 @@ runtime-benchmarks = [
 	"pallet-timestamp/runtime-benchmarks",
     "pallet-collator-selection/runtime-benchmarks",
 ]
+
 std = [
     "serde",
+    "scale-info/std",
 	"parity-scale-codec/std",
 	"log/std",
+    "beefy-primitives/std",
     "sp-std/std",
     "sp-api/std",
     "sp-core/std",
@@ -131,6 +140,8 @@ std = [
     "sp-transaction-pool/std",
     "sp-inherents/std",
     "sp-consensus-aura/std",
+    # "sp-application-crypto/std",
+    # "sp-staking/std",
     "frame-support/std",
     "frame-executive/std",
     "frame-system/std",
@@ -140,14 +151,18 @@ std = [
     "pallet-balances/std",
     "pallet-scheduler/std",
 	"pallet-indices/std",
+    "pallet-mmr/std",
+    "pallet-staking/std",
     "frame-election-provider-support/std",
     "pallet-vesting/std",
     "pallet-collator-selection/std",
+    "runtime-common/std",
     "sp-offchain/std",
     "sp-session/std",
     "pallet-session/std",
     "pallet-sudo/std",
     "pallet-timestamp/std",
+    "pallet-babe/std",
     "pallet-transaction-payment/std",
     "pallet-transaction-payment-rpc-runtime-api/std",
     "xcm/std",
