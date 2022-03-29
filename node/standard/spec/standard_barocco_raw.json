@@ -3,8 +3,8 @@
 	"id": "standard_barocco_parachain",
 	"chainType": "Live",
 	"bootNodes": [
-		"/dns/one.baroccoparachain.standardtech.xyz/tcp/30333/p2p/12D3KooWRfkn3UdpXgLkARbxZDCkLwmkEWwERsuD4HP9ANSS3npb",
-		"/dns/two.baroccoparachain.standardtech.xyz/tcp/30333/p2p/12D3KooWGJCaB7hQrVUPYu74yaSnSu8kvm2KvmcS3qfGBjebtsdT"
+		"/dns/one.baroccoparachain.standardtech.xyz/tcp/30333/p2p/12D3KooWL4vdRgk8cg67xsCd678wgnBuL229rzQrwiWcskU5SH3F",
+		"/dns/two.baroccoparachain.standardtech.xyz/tcp/30333/p2p/12D3KooWDQV4WF5xJhHEjSMXk4rgvj8mjqf6SDZxbn7dkFMB8HdF"
 	],
 	"telemetryEndpoints": [["/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F", 0]],
 	"protocolId": "standard_barocco",
