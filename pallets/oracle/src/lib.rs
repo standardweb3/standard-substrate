@@ -61,7 +61,7 @@ decl_module! {
 		fn report(origin, _socket: SocketIndex, _id: AssetId, _price: Balance) -> DispatchResult {
 			let who : <T as frame_system::Config>::AccountId = ensure_signed(origin)?;
 			ensure!(Providers::<T>::contains_key(who.clone()), Error::<T>::WrongProvider);
-			ensure!(Sockets::<T>::get(_socket) == who.clone(), Error::<T>::WrongSocket);
+			ensure!(Sockets::<T>::get(_socket) == Some(who.clone()), Error::<T>::WrongSocket);
 			let results = match Self::asset_price(_id) {
 				Some(mut x) => {
 					if x.len() != Self::provider_count() as usize {
@@ -208,19 +208,19 @@ decl_storage! {
 	trait Store for Module<T: Config> as Oracle {
 
 		// A set of all registered Provider
-		pub Providers get(fn operator): map hasher(blake2_128_concat) <T as frame_system::Config>::AccountId => bool;
+		pub Providers get(fn operator): map hasher(blake2_128_concat) T::AccountId => bool;
 
 		// Price batch from oracle providers
-		pub Prices get(fn asset_price): map hasher(blake2_128_concat) AssetId =>  Option<Vec<Balance>>;
+		pub Prices get(fn asset_price): map hasher(blake2_128_concat) AssetId => Option<Vec<Balance>>;
 
 		// Oracles: key as account id, value as oracle socket index
-		pub Oracles get(fn oracle): map hasher(blake2_128_concat)  <T as frame_system::Config>::AccountId  => Option<SocketIndex>;
+		pub Oracles get(fn oracle): map hasher(blake2_128_concat) T::AccountId => Option<SocketIndex>;
 
 		// Sockets: key as the oracle socket index, value as the oracle provider
-		pub Sockets get(fn provider_at): map hasher(blake2_128_concat) SocketIndex => <T as frame_system::Config>::AccountId;
+		pub Sockets get(fn provider_at): map hasher(blake2_128_concat) SocketIndex => Option<T::AccountId>;
 
 		// Slash: key as the oracle socket index, value as the array of slashed accounts
-		pub Slashes get(fn slashes_at): map hasher(blake2_128_concat) EraIndex => Vec<<T as frame_system::Config>::AccountId>;
+		pub Slashes get(fn slashes_at): map hasher(blake2_128_concat) EraIndex => Vec<Option<T::AccountId>>;
 
 		/// The ideal number of staking participants.
 		pub ProviderCount get(fn provider_count) config(): u32;

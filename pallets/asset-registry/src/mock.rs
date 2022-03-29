@@ -53,10 +53,13 @@ impl system::Config for Test {
 	type OnKilledAccount = ();
 	type SystemWeightInfo = ();
 	type SS58Prefix = SS58Prefix;
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
+
 impl Config for Test {
 	type AssetId = u32;
 }
+
 pub type AssetRegistryModule = Pallet<Test>;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
