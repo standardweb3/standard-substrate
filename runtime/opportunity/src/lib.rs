@@ -1090,6 +1090,65 @@ where
 	type OverarchingCall = Call;
 }
 
+// Migration for scheduler pallet to move from a plain Call to a CallOrHash.
+pub struct SchedulerMigrationV3;
+
+impl OnRuntimeUpgrade for SchedulerMigrationV3 {
+	fn on_runtime_upgrade() -> frame_support::weights::Weight {
+		Scheduler::migrate_v2_to_v3()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		Scheduler::pre_migrate_to_v3()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		Scheduler::post_migrate_to_v3()
+	}
+}
+
+// Migration to generate pallet staking's `SortedListProvider` from pre-existing nominators.
+pub struct StakingBagsListMigrationV8;
+
+impl OnRuntimeUpgrade for StakingBagsListMigrationV8 {
+	fn on_runtime_upgrade() -> frame_support::weights::Weight {
+		pallet_staking::migrations::v8::migrate::<Runtime>()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		pallet_staking::migrations::v8::pre_migrate::<Runtime>()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		pallet_staking::migrations::v8::post_migrate::<Runtime>()
+	}
+}
+
+/// Migrate session-historical from `Session` to the new pallet prefix `Historical`
+pub struct SessionHistoricalPalletPrefixMigration;
+
+impl OnRuntimeUpgrade for SessionHistoricalPalletPrefixMigration {
+	fn on_runtime_upgrade() -> frame_support::weights::Weight {
+		pallet_session::migrations::v1::migrate::<Runtime, Historical>()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		pallet_session::migrations::v1::pre_migrate::<Runtime, Historical>();
+		Ok(())
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		pallet_session::migrations::v1::post_migrate::<Runtime, Historical>();
+		Ok(())
+	}
+}
+
 sp_api::impl_runtime_apis! {
 	impl sp_api::Core<Block> for Runtime {
 		fn version() -> RuntimeVersion {
