@@ -13,6 +13,7 @@ use sp_core::{
 	u32_trait::{_1, _2, _3, _4, _5},
 	OpaqueMetadata, H160, H256, U256,
 };
+use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_inherents::{CheckInherentsResult, InherentData};
 use sp_runtime::{
 	create_runtime_str,
@@ -145,13 +146,6 @@ pub fn wasm_binary_unwrap() -> &'static [u8] {
 	)
 }
 
-/// The BABE epoch configuration at genesis.
-pub const BABE_GENESIS_EPOCH_CONFIG: babe_primitives::BabeEpochConfiguration =
-	babe_primitives::BabeEpochConfiguration {
-		c: PRIMARY_PROBABILITY,
-		allowed_slots: babe_primitives::AllowedSlots::PrimaryAndSecondaryPlainSlots,
-	};
-
 /// The version information used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
 pub fn native_version() -> NativeVersion {
@@ -264,7 +258,7 @@ parameter_types! {
 
 impl pallet_timestamp::Config for Runtime {
 	type Moment = Moment;
-	type OnTimestampSet = Babe;
+	type OnTimestampSet = Aura;
 	type MinimumPeriod = MinimumPeriod;
 	type WeightInfo = pallet_timestamp::weights::SubstrateWeight<Runtime>;
 }
@@ -586,30 +580,10 @@ impl pallet_preimage::Config for Runtime {
 	type ByteDeposit = PreimageByteDeposit;
 }
 
-impl pallet_babe::Config for Runtime {
-	type EpochDuration = EpochDuration;
-	type ExpectedBlockTime = ExpectedBlockTime;
-	type EpochChangeTrigger = pallet_babe::ExternalTrigger;
-
-	type DisabledValidators = Session;
-
-	type KeyOwnerProofSystem = Historical;
-
-	type KeyOwnerProof = <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(
-		KeyTypeId,
-		pallet_babe::AuthorityId,
-	)>>::Proof;
-
-	type KeyOwnerIdentification = <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(
-		KeyTypeId,
-		pallet_babe::AuthorityId,
-	)>>::IdentificationTuple;
-
-	type HandleEquivocation =
-		pallet_babe::EquivocationHandler<Self::KeyOwnerIdentification, Offences, ReportLongevity>;
-
-	type WeightInfo = ();
-	type MaxAuthorities = MaxAuthorities;
+impl pallet_aura::Config for Runtime {
+	type AuthorityId = AuraId;
+	type DisabledValidators = ();
+	type MaxAuthorities = ConstU32<32>;
 }
 
 parameter_types! {
@@ -617,7 +591,7 @@ parameter_types! {
 }
 
 impl pallet_authorship::Config for Runtime {
-	type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Babe>;
+	type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Aura>;
 	type UncleGenerations = UncleGenerations;
 	type FilterUncle = ();
 	type EventHandler = (Staking, ImOnline);
@@ -699,12 +673,18 @@ impl pallet_staking::Config for Runtime {
 	type BenchmarkingConfig = StakingBenchmarkingConfig;
 }
 
+parameter_types! {
+	pub const Period: BlockNumber = 1 * HOURS;
+	pub const Offset: BlockNumber = 0;
+	pub const DisabledValidatorsThreshold: Perbill = Perbill::from_percent(33);
+}
+
 impl pallet_session::Config for Runtime {
 	type Event = Event;
 	type ValidatorId = <Self as frame_system::Config>::AccountId;
 	type ValidatorIdOf = pallet_staking::StashOf<Self>;
-	type ShouldEndSession = Babe;
-	type NextSessionRotation = Babe;
+	type ShouldEndSession = pallet_session::PeriodicSessions<Period, Offset>;
+	type NextSessionRotation = pallet_session::PeriodicSessions<Period, Offset>;
 	type SessionManager = pallet_session::historical::NoteHistoricalRoot<Self, Staking>;
 	type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = SessionKeys;
@@ -846,7 +826,7 @@ impl frame_election_provider_support::onchain::Config for Runtime {
 impl_opaque_keys! {
 	pub struct SessionKeys {
 		pub grandpa: Grandpa,
-		pub babe: Babe,
+		pub aura: Aura,
 		pub im_online: ImOnline,
 		pub authority_discovery: AuthorityDiscovery,
 	}
@@ -877,16 +857,15 @@ impl pallet_bags_list::Config for Runtime {
 }
 
 pub struct FindAuthorTruncated<F>(sp_std::marker::PhantomData<F>);
+
 impl<F: FindAuthor<u32>> FindAuthor<H160> for FindAuthorTruncated<F> {
 	fn find_author<'a, I>(digests: I) -> Option<H160>
 	where
 		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
 	{
 		if let Some(author_index) = F::find_author(digests) {
-			if (author_index as usize) < Babe::authorities().len() {
-				let (authority_id, _) = Babe::authorities()[author_index as usize].clone();
-				return Some(H160::from_slice(&authority_id.to_raw_vec()[4..24]))
-			}
+			let authority_id = Aura::authorities()[author_index as usize].clone();
+			return Some(H160::from_slice(&authority_id.to_raw_vec()[4..24]));
 		}
 		None
 	}
@@ -913,7 +892,7 @@ impl pallet_evm::Config for Runtime {
 	type ChainId = ChainId;
 	type BlockGasLimit = BlockGasLimit;
 	type OnChargeTransaction = ();
-	type FindAuthor = FindAuthorTruncated<Babe>;
+	type FindAuthor = FindAuthorTruncated<Aura>;
 }
 
 impl pallet_ethereum::Config for Runtime {
@@ -961,54 +940,49 @@ construct_runtime!(
 		NodeBlock = Block,
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
-		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
-		// Balance pallets
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
+		System: frame_system::{Pallet, Call, Config, Storage, Event<T>} = 1,
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} =2 ,
+		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>} = 3,
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage} = 4,
+		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 5,
+		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>} = 6,
 		// Consensus pallets
-		Babe: pallet_babe::{Pallet, Call, Storage, Config, ValidateUnsigned},
-		Grandpa: pallet_grandpa::{Pallet, Call, Storage, Config, Event, ValidateUnsigned},
-		ImOnline: pallet_im_online::{Pallet, Call, Storage, Event<T>, ValidateUnsigned, Config<T>},
+		Aura: pallet_aura::{Pallet, Config<T>} = 10,
+		Grandpa: pallet_grandpa::{Pallet, Call, Storage, Config, Event, ValidateUnsigned} = 11,
+		ImOnline: pallet_im_online::{Pallet, Call, Storage, Event<T>, ValidateUnsigned, Config<T>} = 12,
+		// Balance pallets
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 20,
+		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 21,
 		// Staking pallets
-		Offences: pallet_offences::{Pallet, Storage, Event},
-		Staking: pallet_staking::{Pallet, Call, Config<T>, Storage, Event<T>},
-		Authorship: pallet_authorship::{Pallet, Call, Storage, Inherent},
-		AuthorityDiscovery: pallet_authority_discovery::{Pallet, Config},
-		Indices: pallet_indices::{Pallet, Call, Storage, Event<T>},
-		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>},
-		Historical: pallet_session_historical::{Pallet},
+		Offences: pallet_offences::{Pallet, Storage, Event} = 30,
+		Staking: pallet_staking::{Pallet, Call, Config<T>, Storage, Event<T>} = 31,
+		Authorship: pallet_authorship::{Pallet, Call, Storage, Inherent} = 32,
+		AuthorityDiscovery: pallet_authority_discovery::{Pallet, Config} = 33,
+		Indices: pallet_indices::{Pallet, Call, Storage, Event<T>} = 34,
+		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>} = 35,
+		Historical: pallet_session_historical::{Pallet} = 36,
+		BagsList: pallet_bags_list::{Pallet, Call, Storage, Event<T>} = 37,
 		// Governance pallets
-		Democracy: pallet_democracy::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Council: pallet_collective::<Instance1>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
-		TechnicalCommittee: pallet_collective::<Instance2>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
-		TechnicalMembership: pallet_membership::<Instance1>::{Pallet, Call, Storage, Event<T>, Config<T>},
-		Elections: pallet_elections_phragmen::{Pallet, Call, Storage, Event<T>, Config<T>},
-		// Identity pallets
-		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>},
-		// Treasury pallets
-		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>},
-		Bounties: pallet_bounties::{Pallet, Call, Storage, Event<T>},
-		Tips: pallet_tips::{Pallet, Call, Storage, Event<T>},
+		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 40,
+		Democracy: pallet_democracy::{Pallet, Call, Storage, Config<T>, Event<T>} = 41,
+		Council: pallet_collective::<Instance1>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>} = 42,
+		TechnicalCommittee: pallet_collective::<Instance2>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>} = 43,
+		TechnicalMembership: pallet_membership::<Instance1>::{Pallet, Call, Storage, Event<T>, Config<T>} = 44,
+		Elections: pallet_elections_phragmen::{Pallet, Call, Storage, Event<T>, Config<T>} = 45,
+		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>} = 46,
+		Bounties: pallet_bounties::{Pallet, Call, Storage, Event<T>} = 47,
+		Tips: pallet_tips::{Pallet, Call, Storage, Event<T>} = 48,
 		// Standard pallets
-		AssetRegistry: pallet_asset_registry::{Pallet, Storage, Config<T>},
-		Market: pallet_standard_market::{Pallet, Call, Storage, Event},
-		Oracle: pallet_standard_oracle::{Pallet, Call, Storage, Event<T>, Config<T>},
-		Vault: pallet_standard_vault::{Pallet, Call, Storage, Event<T>},
-		// Chainbridge pallets
-		ChainBridge: pallet_standard_chainbridge::{Pallet, Call, Storage, Event<T>},
-		// Bag pallet
-		BagsList: pallet_bags_list::{Pallet, Call, Storage, Event<T>},
+		AssetRegistry: pallet_asset_registry::{Pallet, Storage, Config<T>} = 50,
+		Market: pallet_standard_market::{Pallet, Call, Storage, Event} = 51,
+		Oracle: pallet_standard_oracle::{Pallet, Call, Storage, Event<T>, Config<T>} = 52,
+		Vault: pallet_standard_vault::{Pallet, Call, Storage, Event<T>} = 53,
+		ChainBridge: pallet_standard_chainbridge::{Pallet, Call, Storage, Event<T>} = 54,
 		// EVM pallets
-		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config},
-		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
-		DynamicFee: pallet_dynamic_fee::{Pallet, Call, Storage, Config, Inherent},
-		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event},
-		// New pallets, will need reordering
-		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>},
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = 60,
+		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 61,
+		DynamicFee: pallet_dynamic_fee::{Pallet, Call, Storage, Config, Inherent} = 62,
+		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event} = 63,
 	}
 );
 
@@ -1145,56 +1119,13 @@ sp_api::impl_runtime_apis! {
 		}
 	}
 
-	impl babe_primitives::BabeApi<Block> for Runtime {
-		fn configuration() -> babe_primitives::BabeGenesisConfiguration {
-			// The choice of `c` parameter (where `1 - c` represents the
-			// probability of a slot being empty), is done in accordance to the
-			// slot duration and expected target block time, for safely
-			// resisting network delays of maximum two seconds.
-			// <https://research.web3.foundation/en/latest/polkadot/BABE/Babe/#6-practical-results>
-			babe_primitives::BabeGenesisConfiguration {
-				slot_duration: Babe::slot_duration(),
-				epoch_length: EpochDuration::get(),
-				c: BABE_GENESIS_EPOCH_CONFIG.c,
-				genesis_authorities: Babe::authorities().to_vec(),
-				randomness: Babe::randomness(),
-				allowed_slots: BABE_GENESIS_EPOCH_CONFIG.allowed_slots,
-			}
+	impl sp_consensus_aura::AuraApi<Block, AuraId> for Runtime {
+		fn slot_duration() -> sp_consensus_aura::SlotDuration {
+			sp_consensus_aura::SlotDuration::from_millis(Aura::slot_duration())
 		}
 
-		fn current_epoch_start() -> babe_primitives::Slot {
-			Babe::current_epoch_start()
-		}
-
-		fn current_epoch() -> babe_primitives::Epoch {
-			Babe::current_epoch()
-		}
-
-		fn next_epoch() -> babe_primitives::Epoch {
-			Babe::next_epoch()
-		}
-
-		fn generate_key_ownership_proof(
-			_slot: babe_primitives::Slot,
-			authority_id: babe_primitives::AuthorityId,
-		) -> Option<babe_primitives::OpaqueKeyOwnershipProof> {
-			use Encode;
-
-			Historical::prove((babe_primitives::KEY_TYPE, authority_id))
-				.map(|p| p.encode())
-				.map(babe_primitives::OpaqueKeyOwnershipProof::new)
-		}
-
-		fn submit_report_equivocation_unsigned_extrinsic(
-			equivocation_proof: babe_primitives::EquivocationProof<<Block as BlockT>::Header>,
-			key_owner_proof: babe_primitives::OpaqueKeyOwnershipProof,
-		) -> Option<()> {
-			let key_owner_proof = key_owner_proof.decode()?;
-
-			Babe::submit_unsigned_equivocation_report(
-				equivocation_proof,
-				key_owner_proof,
-			)
+		fn authorities() -> Vec<AuraId> {
+			Aura::authorities().into_inner()
 		}
 	}
 
