@@ -1,6 +1,6 @@
 [package]
 name = "opportunity-runtime"
-version = "0.9.17"
+version = "0.9.17-1"
 authors = [ "Digital Native Foundation" ]
 edition = "2021"
 homepage = "https://standard.tech"

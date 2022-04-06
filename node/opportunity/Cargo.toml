@@ -1,6 +1,6 @@
 [package]
 name = "opportunity-standalone"
-version = "0.9.17"
+version = "0.9.17-1"
 authors = [ "Digital Native Foundation" ]
 build = "build.rs"
 edition = "2021"

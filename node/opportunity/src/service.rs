@@ -5,7 +5,7 @@ use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
 use fc_rpc::EthTask;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use opportunity_runtime::{self, RuntimeApi, SLOT_DURATION};
-use primitives::{AccountId, Balance, Block, BlockNumber, Hash, Index};
+use primitives::{Block};
 use futures::StreamExt;
 use sc_cli::SubstrateCli;
 use sc_client_api::{BlockBackend, BlockchainEvents, ExecutorProvider};

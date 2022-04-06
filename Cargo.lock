@@ -5184,7 +5184,7 @@ checksum = "ff011a302c396a5197692431fc1948019154afc178baf7d8e37367442a4601cf"
 
 [[package]]
 name = "opportunity-runtime"
-version = "0.9.17"
+version = "0.9.17-1"
 dependencies = [
  "fp-rpc",
  "frame-benchmarking",
@@ -5265,7 +5265,7 @@ dependencies = [
 
 [[package]]
 name = "opportunity-standalone"
-version = "0.9.17"
+version = "0.9.17-1"
 dependencies = [
  "async-trait",
  "clap 3.1.8",
@@ -7941,7 +7941,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "0.9.17"
+version = "0.9.17-1"
 dependencies = [
  "sp-core",
  "sp-runtime",
@@ -10854,7 +10854,7 @@ checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 
 [[package]]
 name = "standard-collator"
-version = "0.9.17"
+version = "0.9.17-1"
 dependencies = [
  "clap 3.1.8",
  "cumulus-client-cli",
@@ -10936,7 +10936,7 @@ dependencies = [
 
 [[package]]
 name = "standard-runtime"
-version = "0.9.17"
+version = "0.9.17-1"
 dependencies = [
  "beefy-primitives",
  "cumulus-pallet-aura-ext",
