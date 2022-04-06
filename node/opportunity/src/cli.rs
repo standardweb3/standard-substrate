@@ -1,4 +1,19 @@
-use sc_cli::{KeySubcommand, SignCmd, VanityCmd, VerifyCmd};
+/// Available Sealing methods.
+#[cfg(feature = "manual-seal")]
+#[derive(Debug, Copy, Clone, clap::ArgEnum)]
+pub enum Sealing {
+	// Seal using rpc method.
+	Manual,
+	// Seal when transaction is executed.
+	Instant,
+}
+
+#[cfg(feature = "manual-seal")]
+impl Default for Sealing {
+	fn default() -> Sealing {
+		Sealing::Manual
+	}
+}
 
 #[allow(missing_docs)]
 #[derive(Debug, clap::Parser)]
@@ -6,6 +21,14 @@ pub struct RunCmd {
 	#[allow(missing_docs)]
 	#[clap(flatten)]
 	pub base: sc_cli::RunCmd,
+
+	/// Choose sealing method.
+	#[cfg(feature = "manual-seal")]
+	#[clap(long, arg_enum, ignore_case = true)]
+	pub sealing: Sealing,
+
+	#[clap(long)]
+	pub enable_dev_signer: bool,
 
 	/// Maximum number of logs in a query.
 	#[clap(long, default_value = "10000")]
@@ -20,11 +43,8 @@ pub struct RunCmd {
 	pub target_gas_price: u64,
 }
 
-/// An overarching CLI command definition.
-// #[derive(Debug, StructOpt)]
 #[derive(Debug, clap::Parser)]
 pub struct Cli {
-	/// Possible subcommand with parameters.
 	#[clap(subcommand)]
 	pub subcommand: Option<Subcommand>,
 
@@ -36,16 +56,7 @@ pub struct Cli {
 pub enum Subcommand {
 	/// Key management cli utilities
 	#[clap(subcommand)]
-	Key(KeySubcommand),
-
-	/// Verify a signature for a message, provided on STDIN, with a given (public or secret) key.
-	Verify(VerifyCmd),
-
-	/// Generate a seed that provides a vanity address.
-	Vanity(VanityCmd),
-
-	/// Sign a message, with a given (secret) key.
-	Sign(SignCmd),
+	Key(sc_cli::KeySubcommand),
 
 	/// Build a chain specification.
 	BuildSpec(sc_cli::BuildSpecCmd),

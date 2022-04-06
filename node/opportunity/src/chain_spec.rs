@@ -3,7 +3,7 @@ use sc_chain_spec::{ChainSpecExtension, ChainType};
 use sc_client_api::{BadBlocks, ForkBlocks};
 use serde::{Deserialize, Serialize};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
-use sp_consensus_babe::AuthorityId as BabeId;
+use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{sr25519, Pair, Public};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::{
@@ -12,7 +12,7 @@ use sp_runtime::{
 };
 
 use opportunity_runtime::{
-	wasm_binary_unwrap, AssetRegistryConfig, BabeConfig, BalancesConfig, Block, CouncilConfig,
+	wasm_binary_unwrap, AssetRegistryConfig, AuraConfig, BalancesConfig, Block, CouncilConfig,
 	DemocracyConfig, EVMConfig, ElectionsConfig, EthereumConfig, GrandpaConfig, ImOnlineConfig,
 	MaxNominations, OracleConfig, Precompiles, SessionConfig, SessionKeys, StakerStatus,
 	StakingConfig, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TechnicalMembershipConfig,
@@ -51,12 +51,17 @@ const OPPORTUNITY_PROPERTIES: &str = r#"
 const OPPORTUNITY_PROTOCOL_ID: &str = "opt";
 
 fn session_keys(
-	babe: BabeId,
 	grandpa: GrandpaId,
+	aura: AuraId,
 	im_online: ImOnlineId,
 	authority_discovery: AuthorityDiscoveryId,
 ) -> SessionKeys {
-	SessionKeys { babe, grandpa, im_online, authority_discovery }
+	SessionKeys {
+		grandpa,
+		aura,
+		im_online,
+		authority_discovery,
+	}
 }
 
 /// Helper function to generate a crypto pair from seed
@@ -66,25 +71,33 @@ pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Pu
 		.public()
 }
 
-pub fn authority_keys_from_seed(
-	seed: &str,
-) -> (AccountId, AccountId, BabeId, GrandpaId, ImOnlineId, AuthorityDiscoveryId) {
-	(
-		get_account_id_from_seed::<sr25519::Public>(&format!("{}//stash", seed)),
-		get_account_id_from_seed::<sr25519::Public>(seed),
-		get_from_seed::<BabeId>(seed),
-		get_from_seed::<GrandpaId>(seed),
-		get_from_seed::<ImOnlineId>(seed),
-		get_from_seed::<AuthorityDiscoveryId>(seed),
-	)
-}
-
 /// Helper function to generate an account ID from seed
 pub fn get_account_id_from_seed<TPublic: Public>(seed: &str) -> AccountId
 where
 	AccountPublic: From<<TPublic::Pair as Pair>::Public>,
 {
 	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
+}
+
+/// Helper function to generate stash, controller and session key from seed
+pub fn authority_keys_from_seed(
+	seed: &str,
+) -> (
+	AccountId,
+	AccountId,
+	GrandpaId,
+	AuraId,
+	ImOnlineId,
+	AuthorityDiscoveryId,
+) {
+	(
+		get_account_id_from_seed::<sr25519::Public>(&format!("{}//stash", seed)),
+		get_account_id_from_seed::<sr25519::Public>(seed),
+		get_from_seed::<GrandpaId>(seed),
+		get_from_seed::<AuraId>(seed),
+		get_from_seed::<ImOnlineId>(seed),
+		get_from_seed::<AuthorityDiscoveryId>(seed),
+	)
 }
 
 /// Opportunity Testnet Chainspec.
@@ -242,8 +255,8 @@ fn opportunity_testnet_config_genesis(
 	initial_authorities: Vec<(
 		AccountId,
 		AccountId,
-		BabeId,
 		GrandpaId,
+		AuraId,
 		ImOnlineId,
 		AuthorityDiscoveryId,
 	)>,
@@ -287,10 +300,7 @@ fn opportunity_testnet_config_genesis(
 		},
 		grandpa: GrandpaConfig::default(),
 		sudo: SudoConfig { key: Some(root_key) },
-		babe: BabeConfig {
-			authorities: Default::default(),
-			epoch_config: Some(opportunity_runtime::BABE_GENESIS_EPOCH_CONFIG),
-		},
+		aura: AuraConfig { authorities: vec![] },
 		im_online: ImOnlineConfig { keys: vec![] },
 		authority_discovery: opportunity_runtime::AuthorityDiscoveryConfig { keys: vec![] },
 		session: SessionConfig {

@@ -75,7 +75,7 @@ use primitives::{
 
 pub mod constants;
 /// Constant values used within the runtime.
-use constants::{currency::*, time::*};
+pub use constants::{currency::*, time::*};
 mod voter_bags;
 
 /// The address format for describing accounts.

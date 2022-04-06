@@ -101,7 +101,9 @@ pallet-evm-precompile-simple = { version = "2.0.0-dev", default-features = false
 fp-rpc = { version = "3.0.0-dev", default-features = false, git = "https://github.com/digitalnativeinc/frontier", branch = "release-v0.9.17" }
 
 [features]
-default = [ "std" ]
+default = ["std", "aura"]
+aura = []
+manual-seal = []
 
 std = [
 	"parity-scale-codec/std",
@@ -203,18 +205,4 @@ try-runtime = [
 	"pallet-tips/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"pallet-treasury/try-runtime"
-]
-
-# When enabled, the runtime api will not be build.
-#
-# This is required by Cumulus to access certain types of the
-# runtime without clashing with the runtime api exported functions
-# in WASM.
-# disable-runtime-api = []
-
-# A feature that should be enabled when the runtime should be build for on-chain
-# deployment. This will disable stuff that shouldn"t be part of the on-chain wasm
-# to make it smaller like logging for example.
-on-chain-release-build = [
-	"sp-api/disable-logging",
 ]
