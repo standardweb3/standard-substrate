@@ -9,8 +9,8 @@ use fc_rpc::{
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use fp_storage::EthereumStorageSchema;
 // use opportunity_runtime::{opaque::Block, AccountId, Balance, Hash, Index};
-use primitives::{AccountId, Balance, Block, Hash, Index};
 use jsonrpc_pubsub::manager::SubscriptionManager;
+use primitives::{AccountId, Balance, Block, Hash, Index};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	client::BlockchainEvents,
@@ -147,9 +147,7 @@ where
 		pool.clone(),
 		deny_unsafe,
 	)));
-	io.extend_with(TransactionPaymentApi::to_delegate(TransactionPayment::new(
-		client.clone(),
-	)));
+	io.extend_with(TransactionPaymentApi::to_delegate(TransactionPayment::new(client.clone())));
 
 	let mut signers = Vec::new();
 	if enable_dev_signer {
@@ -210,8 +208,8 @@ where
 				// send EngineCommands to the background block authorship task.
 				ManualSealApi::to_delegate(ManualSeal::new(command_sink)),
 			);
-		}
-		_ => {}
+		},
+		_ => {},
 	}
 
 	io
