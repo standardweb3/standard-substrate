@@ -1,6 +1,6 @@
 [package]
 name = "standard-collator"
-version = "0.9.17"
+version = "0.9.17-2"
 authors = [ "Digital Native Foundation" ]
 build = "build.rs"
 edition = "2021"

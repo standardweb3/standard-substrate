@@ -3,7 +3,7 @@ use sc_chain_spec::{ChainSpecExtension, ChainType};
 use sc_client_api::{BadBlocks, ForkBlocks};
 use serde::{Deserialize, Serialize};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
-use sp_consensus_babe::AuthorityId as BabeId;
+use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{sr25519, Pair, Public};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::{
@@ -12,11 +12,11 @@ use sp_runtime::{
 };
 
 use opportunity_runtime::{
-	wasm_binary_unwrap, AssetRegistryConfig, BabeConfig, BalancesConfig, Block, CouncilConfig,
-	DemocracyConfig, EVMConfig, ElectionsConfig, EthereumConfig, GrandpaConfig, ImOnlineConfig,
-	MaxNominations, OracleConfig, Precompiles, SessionConfig, SessionKeys, StakerStatus,
-	StakingConfig, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TechnicalMembershipConfig,
-	TreasuryConfig,
+	wasm_binary_unwrap, AssetRegistryConfig, AuraConfig, AuthorityDiscoveryConfig, BalancesConfig,
+	Block, CouncilConfig, DemocracyConfig, EVMConfig, ElectionsConfig, EthereumConfig,
+	GenesisConfig, GrandpaConfig, ImOnlineConfig, OracleConfig, Precompiles, SessionConfig,
+	SessionKeys, StakerStatus, StakingConfig, SudoConfig, SystemConfig, TechnicalCommitteeConfig,
+	TechnicalMembershipConfig, TreasuryConfig,
 };
 use primitives::{AccountId, AssetId, Balance, Signature};
 
@@ -51,12 +51,12 @@ const OPPORTUNITY_PROPERTIES: &str = r#"
 const OPPORTUNITY_PROTOCOL_ID: &str = "opt";
 
 fn session_keys(
-	babe: BabeId,
 	grandpa: GrandpaId,
+	aura: AuraId,
 	im_online: ImOnlineId,
 	authority_discovery: AuthorityDiscoveryId,
 ) -> SessionKeys {
-	SessionKeys { babe, grandpa, im_online, authority_discovery }
+	SessionKeys { grandpa, aura, im_online, authority_discovery }
 }
 
 /// Helper function to generate a crypto pair from seed
@@ -66,25 +66,26 @@ pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Pu
 		.public()
 }
 
-pub fn authority_keys_from_seed(
-	seed: &str,
-) -> (AccountId, AccountId, BabeId, GrandpaId, ImOnlineId, AuthorityDiscoveryId) {
-	(
-		get_account_id_from_seed::<sr25519::Public>(&format!("{}//stash", seed)),
-		get_account_id_from_seed::<sr25519::Public>(seed),
-		get_from_seed::<BabeId>(seed),
-		get_from_seed::<GrandpaId>(seed),
-		get_from_seed::<ImOnlineId>(seed),
-		get_from_seed::<AuthorityDiscoveryId>(seed),
-	)
-}
-
 /// Helper function to generate an account ID from seed
 pub fn get_account_id_from_seed<TPublic: Public>(seed: &str) -> AccountId
 where
 	AccountPublic: From<<TPublic::Pair as Pair>::Public>,
 {
 	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
+}
+
+/// Helper function to generate stash, controller and session key from seed
+pub fn authority_keys_from_seed(
+	seed: &str,
+) -> (AccountId, AccountId, GrandpaId, AuraId, ImOnlineId, AuthorityDiscoveryId) {
+	(
+		get_account_id_from_seed::<sr25519::Public>(&format!("{}//stash", seed)),
+		get_account_id_from_seed::<sr25519::Public>(seed),
+		get_from_seed::<GrandpaId>(seed),
+		get_from_seed::<AuraId>(seed),
+		get_from_seed::<ImOnlineId>(seed),
+		get_from_seed::<AuthorityDiscoveryId>(seed),
+	)
 }
 
 /// Opportunity Testnet Chainspec.
@@ -108,8 +109,6 @@ pub fn opportunity_standalone_config() -> Result<ChainSpec, String> {
 			opportunity_testnet_config_genesis(
 				// Initial authorities
 				vec![authority_keys_from_seed("Alice")],
-				// Initial nominators
-				vec![],
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
 				// Pre-funded accounts
@@ -161,8 +160,6 @@ pub fn development_config() -> Result<ChainSpec, String> {
 			opportunity_testnet_config_genesis(
 				// Initial authorities
 				vec![authority_keys_from_seed("Alice")],
-				// Initial nominators
-				vec![],
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
 				// Pre-funded accounts
@@ -171,55 +168,6 @@ pub fn development_config() -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
 					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
 					get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-				],
-			)
-		},
-		// Bootnodes
-		boot_nodes,
-		// Telemetry
-		None,
-		// Protocol ID
-		None,
-		// Fork ID
-		None,
-		// Properties
-		None,
-		// Extensions
-		Default::default(),
-	))
-}
-
-pub fn local_testnet_config() -> Result<ChainSpec, String> {
-	let boot_nodes = vec![];
-
-	Ok(ChainSpec::from_genesis(
-		// Name
-		"Local Testnet",
-		// ID
-		"local_testnet",
-		ChainType::Local,
-		move || {
-			opportunity_testnet_config_genesis(
-				// Initial authorities
-				vec![authority_keys_from_seed("Alice")],
-				// Initial nominators
-				vec![],
-				// Sudo account
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				// Pre-funded accounts
-				vec![
-					get_account_id_from_seed::<sr25519::Public>("Alice"),
-					get_account_id_from_seed::<sr25519::Public>("Bob"),
-					get_account_id_from_seed::<sr25519::Public>("Charlie"),
-					get_account_id_from_seed::<sr25519::Public>("Dave"),
-					get_account_id_from_seed::<sr25519::Public>("Eve"),
-					get_account_id_from_seed::<sr25519::Public>("Ferdie"),
-					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
-					get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-					get_account_id_from_seed::<sr25519::Public>("Charlie//stash"),
-					get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
-					get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
-					get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
 				],
 			)
 		},
@@ -242,57 +190,34 @@ fn opportunity_testnet_config_genesis(
 	initial_authorities: Vec<(
 		AccountId,
 		AccountId,
-		BabeId,
 		GrandpaId,
+		AuraId,
 		ImOnlineId,
 		AuthorityDiscoveryId,
 	)>,
-	initial_nominators: Vec<AccountId>,
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
-) -> opportunity_runtime::GenesisConfig {
+) -> GenesisConfig {
 	const MILLICENTS: Balance = 1_000_000_000;
 	const CENTS: Balance = 1_000 * MILLICENTS;
 	const DOLLARS: Balance = 100 * CENTS;
 	const ENDOWMENT: Balance = 10_000_000 * DOLLARS;
 	const STASH: Balance = ENDOWMENT / 1000;
-	// stakers: all validators and nominators.
-	let mut rng = rand::thread_rng();
-	let stakers = initial_authorities
-		.iter()
-		.map(|x| (x.0.clone(), x.1.clone(), STASH, StakerStatus::Validator))
-		.chain(initial_nominators.iter().map(|x| {
-			use rand::{seq::SliceRandom, Rng};
-			let limit = (MaxNominations::get() as usize).min(initial_authorities.len());
-			let count = rng.gen::<usize>() % limit;
-			let nominations = initial_authorities
-				.as_slice()
-				.choose_multiple(&mut rng, count)
-				.into_iter()
-				.map(|choice| choice.0.clone())
-				.collect::<Vec<_>>();
-			(x.clone(), x.clone(), STASH, StakerStatus::Nominator(nominations))
-		}))
-		.collect::<Vec<_>>();
 	// This is supposed the be the simplest bytecode to revert without returning any data.
 	// We will pre-deploy it under all of our precompiles to ensure they can be called from
 	// within contracts.
 	// (PUSH1 0x00 PUSH1 0x00 REVERT)
 	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
-
-	opportunity_runtime::GenesisConfig {
+	GenesisConfig {
 		system: SystemConfig { code: wasm_binary_unwrap().to_vec() },
 		balances: BalancesConfig {
 			balances: endowed_accounts.iter().cloned().map(|k| (k, 1 << 60)).collect(),
 		},
-		grandpa: GrandpaConfig::default(),
+		aura: AuraConfig { authorities: vec![] },
+		grandpa: GrandpaConfig { authorities: vec![] },
 		sudo: SudoConfig { key: Some(root_key) },
-		babe: BabeConfig {
-			authorities: Default::default(),
-			epoch_config: Some(opportunity_runtime::BABE_GENESIS_EPOCH_CONFIG),
-		},
 		im_online: ImOnlineConfig { keys: vec![] },
-		authority_discovery: opportunity_runtime::AuthorityDiscoveryConfig { keys: vec![] },
+		authority_discovery: AuthorityDiscoveryConfig { keys: vec![] },
 		session: SessionConfig {
 			keys: initial_authorities
 				.iter()
@@ -310,7 +235,10 @@ fn opportunity_testnet_config_genesis(
 			minimum_validator_count: initial_authorities.len() as u32,
 			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
 			slash_reward_fraction: Perbill::from_percent(10),
-			stakers,
+			stakers: initial_authorities
+				.iter()
+				.map(|x| (x.0.clone(), x.1.clone(), STASH, StakerStatus::Validator))
+				.collect(),
 			..Default::default()
 		},
 		asset_registry: AssetRegistryConfig {

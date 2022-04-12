@@ -54,7 +54,6 @@ impl SubstrateCli for Cli {
 			"dev" => Box::new(chain_spec::development_config()?),
 			"" | "opportunity" => Box::new(chain_spec::opportunity_config()?),
 			"opportunity_local" => Box::new(chain_spec::opportunity_standalone_config()?),
-			"local" => Box::new(chain_spec::local_testnet_config()?),
 			path =>
 				Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 		})
@@ -71,9 +70,6 @@ pub fn run() -> sc_cli::Result<()> {
 
 	match &cli.subcommand {
 		Some(Subcommand::Key(cmd)) => cmd.run(&cli),
-		Some(Subcommand::Sign(cmd)) => cmd.run(),
-		Some(Subcommand::Verify(cmd)) => cmd.run(),
-		Some(Subcommand::Vanity(cmd)) => cmd.run(),
 		Some(Subcommand::BuildSpec(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.sync_run(|config| cmd.run(config.chain_spec, config.network))
