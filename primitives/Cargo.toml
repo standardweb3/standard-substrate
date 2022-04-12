@@ -1,7 +1,7 @@
 [package]
 name = "primitives"
 description = "interfaces in runtime modules to interact between them in Standard substrate implementation"
-version = "0.9.17-1"
+version = "0.9.17-2"
 authors = ["Standard Tech"]
 edition = "2021"
 

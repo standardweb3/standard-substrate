@@ -1,6 +1,6 @@
 [package]
 name = "standard-runtime"
-version = "0.9.17-1"
+version = "0.9.17-2"
 authors = [ "Digital Native Foundation" ]
 edition = "2021"
 homepage = "https://standard.tech"
