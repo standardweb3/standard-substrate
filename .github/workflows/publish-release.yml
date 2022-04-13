@@ -25,6 +25,14 @@ on:
         description: "Whether to push notifications for channels"
         required: true
         default: false
+      binary-release-id:
+        description: "Optional workflow run ID for binaries"
+        required: false
+        default: false
+      runtime-release-id:
+        description: "Optional workflow run ID for binaries"
+        required: false
+        default: false
 
 jobs:
   on-success:
@@ -41,6 +49,7 @@ jobs:
           branch: master
           workflow: binary-build.yml
           workflow_conclusion: success
+          run_id: ${{ github.event.inputs.binary-release-id }}
 
       - name: Download runtime artifact
         uses: dawidd6/action-download-artifact@v2
@@ -48,6 +57,7 @@ jobs:
           branch: master
           workflow: runtime-build.yml
           workflow_conclusion: success
+          run_id: ${{ github.event.inputs.runtime-release-id }}
 
       - name: Display structure of downloaded files
         run: ls -R
