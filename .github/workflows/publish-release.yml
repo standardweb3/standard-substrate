@@ -21,6 +21,10 @@ on:
         description: "Whether to publish pre-release"
         required: true
         default: true
+      push-notification:
+        description: "Whether to push notifications for channels"
+        required: true
+        default: false
 
 jobs:
   on-success:
@@ -85,7 +89,7 @@ jobs:
 
       - name: Public Discord notification
         uses: Ilshidur/action-discord@0.3.2
-        if: ${{ github.event.inputs.pre-release == 'false' && github.ref == 'refs/heads/master' }}
+        if: ${{ github.event.inputs.pre-release == 'false' && github.event.inputs.push-notification == 'true' }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         with:
@@ -95,18 +99,9 @@ jobs:
             Information: ${{ github.event.inputs.message }}
             Link: ${{ steps.release-step.outputs.html_url }}"
 
-      # - name: Public Telegram notification
-      #   uses: appleboy/telegram-action@0.1.1
-      #   with:
-      #     to: ${{ secrets.TELEGRAM_TOKEN }}
-      #     token: ${{ secrets.TELEGRAM_TOKEN }}
-      #     message: |
-      #       "New release in ${{ github.repository }} - ${{ github.event.inputs.release-name }}".
-      #       Details: ${{ steps.release-step.outputs.html_url }}"
-
       - name: Internal Slack Notification
         uses: bryannice/gitactions-slack-notification@2.0.0
-        if: github.ref == 'refs/heads/master'
+        if: ${{ github.event.inputs.pre-release == 'false' && github.event.inputs.push-notification == 'true' }}
         env:
           SLACK_INCOMING_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_MESSAGE: "Details: ${{ steps.release-step.outputs.html_url }}"
