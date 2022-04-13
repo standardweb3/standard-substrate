@@ -26,11 +26,11 @@ on:
         required: true
         default: false
       binary-release-id:
-        description: "Optional workflow run ID for binaries"
+        description: "Optional workflow run ID for binaries from which to pull artifacts"
         required: false
         default: false
       runtime-release-id:
-        description: "Optional workflow run ID for binaries"
+        description: "Optional workflow run ID for runtimes from which to pull artifacts"
         required: false
         default: false
 
