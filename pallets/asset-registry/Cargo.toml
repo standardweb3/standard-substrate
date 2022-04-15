@@ -19,7 +19,7 @@ codec = { package = "parity-scale-codec", version = "2.0.0", default-features = 
 primitive-types = {default-features = false, version = "0.10.1" }
 serde = {features = ["derive"], optional = true, version = "1.0.133" }
 primitives = {path = "../../primitives", default-features = false }
-scale-info = { version = "1.0.0", default-features = false, features = ["derive"] }
+scale-info = { version = "2.1.1", default-features = false, features = ["derive"] }
 
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false, version = "4.0.0-dev" }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false, version = "4.0.0-dev" }
