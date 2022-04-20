@@ -15,6 +15,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use frame_benchmarking_cli::*;
+
 use crate::{
 	chain_spec,
 	cli::{Cli, Subcommand},
@@ -23,6 +25,7 @@ use crate::{
 use primitives::Block;
 use sc_cli::{ChainSpec, RuntimeVersion, SubstrateCli};
 use sc_service::PartialComponents;
+use opportunity_runtime::RuntimeApi;
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
@@ -110,24 +113,59 @@ pub fn run() -> sc_cli::Result<()> {
 			let runner = cli.create_runner(cmd)?;
 			runner.sync_run(|config| cmd.run(config.database))
 		},
-		Some(Subcommand::Revert(cmd)) => {
+		Some(Subcommand::Inspect(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|config| {
-				let PartialComponents { client, task_manager, backend, .. } =
-					service::new_partial(&config, &cli)?;
-				Ok((cmd.run(client, backend), task_manager))
-			})
+
+			runner.sync_run(|config| cmd.run::<Block, RuntimeApi, service::ExecutorDispatch>(config))
 		},
-		Some(Subcommand::Benchmark(cmd)) =>
+		// Some(Subcommand::Benchmark(cmd)) => {
+		// 	let runner = cli.create_runner(cmd)?;
+
+		// 	runner.sync_run(|config| {
+		// 		let PartialComponents { client, backend, .. } = service::new_partial(&config, &cli)?;
+
+		// 		// This switch needs to be in the client, since the client decides
+		// 		// which sub-commands it wants to support.
+		// 		match cmd {
+		// 			BenchmarkCmd::Pallet(cmd) => {
+		// 				if !cfg!(feature = "runtime-benchmarks") {
+		// 					return Err(
+		// 						"Runtime benchmarking wasn't enabled when building the node. \
+		// 					You can enable it with `--features runtime-benchmarks`."
+		// 							.into(),
+		// 					)
+		// 				}
+
+		// 				cmd.run::<Block, service::ExecutorDispatch>(config)
+		// 			},
+		// 			BenchmarkCmd::Block(cmd) => cmd.run(client),
+		// 		}
+		// 	})
+		// },
+		Some(Subcommand::Benchmark(cmd)) => {
 			if cfg!(feature = "runtime-benchmarks") {
 				let runner = cli.create_runner(cmd)?;
 
 				runner.sync_run(|config| cmd.run::<Block, service::ExecutorDispatch>(config))
 			} else {
-				Err("Benchmarking wasn't enabled when building the node. \
-				You can enable it with `--features runtime-benchmarks`."
-					.into())
-			},
+				Err(
+					"Benchmarking wasn't enabled when building the node. You can enable it with `--features runtime-benchmarks`."
+						.into(),
+				)
+			}
+		},
+		Some(Subcommand::Revert(cmd)) => {
+			let runner = cli.create_runner(cmd)?;
+			runner.async_run(|config| {
+				let PartialComponents { client, task_manager, backend, .. } =
+					service::new_partial(&config, &cli)?;
+				let aux_revert = Box::new(move |client, _, blocks| {
+					sc_finality_grandpa::revert(client, blocks)?;
+					Ok(())
+				});
+				Ok((cmd.run(client, backend, Some(aux_revert)), task_manager))
+			})
+		},
 		None => {
 			let runner = cli.create_runner(&cli.run.base)?;
 			runner.run_node_until_exit(|config| async move {
