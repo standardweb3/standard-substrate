@@ -21,19 +21,17 @@
 
 use crate::service::FullClient;
 use opportunity_runtime::{
-	BlockHashCount, Call, Runtime, SignedExtra, SignedPayload, SystemCall,
-	UncheckedExtrinsic, VERSION,
+	BlockHashCount, Call, Runtime, SignedExtra, SignedPayload, SystemCall, UncheckedExtrinsic,
+	VERSION,
 };
-use primitives::{
-	Signature,
-};
+use primitives::Signature;
 use sc_cli::Result;
+use sc_client_api::BlockBackend;
+use sp_core::{Encode, Pair};
 use sp_inherents::{InherentData, InherentDataProvider};
 use sp_keyring::Sr25519Keyring;
 use sp_runtime::{OpaqueExtrinsic, SaturatedConversion};
 use std::{sync::Arc, time::Duration};
-use sc_client_api::BlockBackend;
-use sp_core::{Encode, Pair};
 
 /// Generates extrinsics for the `benchmark overhead` command.
 pub struct BenchmarkExtrinsicBuilder {
@@ -105,15 +103,7 @@ pub fn create_benchmark_extrinsic(
 	let raw_payload = SignedPayload::from_raw(
 		call.clone(),
 		extra.clone(),
-		(
-			VERSION.spec_version,
-			VERSION.transaction_version,
-			genesis_hash,
-			best_hash,
-			(),
-			(),
-			(),
-		),
+		(VERSION.spec_version, VERSION.transaction_version, genesis_hash, best_hash, (), (), ()),
 	);
 	let signature = raw_payload.using_encoded(|e| sender.sign(e));
 

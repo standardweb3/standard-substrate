@@ -3,11 +3,11 @@
 #![recursion_limit = "256"]
 
 use frame_support::{
-	construct_runtime, match_type, parameter_types,
-	traits::{ConstU128, ConstU32, EqualPrivilegeOnly, Everything, FindAuthor, Nothing},
+	construct_runtime, match_types, parameter_types,
+	traits::{ConstU128, ConstU32, EqualPrivilegeOnly, Everything, FindAuthor},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, WEIGHT_PER_SECOND},
-		DispatchClass, IdentityFee, Weight,
+		ConstantMultiplier, DispatchClass, IdentityFee, Weight,
 	},
 	ConsensusEngineId, PalletId,
 };
@@ -27,7 +27,7 @@ use sp_runtime::{
 		Verify,
 	},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, Perbill, Permill, RuntimeAppPublic,
+	ApplyExtrinsicResult, FixedPointNumber, Perbill, Permill, Perquintill, RuntimeAppPublic,
 };
 use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(any(feature = "std", test))]
@@ -46,20 +46,28 @@ use xcm_builder::{
 	UsingComponents,
 };
 use xcm_executor::{Config, XcmExecutor};
-
-pub use pallet_balances::Call as BalancesCall;
-pub use pallet_timestamp::Call as TimestampCall;
-pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-#[cfg(any(feature = "std", test))]
-pub use sp_runtime::BuildStorage;
-
+// CurrencyAdapter,
 use fp_rpc::TransactionStatus;
 use pallet_ethereum::{Call::transact, Transaction as EthereumTransaction};
 use pallet_evm::{Account as EVMAccount, EnsureAddressTruncated, HashedAddressMapping, Runner};
+use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
+pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 
 use primitives::{
 	AccountId, AccountIndex, AssetId, Balance, BlockNumber, Hash, Header, Index, Signature,
 };
+
+// A few exports that help ease life for downstream crates.
+#[cfg(any(feature = "std", test))]
+pub use frame_system::Call as SystemCall;
+#[cfg(any(feature = "std", test))]
+pub use pallet_balances::Call as BalancesCall;
+#[cfg(any(feature = "std", test))]
+pub use pallet_staking::StakerStatus;
+#[cfg(any(feature = "std", test))]
+pub use pallet_timestamp::Call as TimestampCall;
+#[cfg(any(feature = "std", test))]
+pub use sp_runtime::BuildStorage;
 
 /// Constant values used within the runtime.
 pub mod constants;
@@ -402,18 +410,18 @@ parameter_types! {
 	pub const MaxInstructions: u32 = 100;
 }
 
-match_type! {
-	pub type ParentOrParentsExecutivePlurality: impl Contains<MultiLocation> = {
+match_types! {
+	pub type ParentOrParentsUnitPlurality: impl Contains<MultiLocation> = {
 		MultiLocation { parents: 1, interior: Here } |
-		MultiLocation { parents: 1, interior: X1(Plurality { id: BodyId::Executive, .. }) }
+		MultiLocation { parents: 1, interior: X1(Plurality { id: BodyId::Unit, .. }) }
 	};
 }
 
 pub type Barrier = (
 	TakeWeightCredit,
 	AllowTopLevelPaidExecutionFrom<Everything>,
-	AllowUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
-	// ^^^ Parent and its exec plurality get free execution
+	AllowUnpaidExecutionFrom<ParentOrParentsUnitPlurality>,
+	// ^^^ Parent & its unit plurality gets free execution
 );
 
 pub struct XcmConfig;
@@ -424,15 +432,15 @@ impl Config for XcmConfig {
 	type AssetTransactor = LocalAssetTransactor;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	type IsReserve = NativeAsset;
-	type IsTeleporter = (); // Teleporting is disabled.
+	type IsTeleporter = NativeAsset; // <- should be enough to allow teleportation of UNIT
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 	type Trader = UsingComponents<IdentityFee<Balance>, RelayLocation, AccountId, Balances, ()>;
-	type ResponseHandler = PolkadotXcm;
-	type AssetTrap = PolkadotXcm;
-	type AssetClaims = PolkadotXcm;
-	type SubscriptionService = PolkadotXcm;
+	type ResponseHandler = XcmPallet;
+	type AssetTrap = XcmPallet;
+	type AssetClaims = XcmPallet;
+	type SubscriptionService = XcmPallet;
 }
 
 /// No local origins on this chain are allowed to dispatch XCM sends/executions.
@@ -452,12 +460,10 @@ impl pallet_xcm::Config for Runtime {
 	type SendXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
 	type ExecuteXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
-	type XcmExecuteFilter = Nothing;
-	// ^ Disable dispatchable execute on the XCM pallet.
-	// Needs to be `Everything` for local testing.
+	type XcmExecuteFilter = Everything;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = Everything;
-	type XcmReserveTransferFilter = Nothing;
+	type XcmReserveTransferFilter = Everything;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Origin = Origin;
@@ -476,16 +482,17 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type ChannelInfo = ParachainSystem;
-	type VersionWrapper = ();
+	type VersionWrapper = XcmPallet;
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 	type ControllerOrigin = EnsureRoot<AccountId>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
+	type WeightInfo = cumulus_pallet_xcmp_queue::weights::SubstrateWeight<Self>;
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
-	type ExecuteOverweightOrigin = frame_system::EnsureRoot<AccountId>;
+	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
 impl pallet_aura::Config for Runtime {
@@ -583,18 +590,20 @@ impl pallet_standard_vault::Config for Runtime {
 }
 
 parameter_types! {
-	pub const TransactionByteFee: u128 = 1 * MICROSTD;
-	/// This value increases the priority of `Operational` transactions by adding
-	/// a "virtual tip" that's equal to the `OperationalFeeMultiplier * final_fee`.
+	pub const TransactionByteFee: Balance = 1;
 	pub const OperationalFeeMultiplier: u8 = 5;
+	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
+	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(1, 100_000);
+	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000_000u128);
 }
 
 impl pallet_transaction_payment::Config for Runtime {
 	type OnChargeTransaction = pallet_transaction_payment::CurrencyAdapter<Balances, ()>;
-	type TransactionByteFee = TransactionByteFee;
 	type OperationalFeeMultiplier = OperationalFeeMultiplier;
 	type WeightToFee = IdentityFee<Balance>;
-	type FeeMultiplierUpdate = ();
+	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
+	type FeeMultiplierUpdate =
+		TargetedFeeAdjustment<Self, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
 }
 
 impl pallet_sudo::Config for Runtime {
@@ -622,7 +631,7 @@ parameter_types! {
 
 impl pallet_standard_chainbridge::Config for Runtime {
 	type Event = Event;
-	type AdminOrigin = frame_system::EnsureRoot<Self::AccountId>;
+	type AdminOrigin = EnsureRoot<AccountId>;
 	type Proposal = Call;
 	type BridgeChainId = BridgeChainId;
 	type ProposalLifetime = ProposalLifetime;
@@ -760,7 +769,7 @@ construct_runtime!(
 		Indices: pallet_indices::{Pallet, Call, Storage, Event<T>} = 25,
 		// XCM pallets
 		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>} = 30,
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin} = 31,
+		XcmPallet: pallet_xcm::{Pallet, Call, Event<T>, Origin} = 31,
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Call, Event<T>, Origin} = 32,
 		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 33,
 		// Standard pallets

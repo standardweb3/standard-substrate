@@ -146,6 +146,7 @@ std = [
 	"pallet-democracy/std",
 	"pallet-im-online/std",
 	"pallet-elections-phragmen/std",
+	"pallet-election-provider-multi-phase/std",
 	"pallet-transaction-payment/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-asset-registry/std",
@@ -168,7 +169,6 @@ std = [
 	"pallet-evm-precompile-sha3fips/std",
 	"pallet-evm-precompile-modexp/std",
 	"pallet-base-fee/std",
-	"pallet-election-provider-multi-phase/std",
 ]
 
 runtime-benchmarks = [
