@@ -19,15 +19,21 @@
 //! Contains code to setup the command invocations in [`super::command`] which would
 //! otherwise bloat that module.
 
-use crate::service::{FullClient};
-
-use opportunity_runtime::SystemCall;
+use crate::service::FullClient;
+use opportunity_runtime::{
+	BlockHashCount, Call, Runtime, SignedExtra, SignedPayload, SystemCall,
+	UncheckedExtrinsic, VERSION,
+};
+use primitives::{
+	Signature,
+};
 use sc_cli::Result;
 use sp_inherents::{InherentData, InherentDataProvider};
 use sp_keyring::Sr25519Keyring;
-use sp_runtime::OpaqueExtrinsic;
-
+use sp_runtime::{OpaqueExtrinsic, SaturatedConversion};
 use std::{sync::Arc, time::Duration};
+use sc_client_api::BlockBackend;
+use sp_core::{Encode, Pair};
 
 /// Generates extrinsics for the `benchmark overhead` command.
 pub struct BenchmarkExtrinsicBuilder {
@@ -41,6 +47,21 @@ impl BenchmarkExtrinsicBuilder {
 	}
 }
 
+impl frame_benchmarking_cli::ExtrinsicBuilder for BenchmarkExtrinsicBuilder {
+	fn remark(&self, nonce: u32) -> std::result::Result<OpaqueExtrinsic, &'static str> {
+		let acc = Sr25519Keyring::Bob.pair();
+		let extrinsic: OpaqueExtrinsic = create_benchmark_extrinsic(
+			self.client.as_ref(),
+			acc,
+			SystemCall::remark { remark: vec![] }.into(),
+			nonce,
+		)
+		.into();
+
+		Ok(extrinsic)
+	}
+}
+
 /// Generates inherent data for the `benchmark overhead` command.
 pub fn inherent_benchmark_data() -> Result<InherentData> {
 	let mut inherent_data = InherentData::new();
@@ -51,4 +72,55 @@ pub fn inherent_benchmark_data() -> Result<InherentData> {
 		.provide_inherent_data(&mut inherent_data)
 		.map_err(|e| format!("creating inherent data: {:?}", e))?;
 	Ok(inherent_data)
+}
+
+/// Create a transaction using the given `call`.
+///
+/// Note: Should only be used for benchmarking.
+pub fn create_benchmark_extrinsic(
+	client: &FullClient,
+	sender: sp_core::sr25519::Pair,
+	call: Call,
+	nonce: u32,
+) -> UncheckedExtrinsic {
+	let genesis_hash = client.block_hash(0).ok().flatten().expect("Genesis block exists; qed");
+	let best_hash = client.chain_info().best_hash;
+	let best_block = client.chain_info().best_number;
+
+	let period =
+		BlockHashCount::get().checked_next_power_of_two().map(|c| c / 2).unwrap_or(2) as u64;
+	let extra: SignedExtra = (
+		frame_system::CheckSpecVersion::<Runtime>::new(),
+		frame_system::CheckTxVersion::<Runtime>::new(),
+		frame_system::CheckGenesis::<Runtime>::new(),
+		frame_system::CheckEra::<Runtime>::from(sp_runtime::generic::Era::mortal(
+			period,
+			best_block.saturated_into(),
+		)),
+		frame_system::CheckNonce::<Runtime>::from(nonce),
+		frame_system::CheckWeight::<Runtime>::new(),
+		pallet_transaction_payment::ChargeTransactionPayment::<Runtime>::from(0),
+	);
+
+	let raw_payload = SignedPayload::from_raw(
+		call.clone(),
+		extra.clone(),
+		(
+			VERSION.spec_version,
+			VERSION.transaction_version,
+			genesis_hash,
+			best_hash,
+			(),
+			(),
+			(),
+		),
+	);
+	let signature = raw_payload.using_encoded(|e| sender.sign(e));
+
+	UncheckedExtrinsic::new_signed(
+		call.clone(),
+		sp_runtime::AccountId32::from(sender.public()).into(),
+		Signature::Sr25519(signature.clone()),
+		extra.clone(),
+	)
 }

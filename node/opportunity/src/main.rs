@@ -3,8 +3,8 @@ mod chain_spec;
 mod service;
 mod cli;
 mod command;
-mod rpc;
 mod command_helper;
+mod rpc;
 
 fn main() -> sc_cli::Result<()> {
 	command::run()
