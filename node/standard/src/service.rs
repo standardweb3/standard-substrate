@@ -22,6 +22,7 @@ use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
 use fc_rpc::EthTask;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use futures::StreamExt;
+use polkadot_service::CollatorPair;
 use sc_client_api::{BlockchainEvents, ExecutorProvider};
 use sc_executor::NativeElseWasmExecutor;
 use sc_network::NetworkService;
@@ -38,7 +39,6 @@ use std::{
 	time::Duration,
 };
 use substrate_prometheus_endpoint::Registry;
-use polkadot_service::CollatorPair;
 
 /// Native executor instance.
 pub struct StandardRuntimeExecutor;
