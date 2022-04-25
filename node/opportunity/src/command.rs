@@ -15,8 +15,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use frame_benchmarking_cli::*;
-
 use crate::{
 	chain_spec,
 	cli::{Cli, Subcommand},
