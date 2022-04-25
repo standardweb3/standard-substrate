@@ -19,7 +19,7 @@ hex-literal = { version = "0.3.4", optional = true }
 parity-scale-codec = { version = "3.0.0", default-features = false, features = ["derive"] }
 log = { version = "0.4.14", default-features = false }
 serde = { version = "1.0.136", optional = true, features = ["derive"] }
-scale-info = { version = "2.0.1", default-features = false, features = ["derive"] }
+scale-info = { version = "2.1.1", default-features = false, features = ["derive"] }
 smallvec = "1.8.0"
 
 # Local Dependencies

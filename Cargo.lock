@@ -416,9 +416,9 @@ dependencies = [
 
 [[package]]
 name = "base-x"
-version = "0.2.8"
+version = "0.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4521f3e3d031370679b3b140beb36dfe4801b09ac77e30c61941f97df3ef28b"
+checksum = "dc19a4937b4fbd3fe3379793130e42060d10627a360f2127802b10b87e7baf74"
 
 [[package]]
 name = "base16ct"
@@ -2312,7 +2312,7 @@ dependencies = [
  "impl-codec",
  "impl-rlp",
  "impl-serde",
- "primitive-types 0.11.1",
+ "primitive-types",
  "scale-info",
  "uint",
 ]
@@ -2337,7 +2337,7 @@ dependencies = [
  "evm-runtime",
  "log",
  "parity-scale-codec",
- "primitive-types 0.11.1",
+ "primitive-types",
  "rlp",
  "scale-info",
  "serde",
@@ -2351,7 +2351,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9d4537041d3a3438d59b2d01bd950ce89fb1ccb3cf21d9331193c10be12e849f"
 dependencies = [
  "parity-scale-codec",
- "primitive-types 0.11.1",
+ "primitive-types",
  "scale-info",
  "serde",
 ]
@@ -2365,7 +2365,7 @@ dependencies = [
  "environmental",
  "evm-core",
  "evm-runtime",
- "primitive-types 0.11.1",
+ "primitive-types",
 ]
 
 [[package]]
@@ -2377,7 +2377,7 @@ dependencies = [
  "auto_impl",
  "environmental",
  "evm-core",
- "primitive-types 0.11.1",
+ "primitive-types",
  "sha3 0.10.1",
 ]
 
@@ -5666,7 +5666,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "parity-scale-codec",
- "primitive-types 0.10.1",
+ "primitive-types",
  "primitives",
  "scale-info",
  "serde",
@@ -6115,7 +6115,7 @@ dependencies = [
  "pallet-balances",
  "pallet-timestamp",
  "parity-scale-codec",
- "primitive-types 0.11.1",
+ "primitive-types",
  "rlp",
  "scale-info",
  "serde",
@@ -6837,7 +6837,7 @@ dependencies = [
  "lru 0.7.5",
  "parity-util-mem-derive",
  "parking_lot 0.12.0",
- "primitive-types 0.11.1",
+ "primitive-types",
  "smallvec",
  "winapi 0.3.9",
 ]
@@ -8282,16 +8282,6 @@ checksum = "eb9f9e6e233e5c4a35559a617bf40a4ec447db2e84c20b55a6f83167b7e57872"
 
 [[package]]
 name = "primitive-types"
-version = "0.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05e4722c697a58a99d5d06a08c30821d7c082a4632198de1eaa5a6c22ef42373"
-dependencies = [
- "fixed-hash",
- "uint",
-]
-
-[[package]]
-name = "primitive-types"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e28720988bff275df1f51b171e1b2a18c30d194c4d2b61defdacecd625a5d94a"
@@ -8635,18 +8625,18 @@ dependencies = [
 
 [[package]]
 name = "ref-cast"
-version = "1.0.6"
+version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "300f2a835d808734ee295d45007adacb9ebb29dd3ae2424acfa17930cae541da"
+checksum = "685d58625b6c2b83e4cc88a27c4bf65adb7b6b16dbdc413e515c9405b47432ab"
 dependencies = [
  "ref-cast-impl",
 ]
 
 [[package]]
 name = "ref-cast-impl"
-version = "1.0.6"
+version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c38e3aecd2b21cb3959637b883bb3714bc7e43f0268b9a29d3743ee3e55cdd2"
+checksum = "a043824e29c94169374ac5183ac0ed43f5724dc4556b19568007486bd840fa1f"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -10743,7 +10733,7 @@ dependencies = [
  "parity-scale-codec",
  "parity-util-mem",
  "parking_lot 0.12.0",
- "primitive-types 0.11.1",
+ "primitive-types",
  "rand 0.7.3",
  "regex",
  "scale-info",
@@ -10987,7 +10977,7 @@ source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.19#17
 dependencies = [
  "impl-trait-for-tuples",
  "parity-scale-codec",
- "primitive-types 0.11.1",
+ "primitive-types",
  "sp-externalities",
  "sp-runtime-interface-proc-macro",
  "sp-std",

@@ -21,7 +21,7 @@ serde = { version = "1.0.136", optional = true, features = ["derive"] }
 hex-literal = { version = "0.3.4", optional = true }
 smallvec = "1.8.0"
 static_assertions = "1.1.0"
-scale-info = { version = "2.0.1", default-features = false, features = ["derive"] }
+scale-info = { version = "2.1.1", default-features = false, features = ["derive"] }
 log = { version = "0.4.14", default-features = false }
 
 # Local Dependencies
