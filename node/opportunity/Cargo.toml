@@ -31,7 +31,7 @@ runtime-benchmarks = [
 [dependencies]
 async-trait = "0.1"
 clap = { version = "3.1.6", features = ["derive"] }
-rand = "0.7.2"
+rand = "0.8.5"
 structopt = "0.3.8"
 codec = { package = "parity-scale-codec", version = "3.0.0" }
 serde = { version = "1.0.136", features = ["derive"] }
