@@ -14,8 +14,8 @@ targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
 static_assertions = "1.1.0"
-serde = { version = "1.0.133", optional = true }
-codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = ["derive"] }
+serde = { version = "1.0.136", optional = true }
+codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false, features = ["derive"] }
 sp-std = { version = "4.0.0-dev", default-features = false, path = "../../primitives/std" }
 sp-io ={ version = "4.0.0-dev", default-features = false, path = "../../primitives/io" }
 sp-runtime = { version = "4.0.0-dev", default-features = false, path = "../../primitives/runtime" }
@@ -35,7 +35,7 @@ rand_chacha = { version = "0.2", default-features = false, optional = true }
 
 [dev-dependencies]
 sp-storage = { version = "4.0.0-dev", path = "../../primitives/storage" }
-sp-tracing = { version = "4.0.0-dev", path = "../../primitives/tracing" }
+sp-tracing = { version = "5.0.0", path = "../../primitives/tracing" }
 sp-core = { version = "4.0.0-dev", path = "../../primitives/core" }
 pallet-balances = { version = "4.0.0-dev", path = "../balances" }
 pallet-timestamp = { version = "4.0.0-dev", path = "../timestamp" }

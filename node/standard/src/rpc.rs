@@ -168,7 +168,6 @@ where
 		overrides.clone(),
 		frontier_backend.clone(),
 		is_authority,
-		max_past_logs.clone(),
 		block_data_cache.clone(),
 		fee_history_limit,
 		fee_history_cache,

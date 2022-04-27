@@ -96,7 +96,7 @@ jobs:
           mv ./target/release/standard-collator ./standard-collator-${{ steps.arch.outputs.DETAILS }}
 
       - name: Upload Artifacts - ${{ matrix.os }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3.0.0
         with:
           name: standard-substrate-${{ steps.arch.outputs.DETAILS }}
           if-no-files-found: error

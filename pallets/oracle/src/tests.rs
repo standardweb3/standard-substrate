@@ -62,7 +62,7 @@ fn oracle_slash_works() {
 		// should detect outlier and slash the provider
 		assert_ok!(Oracle::slash(Origin::signed(slasher), 0, 1));
 		// slot for oracle submission is now empty
-		assert_eq!(Oracle::provider_at(0), 0);
+		assert_eq!(Oracle::provider_at(0), None);
 	})
 }
 
