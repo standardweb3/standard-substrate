@@ -142,7 +142,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("opportunity"),
 	impl_name: create_runtime_str!("opportunity10"),
 	authoring_version: 2,
-	spec_version: 9171,
+	spec_version: 9190,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 7,
