@@ -75,7 +75,7 @@ jobs:
 
       - name: Build Changelog
         id: build-changelog
-        uses: mikepenz/release-changelog-builder-action@v2.9.0
+        uses: mikepenz/release-changelog-builder-action@v3.1.1
         if: github.ref == 'refs/heads/master'
         with:
           configuration: ".github/release_notes_config.json"
