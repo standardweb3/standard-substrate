@@ -12,7 +12,7 @@ version = "4.0.0-dev"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-serde = { version = "1.0.136", optional = true }
+serde = { version = "1.0.141", optional = true }
 codec = { package = "parity-scale-codec", version = "3.1.2", features = ["derive"], default-features = false }
 scale-info = { version = "2.1.1", default-features = false, features = ["derive"] }
 
